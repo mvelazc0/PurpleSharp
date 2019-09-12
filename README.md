@@ -3,7 +3,8 @@ PurpleSharp is a C# adversary simulation tool that executes adversary techniques
 
 Visit the Wiki to view the [Demos](https://github.com/mvelazc0/PurpleSharp/wiki/Demos)
 
-PurpleSharp has first presented at Derbycon 2019.
+PurpleSharp has first presented at [Derbycon IX](https://www.youtube.com/watch?v=7TVp4g4hkpg). 
+
 
 ## Authors
 
