@@ -113,6 +113,7 @@ class Launcher
         return true;
     }
 
+    // From https://www.codeproject.com/Articles/35773/Subverting-Vista-UAC-in-Both-32-and-64-bit-Archite
     public static bool StartProcessAsLoggedUser(String applicationName, string startingDir, out Structs.PROCESS_INFORMATION procInfo)
     {
         int winlogonPid = 0;

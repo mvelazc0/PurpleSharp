@@ -173,6 +173,10 @@ namespace PurpleSharp
                     Simulations.Discovery.NetworkServiceDiscovery(computertype, nhosts, sleep);
                     break;
 
+                case "T1086":
+                    Simulations.Execution.ExecutePowershell();
+                    break;
+
                 default:
                     break;
 

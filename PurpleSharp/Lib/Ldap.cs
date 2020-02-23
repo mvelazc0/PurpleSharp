@@ -60,7 +60,8 @@ namespace PurpleSharp
                 // badPwdCount<=3 minimize the risk of locking accounts
 
                 //if (Enabled) search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
-                if (Enabled) search.Filter = "(&(objectCategory=person)(objectClass=user)(lastLogon>=" + ftAccountExpires.ToString() + ")(badPwdCount<=3)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+                //if (Enabled) search.Filter = "(&(objectCategory=person)(objectClass=user)(lastLogon>=" + ftAccountExpires.ToString() + ")(badPwdCount<=3)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+                if (Enabled) search.Filter = "(&(objectCategory=person)(objectClass=user)(lastLogon>=" + ftAccountExpires.ToString() + ")(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
                 else search.Filter = "(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=2))";
                 search.PropertiesToLoad.Add("samaccountname");
                 search.PropertiesToLoad.Add("usergroup");
@@ -72,6 +73,7 @@ namespace PurpleSharp
                 else Console.WriteLine("[*] Querying for disabled domain users ..");
 
                 SearchResultCollection resultCol = search.FindAll();
+                
                 if (resultCol != null)
                 {
                     for (int counter = 0; counter < resultCol.Count; counter++)

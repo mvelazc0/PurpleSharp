@@ -8,5 +8,11 @@ namespace PurpleSharp.Simulations
 {
     class Execution
     {
+        static public void ExecutePowershell()
+        {
+            ExecutionHelper.StartProcess("", "powershell.exe -enc UwB0AGEAcgB0AC0AUAByAG8AYwBlAHMAcwAgAC0ARgBpAGwAZQBQAGEAdABoACAAbgBvAHQAZQBwAGEAZAA=");
+
+        }
+
     }
 }
