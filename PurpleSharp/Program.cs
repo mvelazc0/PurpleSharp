@@ -15,15 +15,15 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string technique, tactic, password, command;
+            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
             nusers = nhosts = 5;
             bool cleanup = false;
-            technique = tactic =  "";
+            technique = tactic = rhost = domain = ruser = rpwd = "";
             command = "ipconfig.exe";
-            password = "Summer2019!";
+            pwd = "Summer2019!";
 
             if (args.Length == 0)
             {
@@ -37,11 +37,23 @@ namespace PurpleSharp
                 {
                     switch (args[i])
                     {
+                        case "/rhost":
+                            rhost = args[i + 1];
+                            break;
+                        case "/ruser":
+                            ruser = args[i + 1];
+                            break;
+                        case "/domain":
+                            domain = args[i + 1];
+                            break;
+                        case "/rpwd":
+                            rpwd = args[i + 1];
+                            break;
                         case "/technique":
                             technique = args[i + 1];
                             break;
-                        case "/password":
-                            password = args[i + 1];
+                        case "/pwd":
+                            pwd = args[i + 1];
                             break;
                         case "/tactic":
                             tactic = args[i + 1];
@@ -87,10 +99,31 @@ namespace PurpleSharp
                 }
                 
             }
-            ExecuteTechnique(technique, type, usertype, nusers, hosttype, nhosts, protocol, sleep, password, command, cleanup);
+            if (rhost != "")
+            {
+                ExecuteRemote(rhost, domain, ruser, rpwd, technique);
 
-
+            }
+            else 
+            {
+                ExecuteTechnique(technique, type, usertype, nusers, hosttype, nhosts, protocol, sleep, pwd, command, cleanup);
+            }
             
+            
+        }
+
+        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique)
+        {
+            string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            string executionPath = "C:\\Windows\\Temp\\PurpleSharp.exe";
+            Lib.RemoteLauncher.upload(uploadPath, executionPath, rhost, ruser, rpwd, domain);
+            System.Threading.Thread.Sleep(3000);
+            string cmdline = "/technique "+ technique;
+            Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
+            System.Threading.Thread.Sleep(3000);
+            Lib.RemoteLauncher.delete(executionPath, rhost, ruser, rpwd, domain);
+
+
         }
 
         public static void ExecuteTechnique(string technique, int type, int usertype, int nuser, int computertype, int nhosts, int protocol, int sleep, string password, string command, bool cleanup)
@@ -175,6 +208,10 @@ namespace PurpleSharp
 
                 case "T1086":
                     Simulations.Execution.ExecutePowershell();
+                    break;
+
+                case "T1117":
+                    Simulations.Execution.ExecuteRegsvr32();
                     break;
 
                 default:

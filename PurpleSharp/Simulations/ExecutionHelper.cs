@@ -1,6 +1,7 @@
 
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace PurpleSharp.Simulations
@@ -33,8 +34,17 @@ namespace PurpleSharp.Simulations
 
             retValue = WinAPI.CreateProcess(null, cmdline, ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
 
-            Console.WriteLine("Process ID (PID): " + pInfo.dwProcessId);
-            Console.WriteLine("Process Handle : " + pInfo.hProcess);
+            using (StreamWriter writer = new StreamWriter(@"C:\Windows\Temp\PurpleSharp_log.txt", true))
+            {
+                Console.WriteLine("Process ID (PID): " + pInfo.dwProcessId);
+                Console.WriteLine("Process Handle : " + pInfo.hProcess);
+                writer.WriteLine("Process ID (PID): " + pInfo.dwProcessId);
+                writer.WriteLine("Process Handle : " + pInfo.hProcess);
+
+            }
+
+
+                
         }
 
         public static void StartProcessAsUser(string binary, string cmdline, string domain, string username, string password)
