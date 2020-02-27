@@ -17,7 +17,7 @@ class Launcher
     [DllImport("kernel32.dll")]
     static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
 
-    public static bool SpoofParent(int parentProcessId, string binaryPath)
+    public static bool SpoofParent(int parentProcessId, string binaryPath, string cmdLine)
     {
 
         // STARTUPINFOEX members
@@ -101,7 +101,7 @@ class Launcher
         ts.nLength = Marshal.SizeOf(ts);
         //bool ret = CreateProcess(null, command, ref ps, ref ts, true, EXTENDED_STARTUPINFO_PRESENT | CREATE_NO_WINDOW, IntPtr.Zero, null, ref siEx, out pInfo);
         Console.WriteLine("About to call create processd");
-        bool ret = WinAPI.CreateProcess(binaryPath, null, ref ps, ref ts, true, EXTENDED_STARTUPINFO_PRESENT | CREATE_NO_WINDOW, IntPtr.Zero, null, ref siEx, out pInfo);
+        bool ret = WinAPI.CreateProcess(binaryPath, cmdLine, ref ps, ref ts, true, EXTENDED_STARTUPINFO_PRESENT | CREATE_NO_WINDOW, IntPtr.Zero, null, ref siEx, out pInfo);
         Console.WriteLine(Marshal.GetLastWin32Error());
         if (!ret)
         {
