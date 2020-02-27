@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
+using System.Text;
 
 namespace PurpleSharp
 {
@@ -166,14 +167,36 @@ namespace PurpleSharp
 
         public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, bool opsec)
         {
+            if (rpwd == "")
+            {
+                Console.Write("Password: ");
+                StringBuilder passwordBuilder = new StringBuilder();
+                bool continueReading = true;
+                char newLineChar = '\r';
+                while (continueReading)
+                {
+                    ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(true);
+                    char passwordChar = consoleKeyInfo.KeyChar;
+
+                    if (passwordChar == newLineChar)
+                    {
+                        continueReading = false;
+                    }
+                    else
+                    {
+                        passwordBuilder.Append(passwordChar.ToString());
+                    }
+                }
+                rpwd = passwordBuilder.ToString();
+            }
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
-            string executionPath = "C:\\Windows\\Temp\\PurpleSharp.exe";
+            string executionPath = "C:\\Windows\\Temp\\Blackstone.exe";
             Lib.RemoteLauncher.upload(uploadPath, executionPath, rhost, ruser, rpwd, domain);
             System.Threading.Thread.Sleep(3000);
-            string cmdline = "/technique "+ technique;
-            if (opsec) cmdline = cmdline + " /opsec";
-            Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
-            System.Threading.Thread.Sleep(3000);
+            //string cmdline = "/technique "+ technique;
+            //if (opsec) cmdline = cmdline + " /opsec";
+            //Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
+            System.Threading.Thread.Sleep(13000);
             Lib.RemoteLauncher.delete(executionPath, rhost, ruser, rpwd, domain);
 
 
