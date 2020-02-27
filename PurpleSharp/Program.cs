@@ -190,12 +190,12 @@ namespace PurpleSharp
                 rpwd = passwordBuilder.ToString();
             }
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
-            string executionPath = "C:\\Windows\\Temp\\Blackstone.exe";
+            string executionPath = "C:\\Windows\\Temp\\Legit.exe";
             Lib.RemoteLauncher.upload(uploadPath, executionPath, rhost, ruser, rpwd, domain);
             System.Threading.Thread.Sleep(3000);
-            //string cmdline = "/technique "+ technique;
-            //if (opsec) cmdline = cmdline + " /opsec";
-            //Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
+            string cmdline = "/technique "+ technique;
+            if (opsec) cmdline = cmdline + " /opsec";
+            Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
             System.Threading.Thread.Sleep(13000);
             Lib.RemoteLauncher.delete(executionPath, rhost, ruser, rpwd, domain);
 
