@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Lib\Impersonator.cs" />
+    <Compile Include="Lib\Logger.cs" />
     <Compile Include="Lib\RemoteLauncher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

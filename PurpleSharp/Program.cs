@@ -111,7 +111,7 @@ namespace PurpleSharp
             if (rhost == "" && opsec)
             {
 
-                //Write.Console
+                Lib.Logger logger = new Lib.Logger("C:\\Windows\\Temp\\PurpleSharp.txt");
                 //Launcher.SpoofParent(3568, "C:\\Users\\labz\\Desktop\\Test.exe", "");
                 Process[] pr = Process.GetProcessesByName("explorer");
 
@@ -125,8 +125,10 @@ namespace PurpleSharp
                 string fullPath = process.MainModule.FileName;
                 Console.WriteLine(fullPath);
                 string path = "C:\\Users\\" + shortuser + "\\AppData\\Local\\Temp\\ChromeSetup.exe";
+                logger.Info("Copying binary to appdata temp " + path);
                 Console.WriteLine("Copying binary to appdata temp " + path);
                 File.Copy(fullPath, path);
+                logger.Info("Launching command " + path + " throufh Parent Process Spoofing");
                 Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
                 return;
 

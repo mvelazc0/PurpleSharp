@@ -1,5 +1,3 @@
-
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -10,20 +8,12 @@ namespace PurpleSharp.Simulations
     {
         public static void StartProcess(string binary, string cmdline)
         {
-
+            Lib.Logger logger = new Lib.Logger("C:\\Users\\test\\AppData\\Local\\Temp\\PurpleSharp.txt");
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
-            bool retValue;
-            string Application;
-            if (binary == "powershell")
-            {
-                Application = Environment.GetEnvironmentVariable("windir") + @"\System32\WindowsPowerShell\v1.0\" + binary + ".exe " + cmdline;
-                Console.WriteLine(Environment.GetEnvironmentVariable("windir") + @"\System32\WindowsPowerShell\v1.0\" + binary + ".exe " + cmdline);
-            }
-            else
-            {
-                Application = Environment.GetEnvironmentVariable("windir") + @"\" + binary + ".exe " + @cmdline;
-            }
+            logger.TimestampInfo(String.Format("Starting Process Execution on {0}", Environment.MachineName));
+            logger.Info(@cmdline);
 
+            bool retValue;
             string CommandLine = @cmdline;
             Structs.PROCESS_INFORMATION pInfo = new Structs.PROCESS_INFORMATION();
             Structs.STARTUPINFO sInfo = new Structs.STARTUPINFO();
@@ -34,17 +24,14 @@ namespace PurpleSharp.Simulations
 
             retValue = WinAPI.CreateProcess(null, cmdline, ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
 
-            using (StreamWriter writer = new StreamWriter(@"C:\Windows\Temp\PurpleSharp_log.txt", true))
+            if (retValue)
             {
-                Console.WriteLine("Process ID (PID): " + pInfo.dwProcessId);
-                Console.WriteLine("Process Handle : " + pInfo.hProcess);
-                writer.WriteLine("Process ID (PID): " + pInfo.dwProcessId);
-                writer.WriteLine("Process Handle : " + pInfo.hProcess);
-
+                logger.TimestampInfo(String.Format("Process ID (PID): " + pInfo.dwProcessId));
+                logger.TimestampInfo(String.Format("Process Handle: " + pInfo.hProcess));
             }
+            else logger.TimestampInfo(String.Format("CreateProcess Failed"));
 
 
-                
         }
 
         public static void StartProcessAsUser(string binary, string cmdline, string domain, string username, string password)
