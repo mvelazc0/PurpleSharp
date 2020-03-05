@@ -8,7 +8,8 @@ namespace PurpleSharp.Simulations
     {
         public static void StartProcess(string binary, string cmdline)
         {
-            Lib.Logger logger = new Lib.Logger("C:\\Users\\test\\AppData\\Local\\Temp\\PurpleSharp.txt");
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
             logger.TimestampInfo(String.Format("Starting Process Execution on {0}", Environment.MachineName));
             logger.Info(@cmdline);

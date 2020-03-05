@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Text;
+
 
 namespace PurpleSharp
 {
@@ -111,25 +111,21 @@ namespace PurpleSharp
             if (rhost == "" && opsec)
             {
 
-                Lib.Logger logger = new Lib.Logger("C:\\Windows\\Temp\\PurpleSharp.txt");
-                //Launcher.SpoofParent(3568, "C:\\Users\\labz\\Desktop\\Test.exe", "");
+                string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+                Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
                 Process[] pr = Process.GetProcessesByName("explorer");
 
-                string fullusername = GetProcessOwner(pr[0].Id);
-                Console.WriteLine(fullusername);
-                string shortuser = fullusername.Split('\\')[1];
-                Console.WriteLine(shortuser);
+                string currentUser = GetProcessOwner(pr[0].Id).Split('\\')[1];
+                //string shortuser = currentUser.Split('\\')[1];
 
-
-                Process process = Process.GetCurrentProcess();
-                string fullPath = process.MainModule.FileName;
-                Console.WriteLine(fullPath);
-                string path = "C:\\Users\\" + shortuser + "\\AppData\\Local\\Temp\\ChromeSetup.exe";
-                logger.Info("Copying binary to appdata temp " + path);
-                Console.WriteLine("Copying binary to appdata temp " + path);
+                string fullPath = Process.GetCurrentProcess().MainModule.FileName;
+                string path = "C:\\Users\\" + currentUser + "\\AppData\\Local\\Temp\\ChromeSetup.exe";
+                logger.Info("Copying binary to Appdata: " + path);
                 File.Copy(fullPath, path);
-                logger.Info("Launching command " + path + " throufh Parent Process Spoofing");
+                logger.Info("Spoofing explorer.exe. PID: " + pr[0].Id.ToString());
+                logger.Info("Executing: " + path );
                 Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
+                
                 return;
 
             }

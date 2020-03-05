@@ -69,6 +69,21 @@ namespace PurpleSharp.Lib
     //Most of this is based on SharpExec (https://github.com/anthemtotheego/SharpExec)
     class RemoteLauncher
     {
+        public static string readFile(string path, string ruser, string rpwd, string domain)
+        {
+            string txt = "";
+            using (new Impersonation(domain, ruser, rpwd))
+            {
+                FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                StreamReader sr = new StreamReader(fs);
+                txt = sr.ReadToEnd();
+                sr.Close();
+
+            }
+            return txt;
+        }
+
+
         public static void upload(string uploadPath, string executionPath, string rhost, string ruser, string rpwd, string domain)
         {
             if (ruser == "" && rpwd == "")
@@ -99,6 +114,7 @@ namespace PurpleSharp.Lib
 
 
                     File.Copy(uploadPath, destpath);
+                    
 
                     Console.WriteLine("[+] File uploaded successfully");
                 }
