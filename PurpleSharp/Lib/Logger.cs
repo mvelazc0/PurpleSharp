@@ -20,8 +20,8 @@ namespace PurpleSharp.Lib
         else logFilename = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + FILE_EXT;
 
 
-        // Log file header line
-        string logHeader = logFilename + " is created.";
+        //string logHeader = logFilename + " is created.";
+        string logHeader = "[*]";
         if (!System.IO.File.Exists(logFilename))
         {
             WriteLine(System.DateTime.Now.ToString(datetimeFormat) + " " + logHeader, false);

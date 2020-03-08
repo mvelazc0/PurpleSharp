@@ -12,7 +12,7 @@ namespace PurpleSharp.Simulations
             Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
             logger.TimestampInfo(String.Format("Starting Process Execution on {0}", Environment.MachineName));
-            logger.Info(@cmdline);
+            logger.TimestampInfo(@cmdline);
 
             bool retValue;
             string CommandLine = @cmdline;

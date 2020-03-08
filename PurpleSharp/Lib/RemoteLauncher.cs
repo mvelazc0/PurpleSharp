@@ -15,63 +15,13 @@ using System.Management;
 namespace PurpleSharp.Lib
 {
 
-    /*
-    //Reference https://stackoverflow.com/questions/22544903/impersonate-for-entire-application-lifecycle
-    [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-    public  class Impersonation : IDisposable
-    {
-        private readonly SafeTokenHandle _handle;
-        private readonly WindowsImpersonationContext _context;
-
-        const int LOGON32_LOGON_NEW_CREDENTIALS = 2;
-
-        public Impersonation(string domain, string username, string password)
-        {
-            var ok = LogonUser(username, domain, password,
-                           LOGON32_LOGON_NEW_CREDENTIALS, 0, out this._handle);
-            if (!ok)
-            {
-                var errorCode = Marshal.GetLastWin32Error();
-                throw new ApplicationException(string.Format("Could not impersonate the elevated user.  LogonUser returned error code {0}.", errorCode));
-            }
-
-            this._context = WindowsIdentity.Impersonate(this._handle.DangerousGetHandle());
-        }
-
-        public void Dispose()
-        {
-            this._context.Dispose();
-            this._handle.Dispose();
-        }
-
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern bool LogonUser(String lpszUsername, String lpszDomain, String lpszPassword, int dwLogonType, int dwLogonProvider, out SafeTokenHandle phToken);
-
-        public sealed class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
-        {
-            private SafeTokenHandle()
-                : base(true) { }
-
-            [DllImport("kernel32.dll")]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
-            [SuppressUnmanagedCodeSecurity]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            private static extern bool CloseHandle(IntPtr handle);
-
-            protected override bool ReleaseHandle()
-            {
-                return CloseHandle(handle);
-            }
-        }
-    }
-    */
-
     //Most of this is based on SharpExec (https://github.com/anthemtotheego/SharpExec)
     class RemoteLauncher
     {
-        public static string readFile(string path, string ruser, string rpwd, string domain)
+        public static string readFile(string rhost, string path, string ruser, string rpwd, string domain)
         {
             string txt = "";
+            path = @"\\"+rhost+"\\"+path.Replace(":", "$");
             using (new Impersonation(domain, ruser, rpwd))
             {
                 FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -161,9 +111,9 @@ namespace PurpleSharp.Lib
             {
                 ManagementScope myScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", rhost));
                 ManagementClass myClass = new ManagementClass(myScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
+                Console.WriteLine("[+] Executing command " + executionPath + " " + cmdArgs + " on:" + rhost);
                 myClass.InvokeMethod("Create", myProcess);
-                Console.WriteLine();
-                Console.WriteLine("[+] Process created successfully");
+                Console.WriteLine("[!] Process created successfully");
             }
             else
             {
@@ -176,10 +126,9 @@ namespace PurpleSharp.Lib
                 myConnection.Password = password;
                 ManagementScope myScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", rhost), myConnection);
                 ManagementClass myClass = new ManagementClass(myScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
+                Console.WriteLine("[+] Executing command " + executionPath + " " + cmdArgs + " on:" + rhost);
                 myClass.InvokeMethod("Create", myProcess);
-                Console.WriteLine("[!] Executing command " + executionPath + " " + cmdArgs + " on:" + rhost);
-                //Console.WriteLine();
-                Console.WriteLine("[+] Process created successfully");
+                Console.WriteLine("[!] Process created successfully");
             }
         }
 

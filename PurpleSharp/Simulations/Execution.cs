@@ -10,13 +10,6 @@ namespace PurpleSharp.Simulations
     {
         static public void ExecutePowershell()
         {
-            /*
-            string binpath;
-            binpath = Environment.GetEnvironmentVariable("windir") + @"\System32\WindowsPowerShell\v1.0\" + binary + ".exe " + cmdline;
-            Console.WriteLine(Environment.GetEnvironmentVariable("windir") + @"\System32\WindowsPowerShell\v1.0\" + binary + ".exe " + cmdline);
-            binpath = Environment.GetEnvironmentVariable("windir") + @"\" + binary + ".exe " + @cmdline;
-            */
-
             //ExecutionHelper.StartProcess("", "powershell.exe -enc UwB0AGEAcgB0AC0AUAByAG8AYwBlAHMAcwAgAC0ARgBpAGwAZQBQAGEAdABoACAAbgBvAHQAZQBwAGEAZAA=");
             ExecutionHelper.StartProcess("", "powershell.exe -enc UwB0AGEAcgB0AC0AUwBsAGUAZQBwACAALQBzACAAMgAwAA==");
         }
