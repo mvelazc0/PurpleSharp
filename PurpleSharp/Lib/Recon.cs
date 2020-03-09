@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Text;
@@ -9,6 +10,31 @@ namespace PurpleSharp.Lib
 {
     class Recon
     {
+        public static Process GetHostProcess(bool elevated = false)
+        {
+
+            Process chrome = Process.GetProcessesByName("chrome").FirstOrDefault();
+            Process firefox = Process.GetProcessesByName("firefox").FirstOrDefault();
+            Process iexplore = Process.GetProcessesByName("iexplore").FirstOrDefault();
+            Process edge = Process.GetProcessesByName("MicrosoftEdge").FirstOrDefault();
+            Process winword = Process.GetProcessesByName("winword").FirstOrDefault();
+            Process excel = Process.GetProcessesByName("excel").FirstOrDefault();
+            Process outlook = Process.GetProcessesByName("outlook").FirstOrDefault();
+            Process explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
+
+            if (chrome != null) return chrome;
+            else if (firefox != null) return firefox;
+            else if (iexplore != null) return iexplore;
+            else if (edge != null) return edge;
+            else if (winword != null) return excel;
+            else if (excel != null) return excel;
+            else if (outlook != null) return outlook;
+            else if (explorer != null) return explorer;
+            else return null;
+
+        }
+
+
         //https://codereview.stackexchange.com/questions/68076/user-logged-onto-windows
         public static string GetProcessOwner(int processId)
         {

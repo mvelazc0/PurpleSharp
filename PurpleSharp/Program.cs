@@ -152,6 +152,7 @@ namespace PurpleSharp
                 }
                 rpwd = passwordBuilder.ToString();
             }
+            Console.WriteLine();
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             string dirpath = "C:\\Windows\\Temp\\";
             string orchestrator = "Legit.exe";
@@ -170,6 +171,15 @@ namespace PurpleSharp
                 //Console.WriteLine("[+] Performing recon on "+rhost);
                 string[] result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe").Split(',');
                 string loggeduser=result[0];
+
+                if (loggeduser == "")
+                {
+                    Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: "+rhost+"?");
+                    Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                    Console.WriteLine("[!] Exitting.");
+                    return;
+
+                }
 
                 Console.WriteLine("[!] Recon results: "+String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}" ,loggeduser, result[1], result[2]));
                 //Console.WriteLine("function returned with: " + result);

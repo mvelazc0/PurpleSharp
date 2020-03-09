@@ -16,6 +16,8 @@ namespace PurpleSharp.Lib
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
 
+            Process parentprocess = Recon.GetHostProcess();
+
             Process[] pr = Process.GetProcessesByName("explorer");
             Process[] winlogon = Process.GetProcessesByName("winlogon");
             string loggedUser = Recon.GetProcessOwner(pr[0].Id).Split('\\')[1];
@@ -33,6 +35,9 @@ namespace PurpleSharp.Lib
                 pipeServer.WaitForConnection();
                 logger.TimestampInfo("Server has connection from client");
                 string payload = String.Format("{0},{1},{2}",loggedUser, pr[0].ProcessName,pr[0].Id);
+
+                //TODO: handle the escenario for no suitable process was found.
+
                 writer.WriteLine(payload);
                 writer.Flush();
                 pipeServer.WaitForPipeDrain();
@@ -43,10 +48,7 @@ namespace PurpleSharp.Lib
                 {
                     logger.TimestampInfo("Exitting named pipe servlce");
                     writer.WriteLine("quit");
-                    running = false;
-
-                    
-                    
+                    running = false;  
                     logger.TimestampInfo("Spoofing explorer.exe. PID: " + pr[0].Id.ToString());
                     logger.TimestampInfo("Executing: " + path + " /technique " + technique);
 
