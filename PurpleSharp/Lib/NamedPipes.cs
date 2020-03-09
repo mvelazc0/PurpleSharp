@@ -17,9 +17,10 @@ namespace PurpleSharp.Lib
             Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
 
             Process[] pr = Process.GetProcessesByName("explorer");
-            string currentUser = GetProcessOwner(pr[0].Id).Split('\\')[1];
+            Process[] winlogon = Process.GetProcessesByName("winlogon");
+            string loggedUser = GetProcessOwner(pr[0].Id).Split('\\')[1];
 
-            string path = "C:\\Users\\" + currentUser + "\\Downloads\\ChromeSetup.exe";
+            string path = "C:\\Users\\" + loggedUser + "\\Downloads\\ChromeSetup.exe";
 
             var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut);
             var reader = new StreamReader(pipeServer);
@@ -31,7 +32,7 @@ namespace PurpleSharp.Lib
                 logger.TimestampInfo("Server is waiting for a client");
                 pipeServer.WaitForConnection();
                 logger.TimestampInfo("Server has connection from client");
-                writer.WriteLine(currentUser);
+                writer.WriteLine(loggedUser);
                 writer.Flush();
                 pipeServer.WaitForPipeDrain();
                 var message = reader.ReadLine();
@@ -39,13 +40,18 @@ namespace PurpleSharp.Lib
                 logger.TimestampInfo("Server: Recieved message from client: "+ message);
                 if (message.Equals("quit"))
                 {
-                    logger.TimestampInfo("Exitting!");
+                    logger.TimestampInfo("Exitting named pipe servlce");
                     writer.WriteLine("quit");
                     running = false;
+
+                    
+                    
                     logger.TimestampInfo("Spoofing explorer.exe. PID: " + pr[0].Id.ToString());
-                    logger.TimestampInfo("Executing: " + path + " /technique "+technique);
+                    logger.TimestampInfo("Executing: " + path + " /technique " + technique);
 
                     Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
+                    //Launcher.SpoofParent(winlogon[0].Id, path, "ChromeSetup.exe /technique " + technique);
+
                 }
                 pipeServer.Disconnect(); 
             }
