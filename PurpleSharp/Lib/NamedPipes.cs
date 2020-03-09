@@ -18,7 +18,7 @@ namespace PurpleSharp.Lib
 
             Process[] pr = Process.GetProcessesByName("explorer");
             Process[] winlogon = Process.GetProcessesByName("winlogon");
-            string loggedUser = GetProcessOwner(pr[0].Id).Split('\\')[1];
+            string loggedUser = Recon.GetProcessOwner(pr[0].Id).Split('\\')[1];
 
             string path = "C:\\Users\\" + loggedUser + "\\Downloads\\ChromeSetup.exe";
 
@@ -32,7 +32,8 @@ namespace PurpleSharp.Lib
                 logger.TimestampInfo("Server is waiting for a client");
                 pipeServer.WaitForConnection();
                 logger.TimestampInfo("Server has connection from client");
-                writer.WriteLine(loggedUser);
+                string payload = String.Format("{0},{1},{2}",loggedUser, pr[0].ProcessName,pr[0].Id);
+                writer.WriteLine(payload);
                 writer.Flush();
                 pipeServer.WaitForPipeDrain();
                 var message = reader.ReadLine();
@@ -69,7 +70,7 @@ namespace PurpleSharp.Lib
                 {
                     //Console.WriteLine("Client is waiting to connect");
                     if (!pipeClient.IsConnected) { pipeClient.Connect(); }
-                    Console.WriteLine("[!] Client is connected");
+                    //Console.WriteLine("[!] Client is connected");
 
                     using (var reader = new StreamReader(pipeClient))
                     {
@@ -81,7 +82,7 @@ namespace PurpleSharp.Lib
                             var message = reader.ReadLine();
                             if (message != null)
                             {
-                                Console.WriteLine("[!] Obtained info from named pipe server");
+                                //Console.WriteLine("[!] Obtained info from named pipe server");
                                 //Console.WriteLine("Client: Recieved from server {0}", message);
                                 return message;
                             }
@@ -93,25 +94,5 @@ namespace PurpleSharp.Lib
             }
         }
 
-        //https://codereview.stackexchange.com/questions/68076/user-logged-onto-windows
-        public static string GetProcessOwner(int processId)
-        {
-            string query = "Select * From Win32_Process Where ProcessID = " + processId;
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-            ManagementObjectCollection processList = searcher.Get();
-
-            foreach (ManagementObject obj in processList)
-            {
-                string[] argList = new string[] { string.Empty, string.Empty };
-                int returnVal = Convert.ToInt32(obj.InvokeMethod("GetOwner", argList));
-                if (returnVal == 0)
-                {
-                    // return DOMAIN\user
-                    return argList[1] + "\\" + argList[0];
-                }
-            }
-
-            return "NO OWNER";
-        }
     }
 }

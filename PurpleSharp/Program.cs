@@ -153,46 +153,58 @@ namespace PurpleSharp
                 rpwd = passwordBuilder.ToString();
             }
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
-            string executionPath = "C:\\Windows\\Temp\\Legit.exe";
-            Lib.RemoteLauncher.upload(uploadPath, executionPath, rhost, ruser, rpwd, domain);
+            string dirpath = "C:\\Windows\\Temp\\";
+            string orchestrator = "Legit.exe";
+            string simulator = "ChromeSetup.exe";
+            string log = "PurpleSharp.txt";
+
+
+            //string executionPath = "C:\\Windows\\Temp\\Legit.exe";
+            Lib.RemoteLauncher.upload(uploadPath, dirpath + orchestrator, rhost, ruser, rpwd, domain);
             System.Threading.Thread.Sleep(3000);
             string cmdline = "/technique "+ technique;
             if (opsec)
             {
                 cmdline = cmdline + " /opsec";
-                Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
-                Console.WriteLine("[+] Connecting to named pipe...");
-                string result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe");
-                //Console.WriteLine("function returned with: " + result);
-                string path = "C:\\Users\\" + result + "\\Downloads\\";
-                //string path = "C:\\Users\\" + result + "\\Downloads\\ChromeSetup.exe";
-                Lib.RemoteLauncher.upload(uploadPath, path + "ChromeSetup.exe", rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
+                //Console.WriteLine("[+] Performing recon on "+rhost);
+                string[] result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe").Split(',');
+                string loggeduser=result[0];
 
-                Console.WriteLine("[+] Sending stop command...");
-                result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", true);
+                Console.WriteLine("[!] Recon results: "+String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}" ,loggeduser, result[1], result[2]));
+                //Console.WriteLine("function returned with: " + result);
+                string path = "C:\\Users\\" + loggeduser + "\\Downloads\\";
+                //string path = "C:\\Users\\" + result + "\\Downloads\\ChromeSetup.exe";
+                Lib.RemoteLauncher.upload(uploadPath, path + simulator, rhost, ruser, rpwd, domain);
+
+                Console.WriteLine("[+] Executing Simulation...");
+                //Console.WriteLine("[+] Sending stop command...");
+                Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", true);
+
                 System.Threading.Thread.Sleep(3000);
                 Console.WriteLine("[+] Cleaning up...");
-                Lib.RemoteLauncher.delete(executionPath, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(path + "ChromeSetup.exe", rhost, ruser, rpwd, domain);
-                Console.WriteLine("[+] Obtaining results...");
-                string results = Lib.RemoteLauncher.readFile(rhost, path + "PurpleSharp.txt", ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
+                Console.WriteLine("[+] Obtaining simulation results...");
+                string results = Lib.RemoteLauncher.readFile(rhost, path + log, ruser, rpwd, domain);
                 Console.WriteLine("[+] Results:");
                 Console.WriteLine();
                 Console.WriteLine(results);
-                Lib.RemoteLauncher.delete(path + "PurpleSharp.txt", rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(path + log, rhost, ruser, rpwd, domain);
             }
             else 
             {
-                Lib.RemoteLauncher.wmiexec(rhost, executionPath, cmdline, domain, ruser, rpwd);
+                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
                 System.Threading.Thread.Sleep(3000);
                 Console.WriteLine("[+] Obtaining results...");
-                string results = Lib.RemoteLauncher.readFile(rhost, "C:\\Windows\\Temp\\" + "PurpleSharp.txt", ruser, rpwd, domain);
+                string results = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
                 Console.WriteLine("[+] Results:");
                 Console.WriteLine();
                 Console.WriteLine(results);
                 Console.WriteLine("[+] Cleaning up...");
-                Lib.RemoteLauncher.delete(executionPath, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete("C:\\Windows\\Temp\\" + "PurpleSharp.txt", rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
             }
             
 
@@ -289,6 +301,10 @@ namespace PurpleSharp
 
                 case "T1136":
                     Simulations.Persistence.CreateAccountCmd();
+                    break;
+
+                case "T1087":
+                    Simulations.Discovery.AccountDiscovery();
                     break;
 
                 default:

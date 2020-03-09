@@ -79,6 +79,13 @@ namespace PurpleSharp.Simulations
 
         }
 
+        public static void AccountDiscovery()
+        {
+            ExecutionHelper.StartProcess("", "net user /domain");
+            ExecutionHelper.StartProcess("", "net group \" Domain Admins\" /domain");
+
+        }
+
 
     }
 

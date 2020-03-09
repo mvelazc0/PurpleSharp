@@ -66,8 +66,12 @@ namespace PurpleSharp.Simulations
         
         public static void LsassRead()
         {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
+
             if (!IsHighIntegrity())
             {
+                logger.TimestampInfo("[X] Not running in high integrity, exitting.");
                 Console.WriteLine("[X] Not running in high integrity, exitting.");
                 return;
             }
@@ -123,16 +127,22 @@ namespace PurpleSharp.Simulations
         //Adapted from https://github.com/GhostPack/SharpDump
         public static void LsassMemoryDump()
         {
-            Console.WriteLine("[*] Starting LSASS Dump on {0}", Environment.MachineName);
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
+
+            logger.TimestampInfo(String.Format("Starting LSASS Dump on {0}  ", Environment.MachineName));
+
+            //Console.WriteLine("Starting LSASS Dump on {0}", Environment.MachineName);
             IntPtr targetProcessHandle = IntPtr.Zero;
             uint targetProcessId = 0;
 
             if (!IsHighIntegrity())
             {
+                logger.TimestampInfo("[X] Not running in high integrity, exitting.");
                 Console.WriteLine("[X] Not running in high integrity, exitting.");
                 return;
             }
-
+            
             Process targetProcess = null;
             Process[] processes = Process.GetProcessesByName("lsass");
             targetProcess = processes[0];

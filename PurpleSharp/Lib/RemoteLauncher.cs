@@ -36,38 +36,51 @@ namespace PurpleSharp.Lib
 
         public static void upload(string uploadPath, string executionPath, string rhost, string ruser, string rpwd, string domain)
         {
-            if (ruser == "" && rpwd == "")
+            string share = executionPath.Replace(":", "$");
+            string destpath = @"\\" + rhost + @"\" + share;
+            try
             {
 
-                string share = executionPath.Replace(":", "$");
-                string destpath = @"\\" + rhost + @"\" + share;
-                Console.WriteLine("[+] Grabbing file from " + uploadPath);
-                Console.WriteLine("[+] Uploading to " + destpath);
-                File.Copy(uploadPath, destpath);
-                Console.WriteLine("[+] File uploaded successfully");
-            }
-            else
-            {
-                using (new Impersonation(domain, ruser, rpwd))
+                if (ruser == "" && rpwd == "")
                 {
-                    string share = executionPath.Replace(":", "$");
-                    string destpath = @"\\" + rhost + @"\" + share;
-                    Console.WriteLine("[+] Grabbing file from " + uploadPath);
-                    Console.WriteLine("[+] Uploading to " + destpath);
 
-                    /*
-                    Console.WriteLine("ExecutionPath is: " + executionPath);
-                    Console.WriteLine("uploadPath is: " + uploadPath);
-                    Console.WriteLine("share is: " + share);
-                    Console.WriteLine("destpath is is: " + destpath);
-                    */
-
-
+                    //string share = executionPath.Replace(":", "$");
+                    //string destpath = @"\\" + rhost + @"\" + share;
+                    //Console.WriteLine("[+] Grabbing file from " + uploadPath);
+                    Console.WriteLine("[+] Uploading PurpleSharp to " + destpath);
                     File.Copy(uploadPath, destpath);
-                    
-
                     Console.WriteLine("[+] File uploaded successfully");
                 }
+                else
+                {
+                    using (new Impersonation(domain, ruser, rpwd))
+                    {
+                        //string share = executionPath.Replace(":", "$");
+                        //string destpath = @"\\" + rhost + @"\" + share;
+                        //Console.WriteLine("[+] Grabbing file from " + uploadPath);
+                        Console.WriteLine("[+] Uploading PurpleSharp to " + destpath);
+
+                        /*
+                        Console.WriteLine("ExecutionPath is: " + executionPath);
+                        Console.WriteLine("uploadPath is: " + uploadPath);
+                        Console.WriteLine("share is: " + share);
+                        Console.WriteLine("destpath is is: " + destpath);
+                        */
+
+
+                        File.Copy(uploadPath, destpath);
+
+
+                        //Console.WriteLine("[+] File uploaded successfully");
+                    }
+                }
+            }
+            catch
+            {
+                RemoteLauncher.delete(destpath, rhost, ruser, rpwd, domain);
+                System.Threading.Thread.Sleep(3000);
+                Console.WriteLine("[+] Overwiring existing PurpleSharp binary..." + destpath);
+                using (new Impersonation(domain, ruser, rpwd)) { File.Copy(uploadPath, destpath); }
             }
         }
 
@@ -81,7 +94,7 @@ namespace PurpleSharp.Lib
                     string destpath = @"\\" + rhost + @"\" + share;
                     Console.WriteLine("[+] Deleting " + destpath);
                     File.Delete(destpath);
-                    Console.WriteLine("[+] File removed successfully");
+                    //Console.WriteLine("[+] File removed successfully");
                     Console.WriteLine();
                 }
                 else
@@ -92,8 +105,7 @@ namespace PurpleSharp.Lib
                         string destpath = @"\\" + rhost + @"\" + share;
                         Console.WriteLine("[+] Deleting " + destpath);
                         File.Delete(destpath);
-                        Console.WriteLine("[+] File removed successfully");
-                        Console.WriteLine();
+                        //Console.WriteLine("[+] File removed successfully");
                     }
                 }
             }
@@ -111,7 +123,7 @@ namespace PurpleSharp.Lib
             {
                 ManagementScope myScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", rhost));
                 ManagementClass myClass = new ManagementClass(myScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
-                Console.WriteLine("[+] Executing command " + executionPath + " " + cmdArgs + " on:" + rhost);
+                Console.WriteLine("[+] Executing command: " + executionPath + " " + cmdArgs + " On:" + rhost);
                 myClass.InvokeMethod("Create", myProcess);
                 Console.WriteLine("[!] Process created successfully");
             }
@@ -128,7 +140,7 @@ namespace PurpleSharp.Lib
                 ManagementClass myClass = new ManagementClass(myScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
                 Console.WriteLine("[+] Executing command " + executionPath + " " + cmdArgs + " on:" + rhost);
                 myClass.InvokeMethod("Create", myProcess);
-                Console.WriteLine("[!] Process created successfully");
+                //Console.WriteLine("[!] Process created successfully");
             }
         }
 

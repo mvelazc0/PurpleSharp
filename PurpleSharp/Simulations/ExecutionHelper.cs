@@ -12,7 +12,7 @@ namespace PurpleSharp.Simulations
             Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
             logger.TimestampInfo(String.Format("Starting Process Execution on {0}", Environment.MachineName));
-            logger.TimestampInfo(@cmdline);
+            logger.TimestampInfo("Command line: "+@cmdline);
 
             bool retValue;
             string CommandLine = @cmdline;
@@ -27,8 +27,7 @@ namespace PurpleSharp.Simulations
 
             if (retValue)
             {
-                logger.TimestampInfo(String.Format("Process ID (PID): " + pInfo.dwProcessId));
-                logger.TimestampInfo(String.Format("Process Handle: " + pInfo.hProcess));
+                logger.TimestampInfo(String.Format("Process created. (PID): " + pInfo.dwProcessId));
             }
             else logger.TimestampInfo(String.Format("CreateProcess Failed"));
 
