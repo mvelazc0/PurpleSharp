@@ -17,10 +17,9 @@ namespace PurpleSharp.Lib
             Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
 
             Process parentprocess = Recon.GetHostProcess();
-
-            Process[] pr = Process.GetProcessesByName("explorer");
-            Process[] winlogon = Process.GetProcessesByName("winlogon");
-            string loggedUser = Recon.GetProcessOwner(pr[0].Id).Split('\\')[1];
+            //Process[] pr = Process.GetProcessesByName("explorer");
+            //string loggedUser = Recon.GetProcessOwner(pr[0].Id).Split('\\')[1];
+            string loggedUser = Recon.GetProcessOwner(parentprocess.Id).Split('\\')[1];
 
             string path = "C:\\Users\\" + loggedUser + "\\Downloads\\ChromeSetup.exe";
 
@@ -34,10 +33,12 @@ namespace PurpleSharp.Lib
                 logger.TimestampInfo("Server is waiting for a client");
                 pipeServer.WaitForConnection();
                 logger.TimestampInfo("Server has connection from client");
-                string payload = String.Format("{0},{1},{2}",loggedUser, pr[0].ProcessName,pr[0].Id);
+                string payload = "";
+                //string payload = String.Format("{0},{1},{2}",loggedUser, pr[0].ProcessName,pr[0].Id);
+                if (parentprocess != null) payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
+                else payload = "null,null,null";
 
-                //TODO: handle the escenario for no suitable process was found.
-
+                //string payload =String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
                 writer.WriteLine(payload);
                 writer.Flush();
                 pipeServer.WaitForPipeDrain();
@@ -48,11 +49,13 @@ namespace PurpleSharp.Lib
                 {
                     logger.TimestampInfo("Exitting named pipe servlce");
                     writer.WriteLine("quit");
-                    running = false;  
-                    logger.TimestampInfo("Spoofing explorer.exe. PID: " + pr[0].Id.ToString());
+                    running = false;
+                    //logger.TimestampInfo("Spoofing explorer.exe. PID: " + pr[0].Id.ToString());
+                    logger.TimestampInfo("Spoofing "+parentprocess.ProcessName+" PID: " + parentprocess.Id.ToString());
                     logger.TimestampInfo("Executing: " + path + " /technique " + technique);
+                    //Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
+                    Launcher.SpoofParent(parentprocess.Id, path, "ChromeSetup.exe /technique " + technique);
 
-                    Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
                     //Launcher.SpoofParent(winlogon[0].Id, path, "ChromeSetup.exe /technique " + technique);
 
                 }
