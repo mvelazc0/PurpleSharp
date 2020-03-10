@@ -111,7 +111,7 @@ namespace PurpleSharp
             if (rhost == "" && opsec)
             {
 
-                Lib.NamedPipes.RunServer("testpipe", technique);
+                Lib.NamedPipes.RunServer("testpipe", technique, "Firefox_Installer.exe","001.dat");
                 return;
 
             }
@@ -156,8 +156,8 @@ namespace PurpleSharp
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             string dirpath = "C:\\Windows\\Temp\\";
             string orchestrator = "Legit.exe";
-            string simulator = "ChromeSetup.exe";
-            string log = "PurpleSharp.txt";
+            string simulator = "Firefox_Installer.exe";
+            string log = "001.dat";
 
 
             //string executionPath = "C:\\Windows\\Temp\\Legit.exe";
