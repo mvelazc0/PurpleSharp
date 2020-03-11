@@ -147,6 +147,27 @@ public static class WinAPI
     public static extern bool DeleteService(IntPtr serviceHandle);
 
 
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    public static extern IntPtr GetSidSubAuthority(IntPtr sid, UInt32 subAuthorityIndex);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    public static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    public static extern bool GetTokenInformation(
+    IntPtr TokenHandle,
+    Structs.TOKEN_INFORMATION_CLASS TokenInformationClass,
+    IntPtr TokenInformation,
+    uint TokenInformationLength,
+    out uint ReturnLength
+    );
+
+
+
+
+
+
 }
 /*
 public class NETRESOURCE

@@ -37,6 +37,7 @@ namespace PurpleSharp
             {
                 Usage();
                 return;
+
             }
 
             for (int i = 0; i < args.Length; i++)   
@@ -177,7 +178,10 @@ namespace PurpleSharp
                 if (loggeduser == "")
                 {
                     Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: "+rhost+"?");
+                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", true);
+                    System.Threading.Thread.Sleep(1000);
                     Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
                     Console.WriteLine("[!] Exitting.");
                     return;
 
