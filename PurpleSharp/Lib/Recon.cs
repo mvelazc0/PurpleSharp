@@ -31,25 +31,43 @@ namespace PurpleSharp.Lib
         }
         public static Process GetHostProcess(bool elevated = false)
         {
-            Process chrome = GetMediumIntegrityProc(Process.GetProcessesByName("chrome"));
-            Process firefox = GetMediumIntegrityProc(Process.GetProcessesByName("firefox"));
-            Process iexplore = GetMediumIntegrityProc(Process.GetProcessesByName("iexplore"));
-            Process winword = GetMediumIntegrityProc(Process.GetProcessesByName("winword"));
-            Process outlook = GetMediumIntegrityProc(Process.GetProcessesByName("outlook"));
-            Process excel = GetMediumIntegrityProc(Process.GetProcessesByName("excel"));
-            Process explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
 
-            if (chrome != null) return chrome;
-            else if (firefox != null) return firefox;
-            else if (iexplore != null) return iexplore;
-            else if (winword != null) return excel;
-            else if (excel != null) return excel;
-            else if (outlook != null) return outlook;
-            if (explorer != null) return explorer;
-            else return null;
+            if (elevated)
+            {
+                Process mmc = GetHighIntegrityProc(Process.GetProcessesByName("mmc"));
+                Process winlogon = Process.GetProcessesByName("winlogon").FirstOrDefault();
+                Process svchost = Process.GetProcessesByName("svchost").FirstOrDefault();
+
+                if (mmc != null) return mmc;
+                else if (winlogon != null) return winlogon;
+                else if (svchost != null) return svchost;
+                else return null;
+
+            }
+            else
+            {
+                Process chrome = GetMediumIntegrityProc(Process.GetProcessesByName("chrome"));
+                Process firefox = GetMediumIntegrityProc(Process.GetProcessesByName("firefox"));
+                Process iexplore = GetMediumIntegrityProc(Process.GetProcessesByName("iexplore"));
+                Process winword = GetMediumIntegrityProc(Process.GetProcessesByName("winword"));
+                Process outlook = GetMediumIntegrityProc(Process.GetProcessesByName("outlook"));
+                Process excel = GetMediumIntegrityProc(Process.GetProcessesByName("excel"));
+                Process explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
+
+                if (chrome != null) return chrome;
+                else if (firefox != null) return firefox;
+                else if (iexplore != null) return iexplore;
+                else if (winword != null) return excel;
+                else if (excel != null) return excel;
+                else if (outlook != null) return outlook;
+                if (explorer != null) return explorer;
+                else return null;
+
+            }
+
+            
 
         }
-
 
         //https://codereview.stackexchange.com/questions/68076/user-logged-onto-windows
         public static string GetProcessOwner(int processId)
@@ -72,6 +90,14 @@ namespace PurpleSharp.Lib
             return "NO OWNER";
         }
 
+        public static Process GetHighIntegrityProc(Process[] procs)
+        {
+            foreach (Process proc in procs)
+            {
+                if (IsHighIntegrity(proc)) return proc;
+            }
+            return null;
+        }
 
         public static Process GetMediumIntegrityProc(Process[] procs)
         {
