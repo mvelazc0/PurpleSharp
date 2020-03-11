@@ -13,10 +13,10 @@ namespace PurpleSharp.Simulations
             PersistenceHelper.CreateUser("test");
         }
 
-        public static void CreateAccountCmd()
+        public static void CreateAccountCmd(string log)
         {
-            ExecutionHelper.StartProcess("", "net user haxor Passw0rd123El7 /add");
-            ExecutionHelper.StartProcess("", "net localgroup Administrators haxor /add");
+            ExecutionHelper.StartProcess("", "net user haxor Passw0rd123El7 /add", log);
+            ExecutionHelper.StartProcess("", "net localgroup Administrators haxor /add", log);
         }
     }
 }

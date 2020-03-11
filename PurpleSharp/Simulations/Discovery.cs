@@ -79,10 +79,10 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void AccountDiscovery()
+        public static void AccountDiscovery(string log)
         {
-            ExecutionHelper.StartProcess("", "net user /domain");
-            ExecutionHelper.StartProcess("", "net group \" Domain Admins\" /domain");
+            ExecutionHelper.StartProcess("", "net user /domain", log);
+            ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
 
         }
 

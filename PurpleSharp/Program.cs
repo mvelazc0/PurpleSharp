@@ -19,7 +19,7 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd;
+            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, orchestrator, simulator, log;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
@@ -27,6 +27,9 @@ namespace PurpleSharp
             bool cleanup = false;
             bool opsec = false;
             technique = tactic = rhost = domain = ruser = rpwd = "";
+            orchestrator = "Legit.exe";
+            simulator = "Firefox_Installer.exe";
+            log = "0001.dat";
             command = "ipconfig.exe";
             pwd = "Summer2019!";
 
@@ -111,24 +114,23 @@ namespace PurpleSharp
             if (rhost == "" && opsec)
             {
 
-                Lib.NamedPipes.RunServer("testpipe", technique, "Firefox_Installer.exe","001.dat");
+                Lib.NamedPipes.RunServer("testpipe", technique, simulator, log);
                 return;
 
             }
             if (rhost != "")
             {
-                ExecuteRemote(rhost, domain, ruser, rpwd, technique, opsec);
-
+                ExecuteRemote(rhost, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec);
             }
             else 
             {
-                ExecuteTechnique(technique, type, usertype, nusers, hosttype, nhosts, protocol, sleep, pwd, command, cleanup);
+                ExecuteTechnique(technique, type, usertype, nusers, hosttype, nhosts, protocol, sleep, pwd, command, log, cleanup);
             }
             
             
         }
 
-        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, bool opsec)
+        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec)
         {
             if (rpwd == "")
             {
@@ -155,9 +157,9 @@ namespace PurpleSharp
             Console.WriteLine();
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             string dirpath = "C:\\Windows\\Temp\\";
-            string orchestrator = "Legit.exe";
-            string simulator = "Firefox_Installer.exe";
-            string log = "001.dat";
+            //string orchestrator = "Legit.exe";
+            //string simulator = "Firefox_Installer.exe";
+            //string log = "001.dat";
 
 
             //string executionPath = "C:\\Windows\\Temp\\Legit.exe";
@@ -221,7 +223,7 @@ namespace PurpleSharp
 
         }
 
-        public static void ExecuteTechnique(string technique, int type, int usertype, int nuser, int computertype, int nhosts, int protocol, int sleep, string password, string command, bool cleanup)
+        public static void ExecuteTechnique(string technique, int type, int usertype, int nuser, int computertype, int nhosts, int protocol, int sleep, string password, string command, string log, bool cleanup)
         {
             switch (technique)
             {
@@ -302,19 +304,19 @@ namespace PurpleSharp
                     break;
 
                 case "T1086":
-                    Simulations.Execution.ExecutePowershell();
+                    Simulations.Execution.ExecutePowershell(log);
                     break;
 
                 case "T1117":
-                    Simulations.Execution.ExecuteRegsvr32();
+                    Simulations.Execution.ExecuteRegsvr32(log);
                     break;
 
                 case "T1136":
-                    Simulations.Persistence.CreateAccountCmd();
+                    Simulations.Persistence.CreateAccountCmd(log);
                     break;
 
                 case "T1087":
-                    Simulations.Discovery.AccountDiscovery();
+                    Simulations.Discovery.AccountDiscovery(log);
                     break;
 
                 default:

@@ -6,10 +6,10 @@ namespace PurpleSharp.Simulations
 { 
     public class ExecutionHelper
     {
-        public static void StartProcess(string binary, string cmdline)
+        public static void StartProcess(string binary, string cmdline, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
             logger.TimestampInfo(String.Format("Starting Process Execution on {0}", Environment.MachineName));
             logger.TimestampInfo("Command line: "+@cmdline);
