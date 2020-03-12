@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -54,12 +55,12 @@ namespace PurpleSharp.Lib
                 Process excel = GetMediumIntegrityProc(Process.GetProcessesByName("excel"));
                 Process explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
 
-                if (chrome != null) return chrome;
-                else if (firefox != null) return firefox;
-                else if (iexplore != null) return iexplore;
-                else if (winword != null) return excel;
-                else if (excel != null) return excel;
-                else if (outlook != null) return outlook;
+                //if (chrome != null) return chrome;
+                //else if (firefox != null) return firefox;
+                //else if (iexplore != null) return iexplore;
+                //else if (winword != null) return excel;
+                //else if (excel != null) return excel;
+                //else if (outlook != null) return outlook;
                 if (explorer != null) return explorer;
                 else return null;
 
@@ -69,25 +70,29 @@ namespace PurpleSharp.Lib
 
         }
 
-        //https://codereview.stackexchange.com/questions/68076/user-logged-onto-windows
-        public static string GetProcessOwner(int processId)
+        //https://stackoverflow.com/questions/777548/how-do-i-determine-the-owner-of-a-process-in-c
+        public static string GetProcessUser(Process process)
         {
-            string query = "Select * From Win32_Process Where ProcessID = " + processId;
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-            ManagementObjectCollection processList = searcher.Get();
-
-            foreach (ManagementObject obj in processList)
+            IntPtr processHandle = IntPtr.Zero;
+            try
             {
-                string[] argList = new string[] { string.Empty, string.Empty };
-                int returnVal = Convert.ToInt32(obj.InvokeMethod("GetOwner", argList));
-                if (returnVal == 0)
+                WinAPI.OpenProcessToken(process.Handle, 8, ref processHandle);
+                WindowsIdentity wi = new WindowsIdentity(processHandle);
+                string user = wi.Name;
+                return user;
+                //return user.Contains(@"\") ? user.Substring(user.IndexOf(@"\") + 1) : user;
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                if (processHandle != IntPtr.Zero)
                 {
-                    // return DOMAIN\user
-                    return argList[1] + "\\" + argList[0];
+                    WinAPI.CloseHandle(processHandle);
                 }
             }
-
-            return "NO OWNER";
         }
 
         public static Process GetHighIntegrityProc(Process[] procs)

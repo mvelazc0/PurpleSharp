@@ -203,6 +203,7 @@ namespace PurpleSharp
                 Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
                 Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
                 Console.WriteLine("[+] Obtaining simulation results...");
+                System.Threading.Thread.Sleep(1000);
                 string results = Lib.RemoteLauncher.readFile(rhost, path + log, ruser, rpwd, domain);
                 Console.WriteLine("[+] Results:");
                 Console.WriteLine();
