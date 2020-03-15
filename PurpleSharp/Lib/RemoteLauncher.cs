@@ -38,50 +38,43 @@ namespace PurpleSharp.Lib
         {
             string share = executionPath.Replace(":", "$");
             string destpath = @"\\" + rhost + @"\" + share;
-            try
+            
+
+            if (ruser == "" && rpwd == "")
             {
 
-                if (ruser == "" && rpwd == "")
+                //string share = executionPath.Replace(":", "$");
+                //string destpath = @"\\" + rhost + @"\" + share;
+                //Console.WriteLine("[+] Grabbing file from " + uploadPath);
+                Console.WriteLine("[+] Uploading PurpleSharp to " + destpath);
+                File.Copy(uploadPath, destpath);
+                Console.WriteLine("[+] File uploaded successfully");
+            }
+            else
+            {
+                using (new Impersonation(domain, ruser, rpwd))
                 {
-
                     //string share = executionPath.Replace(":", "$");
                     //string destpath = @"\\" + rhost + @"\" + share;
                     //Console.WriteLine("[+] Grabbing file from " + uploadPath);
                     Console.WriteLine("[+] Uploading PurpleSharp to " + destpath);
+
+                    /*
+                    Console.WriteLine("ExecutionPath is: " + executionPath);
+                    Console.WriteLine("uploadPath is: " + uploadPath);
+                    Console.WriteLine("share is: " + share);
+                    Console.WriteLine("destpath is is: " + destpath);
+                    */
+
+
                     File.Copy(uploadPath, destpath);
-                    Console.WriteLine("[+] File uploaded successfully");
-                }
-                else
-                {
-                    using (new Impersonation(domain, ruser, rpwd))
-                    {
-                        //string share = executionPath.Replace(":", "$");
-                        //string destpath = @"\\" + rhost + @"\" + share;
-                        //Console.WriteLine("[+] Grabbing file from " + uploadPath);
-                        Console.WriteLine("[+] Uploading PurpleSharp to " + destpath);
-
-                        /*
-                        Console.WriteLine("ExecutionPath is: " + executionPath);
-                        Console.WriteLine("uploadPath is: " + uploadPath);
-                        Console.WriteLine("share is: " + share);
-                        Console.WriteLine("destpath is is: " + destpath);
-                        */
 
 
-                        File.Copy(uploadPath, destpath);
-
-
-                        //Console.WriteLine("[+] File uploaded successfully");
-                    }
+                    //Console.WriteLine("[+] File uploaded successfully");
                 }
             }
-            catch
-            {
-                RemoteLauncher.delete(destpath, rhost, ruser, rpwd, domain);
-                System.Threading.Thread.Sleep(3000);
-                Console.WriteLine("[+] Overwiring existing PurpleSharp binary..." + destpath);
-                using (new Impersonation(domain, ruser, rpwd)) { File.Copy(uploadPath, destpath); }
-            }
+            
+
         }
 
         public static void delete(string executionPath, string rhost, string username, string password, string domain)
@@ -111,7 +104,7 @@ namespace PurpleSharp.Lib
             }
             catch
             {
-                Console.WriteLine("[-] File was not removed.  Please remove manually");
+                Console.WriteLine("[!] File was not removed.  Please remove manually");
             }
         }
 

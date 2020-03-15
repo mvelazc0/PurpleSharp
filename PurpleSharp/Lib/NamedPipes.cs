@@ -37,15 +37,13 @@ namespace PurpleSharp.Lib
                 //string payload = String.Format("{0},{1},{2}",loggedUser, pr[0].ProcessName,pr[0].Id);
                 if (parentprocess != null)
                 {
-                    //loggedUser = Recon.GetProcessOwner(parentprocess.Id).Split('\\')[1];
+                    //TODO: If the SeDebug privilege is disabled, GetProcessUser will fail. Need to handle that error.
                     loggedUser = Recon.GetProcessUser(parentprocess).Split('\\')[1];
-                    //path = "C:\\Users\\" + loggedUser + "\\Downloads\\ChromeSetup.exe";
                     path = "C:\\Users\\" + loggedUser + "\\Downloads\\"+ simulator;
                     payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
                 }
                 else payload = ",,";
 
-                //string payload =String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
                 writer.WriteLine(payload);
                 writer.Flush();
                 pipeServer.WaitForPipeDrain();
