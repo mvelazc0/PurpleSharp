@@ -140,10 +140,10 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void Lsass(int type = 0)
+        public static void Lsass(string log, int type = 0)
         {
-            if (type == 0) CredAccessHelper.LsassMemoryDump();
-            else CredAccessHelper.LsassRead();
+            if (type == 0) CredAccessHelper.LsassMemoryDump(log);
+            else CredAccessHelper.LsassRead(log);
         }
 
     }

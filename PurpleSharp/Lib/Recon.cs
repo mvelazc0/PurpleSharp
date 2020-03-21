@@ -30,10 +30,20 @@ namespace PurpleSharp.Lib
         {
             Low, Medium, High, System, None,
         }
-        public static Process GetHostProcess(bool elevated = false)
+
+        public static Process GetExplorer()
+        {
+            Process explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
+
+            if (explorer != null) return explorer;
+            else return null;
+            
+        }
+
+        public static Process GetHostProcess(bool privileged = false)
         {
 
-            if (elevated)
+            if (privileged)
             {
                 Process mmc = GetHighIntegrityProc(Process.GetProcessesByName("mmc"));
                 Process winlogon = Process.GetProcessesByName("winlogon").FirstOrDefault();

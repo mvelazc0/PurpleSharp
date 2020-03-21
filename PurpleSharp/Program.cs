@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Management;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,10 @@ namespace PurpleSharp
             bool cleanup = false;
             bool opsec = false;
             technique = tactic = rhost = domain = ruser = rpwd = "";
+
+            // techniques that need to be executed from a high integrity process
+            string[] privileged_techniques = new string[] { "T1003" };
+
             orchestrator = "Legit.exe";
             simulator = "Firefox_Installer.exe";
             log = "0001.dat";
@@ -114,8 +119,9 @@ namespace PurpleSharp
             }
             if (rhost == "" && opsec)
             {
-
-                Lib.NamedPipes.RunServer("testpipe", technique, simulator, log);
+                bool privileged = false;
+                if (privileged_techniques.Contains(technique.ToUpper())) privileged = true;
+                Lib.NamedPipes.RunServer("testpipe", technique, simulator, log, privileged);
                 return;
 
             }
@@ -275,7 +281,7 @@ namespace PurpleSharp
                 case "lsassdump":
                 case "T1003":
                     
-                    Simulations.CredAccess.Lsass();
+                    Simulations.CredAccess.Lsass(log);
                     break;
 
                 //T1021 - Remote Service

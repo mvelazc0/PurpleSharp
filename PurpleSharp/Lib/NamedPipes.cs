@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Management;
-
+using System.Linq;
 
 namespace PurpleSharp.Lib
 {
@@ -11,14 +11,13 @@ namespace PurpleSharp.Lib
     {
 
         //based on https://stackoverflow.com/questions/49838628/named-pipe-input-output-in-c-sharp
-        public static void RunServer(string npipe, string technique, string simulator, string log)
+        public static void RunServer(string npipe, string technique, string simulator, string log, bool privileged = false)
         {
+            
+
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-
-            Process parentprocess = Recon.GetHostProcess();
-            //Process[] pr = Process.GetProcessesByName("explorer");
-            //string loggedUser = Recon.GetProcessOwner(pr[0].Id).Split('\\')[1];
+            Process parentprocess = Recon.GetHostProcess(privileged);
             string path = "";
             string loggedUser = "";
             
@@ -38,7 +37,8 @@ namespace PurpleSharp.Lib
                 if (parentprocess != null)
                 {
                     //TODO: If the SeDebug privilege is disabled, GetProcessUser will fail. Need to handle that error.
-                    loggedUser = Recon.GetProcessUser(parentprocess).Split('\\')[1];
+                    //loggedUser = Recon.GetProcessUser(parentprocess).Split('\\')[1];
+                    loggedUser = Recon.GetProcessUser(Recon.GetExplorer()).Split('\\')[1];
                     path = "C:\\Users\\" + loggedUser + "\\Downloads\\"+ simulator;
                     payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
                 }
@@ -63,9 +63,6 @@ namespace PurpleSharp.Lib
                         Launcher.SpoofParent(parentprocess.Id, path, simulator + " /technique " + technique);
                     }
                     else logger.TimestampInfo("Did not find a candidate process. Exitting");
-
-                    //Launcher.SpoofParent(winlogon[0].Id, path, "ChromeSetup.exe /technique " + technique);
-
                 }
                 pipeServer.Disconnect(); 
             }
