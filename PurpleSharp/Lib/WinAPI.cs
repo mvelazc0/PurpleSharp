@@ -28,9 +28,22 @@ public static class WinAPI
     public static extern bool CreateProcess(string lpApplicationName, string lpCommandLine, ref Structs.SECURITY_ATTRIBUTES lpProcessAttributes, ref Structs.SECURITY_ATTRIBUTES lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref Structs.STARTUPINFO lpStartupInfo, out Structs.PROCESS_INFORMATION lpProcessInformation);
 
 
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr CreateProcessA(String lpApplicationName, String lpCommandLine, Structs.SecurityAttributes lpProcessAttributes, Structs.SecurityAttributes lpThreadAttributes, Boolean bInheritHandles, Structs.CreateProcessFlags dwCreationFlags,
+    IntPtr lpEnvironment,
+    String lpCurrentDirectory,
+    [In] Structs.StartupInfo lpStartupInfo,
+    out Structs.ProcessInformation lpProcessInformation
+
+);
+
+
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern IntPtr OpenProcess(Structs.ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
-    
+
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
 
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern UInt32 WaitForSingleObject(IntPtr handle, UInt32 milliseconds);
@@ -56,13 +69,13 @@ public static class WinAPI
 
     [DllImport("kernel32.dll")]
     //public static extern IntPtr VirtualAllocEx(IntPtr lpHandle,IntPtr lpAddress, IntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
-    public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, Int32 dwSize, UInt32 flAllocationType, UInt32 flProtect);
+    public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out UIntPtr lpNumberOfBytesWritten);
 
     [DllImport("kernel32.dll")]
-    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] buffer, IntPtr dwSize, int lpNumberOfBytesWritten);
-
-    [DllImport("kernel32.dll")]
-    static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+    public static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
 
 
     [DllImport("kernel32.dll")]

