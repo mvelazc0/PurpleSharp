@@ -27,6 +27,7 @@ namespace PurpleSharp
             nusers = nhosts = 5;
             bool cleanup = false;
             bool opsec = false;
+            bool verbose = false;
             technique = tactic = rhost = domain = ruser = rpwd = "";
 
             // techniques that need to be executed from a high integrity process
@@ -103,6 +104,9 @@ namespace PurpleSharp
                         case "/opsec":
                             opsec = true;
                             break;
+                        case "/v":
+                            verbose = true;
+                            break;
                         default:
                             break;
                     }
@@ -127,7 +131,7 @@ namespace PurpleSharp
             }
             if (rhost != "")
             {
-                ExecuteRemote(rhost, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec);
+                ExecuteRemote(rhost, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec, verbose);
             }
             else 
             {
@@ -137,7 +141,7 @@ namespace PurpleSharp
             
         }
 
-        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec)
+        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec, bool verbose)
         {
             if (rpwd == "")
             {
@@ -179,11 +183,11 @@ namespace PurpleSharp
                 Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
                 //Console.WriteLine("[+] Performing recon on "+rhost);
                 string[] result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe").Split(',');
-                string loggeduser=result[0];
+                string loggeduser = result[0];
 
                 if (loggeduser == "")
                 {
-                    Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: "+rhost+"?");
+                    Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
                     Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", true);
                     System.Threading.Thread.Sleep(1000);
                     Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
@@ -193,7 +197,7 @@ namespace PurpleSharp
 
                 }
 
-                Console.WriteLine("[!] Recon results: "+String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}" ,loggeduser, result[1], result[2]));
+                Console.WriteLine("[!] Recon results: " + String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}", loggeduser, result[1], result[2]));
                 //Console.WriteLine("function returned with: " + result);
                 string path = "C:\\Users\\" + loggeduser + "\\Downloads\\";
                 //string path = "C:\\Users\\" + result + "\\Downloads\\ChromeSetup.exe";
@@ -203,13 +207,24 @@ namespace PurpleSharp
                 //Console.WriteLine("[+] Sending stop command...");
                 Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", true);
 
+                if (verbose)
+                {
+                    Console.WriteLine("[+] Obtaining orchestration results...");
+                    System.Threading.Thread.Sleep(1000)
+                    string oresults = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
+                    Console.WriteLine("[+] Results:");
+                    Console.WriteLine();
+                    Console.WriteLine(oresults);
+
+                }
+
                 System.Threading.Thread.Sleep(3000);
                 Console.WriteLine("[+] Cleaning up...");
                 Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
                 Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
                 Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
                 Console.WriteLine("[+] Obtaining simulation results...");
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(1000)
                 string results = Lib.RemoteLauncher.readFile(rhost, path + log, ruser, rpwd, domain);
                 Console.WriteLine("[+] Results:");
                 Console.WriteLine();
