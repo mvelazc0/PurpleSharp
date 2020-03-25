@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Management;
 using System.Linq;
+using System.Text;
 
 namespace PurpleSharp.Lib
 {
@@ -103,6 +104,105 @@ namespace PurpleSharp.Lib
                 }
             }
         }
+
+        //Based on https://github.com/malcomvetter/NamedPipes
+        public static void RunServer2(string npipe, string technique, string simulator, string log, bool privileged = false)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            bool running = true;
+            using (var pipe = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
+            {
+                while (running)
+                {
+                    logger.TimestampInfo("[*] Waiting for client connection...");
+                    pipe.WaitForConnection();
+                    logger.TimestampInfo("[*] Client connected!");
+                    var messageBytes = ReadMessage(pipe);
+                    var line = Encoding.UTF8.GetString(messageBytes);
+                    logger.TimestampInfo("[*] Received from client: " + line);
+
+                    if (line.ToLower().Equals("syn"))
+                    {
+                        var response = Encoding.UTF8.GetBytes("ACK");
+                        logger.TimestampInfo("[*] sending back to client: " + "SYN/ACK");
+                        pipe.Write(response, 0, response.Length);
+                    }
+                    else if (line.ToLower().Equals("recon"))
+                    {
+                        Process parentprocess = Recon.GetHostProcess(privileged);
+                        if (parentprocess != null)
+                        {
+                            string loggedUser = Recon.GetProcessUser(Recon.GetExplorer()).Split('\\')[1];
+                            string payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
+                            var recon = Encoding.UTF8.GetBytes(payload);
+                            logger.TimestampInfo("[*] sending back to client: " + payload);
+                            pipe.Write(recon, 0, recon.Length);
+                        }
+
+                    }
+                    else if (line.ToLower().Equals("quit"))
+                    {
+                        logger.TimestampInfo("[*] Received quit! Exitting namedpipe");
+                        var quit = Encoding.UTF8.GetBytes("quit");
+                        logger.TimestampInfo("[*] sending back to client: " + "quit");
+                        pipe.Write(quit, 0, quit.Length);
+                        running = false;
+                    }
+                    else if (line.ToLower().StartsWith("sc:"))
+                    {
+                        logger.TimestampInfo("[*] Got shellcode from client");
+                        var quit = Encoding.UTF8.GetBytes("ACK");
+                        logger.TimestampInfo("[*] sending back to client: " + "ACK");
+                        pipe.Write(quit, 0, quit.Length);
+
+
+                    }
+
+                    pipe.Disconnect();
+                }
+
+            }
+
+        }
+
+        public static string RunClient2(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
+        {
+            using (new Impersonation(domain, ruser, rpwd))
+            {
+                using (var pipe = new NamedPipeClientStream(rhost, npipe, PipeDirection.InOut))
+                {
+                    pipe.Connect(5000);
+                    pipe.ReadMode = PipeTransmissionMode.Message;
+                    byte[] bytes = Encoding.Default.GetBytes(request);
+                    pipe.Write(bytes, 0, bytes.Length);
+                    //if (input.ToLower() == "exit") return;
+                    var result = ReadMessage(pipe);
+                    //Console.WriteLine(Encoding.UTF8.GetString(result));
+                    //Console.WriteLine();
+                    return (Encoding.UTF8.GetString(result));
+
+                }
+            }
+        }
+
+        public static byte[] ReadMessage(PipeStream pipe)
+        {
+            byte[] buffer = new byte[1024];
+            using (var ms = new MemoryStream())
+            {
+                do
+                {
+                    var readBytes = pipe.Read(buffer, 0, buffer.Length);
+                    ms.Write(buffer, 0, readBytes);
+                }
+                while (!pipe.IsMessageComplete);
+
+                return ms.ToArray();
+            }
+        }
+
+
 
     }
 }
