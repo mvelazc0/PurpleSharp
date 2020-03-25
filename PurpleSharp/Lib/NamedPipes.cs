@@ -106,7 +106,8 @@ namespace PurpleSharp.Lib
         }
 
         //Based on https://github.com/malcomvetter/NamedPipes
-        public static void RunServer2(string npipe, string technique, string simulator, string log, bool privileged = false)
+        /*
+        public static void RunServer_test(string npipe, string technique, string simulator, string log, bool privileged = false)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
@@ -165,8 +166,70 @@ namespace PurpleSharp.Lib
             }
 
         }
+        */
 
-        public static string RunClient2(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
+        //Based on https://github.com/malcomvetter/NamedPipes
+        public static void RunServer2(string npipe, string technique, string simulator, string log, bool privileged = false)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            bool running = true;
+            using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
+            {
+                while (running)
+                {
+                    var reader = new StreamReader(pipeServer);
+                    var writer = new StreamWriter(pipeServer);
+                    logger.TimestampInfo("Waiting for client connection...");
+                    pipeServer.WaitForConnection();
+                    logger.TimestampInfo("Client connected!");
+
+                    var line = reader.ReadLine();
+
+                    logger.TimestampInfo("Received from client: " + line);
+
+                    if (line.ToLower().Equals("syn"))
+                    {
+                        logger.TimestampInfo("sending back to client: " + "SYN/ACK");
+                        writer.WriteLine("SYN/ACK");
+                        writer.Flush();
+                    }
+                    else if (line.ToLower().Equals("recon"))
+                    {
+                        Process parentprocess = Recon.GetHostProcess(privileged);
+                        if (parentprocess != null)
+                        {
+                            string loggedUser = Recon.GetProcessUser(Recon.GetExplorer()).Split('\\')[1];
+                            string payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
+                            logger.TimestampInfo("sending back to client: " + payload);
+                            writer.WriteLine(payload);
+                            writer.Flush();
+                        }
+                    }
+                    else if (line.ToLower().Equals("quit"))
+                    {
+                        logger.TimestampInfo("Received quit! Exitting namedpipe");
+                        logger.TimestampInfo("sending back to client: " + "quit");
+                        writer.WriteLine("quit");
+                        writer.Flush();
+                        running = false;
+                    }
+                    else if (line.ToLower().StartsWith("sc:"))
+                    {
+                        logger.TimestampInfo("Got shellcode from client");
+                        logger.TimestampInfo("sending back to client: " + "ACK");
+                        writer.WriteLine("ACK");
+                        writer.Flush();
+                    }
+                    pipeServer.Disconnect();
+                }
+
+            }
+
+        }
+
+        /*
+        public static string RunClient_test(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
         {
             using (new Impersonation(domain, ruser, rpwd))
             {
@@ -185,24 +248,26 @@ namespace PurpleSharp.Lib
                 }
             }
         }
+        */
 
-        public static byte[] ReadMessage(PipeStream pipe)
+        //Based on https://github.com/malcomvetter/NamedPipes
+        public static string RunClient2(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
         {
-            byte[] buffer = new byte[1024];
-            using (var ms = new MemoryStream())
+            using (new Impersonation(domain, ruser, rpwd))
             {
-                do
+                using (var pipeClient = new NamedPipeClientStream(rhost, npipe, PipeDirection.InOut))
                 {
-                    var readBytes = pipe.Read(buffer, 0, buffer.Length);
-                    ms.Write(buffer, 0, readBytes);
-                }
-                while (!pipe.IsMessageComplete);
+                    pipeClient.Connect(5000);
+                    pipeClient.ReadMode = PipeTransmissionMode.Message;
 
-                return ms.ToArray();
+                    var reader = new StreamReader(pipeClient);
+                    var writer = new StreamWriter(pipeClient);
+                    writer.WriteLine(request);
+                    writer.Flush();
+                    var result = reader.ReadLine();
+                    return (result.ToString());
+                }
             }
         }
-
-
-
     }
 }
