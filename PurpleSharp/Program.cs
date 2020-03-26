@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Text;
 using System.Threading.Tasks;
+using PurpleSharp.Lib;
 
 namespace PurpleSharp
 {
@@ -20,7 +22,7 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, orchestrator, simulator, log;
+            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, orchestrator, simulator, log, dc;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
@@ -28,7 +30,9 @@ namespace PurpleSharp
             bool cleanup = false;
             bool opsec = false;
             bool verbose = false;
-            technique = tactic = rhost = domain = ruser = rpwd = "";
+            bool privileged = false;
+            bool service = false;
+            technique = tactic = rhost = domain = ruser = rpwd = dc = "";
 
             // techniques that need to be executed from a high integrity process
             string[] privileged_techniques = new string[] { "T1003" };
@@ -63,6 +67,9 @@ namespace PurpleSharp
                             break;
                         case "/rpwd":
                             rpwd = args[i + 1];
+                            break;
+                        case "/dc":
+                            dc = args[i + 1];
                             break;
                         case "/technique":
                             technique = args[i + 1];
@@ -100,12 +107,14 @@ namespace PurpleSharp
                         case "/cleanup":
                             cleanup = true;
                             break;
-
                         case "/opsec":
                             opsec = true;
                             break;
                         case "/v":
                             verbose = true;
+                            break;
+                        case "/s":
+                            service = true;
                             break;
                         default:
                             break;
@@ -121,15 +130,30 @@ namespace PurpleSharp
                 }
                 
             }
-            if (rhost == "" && opsec)
+            //if (rhost == "" && opsec)
+            if (service)
             {
-                bool privileged = false;
+                
                 if (privileged_techniques.Contains(technique.ToUpper())) privileged = true;
                 Lib.NamedPipes.RunServer("testpipe", technique, simulator, log, privileged);
                 return;
 
             }
-            if (rhost != "")
+            if (rhost == "random")
+            {
+                List<Computer> targets = new List<Computer>();
+                targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
+                if (targets.Count > 0)
+                {
+                    Console.WriteLine("[+] Obtained {0} possible targets.",targets.Count);
+                    var random = new Random();
+                    int index = random.Next(targets.Count);
+                    Console.WriteLine("[+] Picked Random host for simulation :" +targets[index].Fqdn);
+                    ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec, verbose);
+                }
+                Console.WriteLine("[1] Could not obtain targets for the simulation");
+            }
+            else if (rhost != "")
             {
                 ExecuteRemote(rhost, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec, verbose);
             }
@@ -179,7 +203,7 @@ namespace PurpleSharp
             string cmdline = "/technique "+ technique;
             if (opsec)
             {
-                cmdline = cmdline + " /opsec";
+                cmdline = cmdline + " /opsec /s";
                 Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
                 //Console.WriteLine("[+] Performing recon on "+rhost);
                 string[] result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe").Split(',');
@@ -219,16 +243,16 @@ namespace PurpleSharp
                 }
 
                 System.Threading.Thread.Sleep(3000);
-                Console.WriteLine("[+] Cleaning up...");
-                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
                 Console.WriteLine("[+] Obtaining simulation results...");
                 System.Threading.Thread.Sleep(1000);
                 string results = Lib.RemoteLauncher.readFile(rhost, path + log, ruser, rpwd, domain);
                 Console.WriteLine("[+] Results:");
                 Console.WriteLine();
                 Console.WriteLine(results);
+                Console.WriteLine("[+] Cleaning up...");
+                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
                 Lib.RemoteLauncher.delete(path + log, rhost, ruser, rpwd, domain);
             }
             else 
