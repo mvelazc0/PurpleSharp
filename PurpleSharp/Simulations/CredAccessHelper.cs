@@ -136,6 +136,13 @@ namespace PurpleSharp.Simulations
             IntPtr targetProcessHandle = IntPtr.Zero;
             uint targetProcessId = 0;
 
+            Process targetProcess = null;
+            Process[] processes = Process.GetProcessesByName("lsass");
+            targetProcess = processes[0];
+
+
+            targetProcessId = (uint)targetProcess.Id;
+            logger.TimestampInfo(String.Format("Identified lsass.exe with Process ID:{0}", targetProcessId));
             
 
             try
@@ -151,15 +158,8 @@ namespace PurpleSharp.Simulations
             {
                 logger.TimestampInfo(ex.Message);
             }
-            
-            Process targetProcess = null;
-            Process[] processes = Process.GetProcessesByName("lsass");
-            targetProcess = processes[0];
-            
-
-            targetProcessId = (uint)targetProcess.Id;
-            logger.TimestampInfo(String.Format("Identified lsass.exe with Process ID:{0}", targetProcessId));
             targetProcessHandle = targetProcess.Handle;
+
 
             bool bRet = false;
             var errorCode=0;

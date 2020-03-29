@@ -10,7 +10,7 @@ namespace PurpleSharp.Lib
 {
     class NamedPipes
     {
-
+        /*
         //based on https://stackoverflow.com/questions/49838628/named-pipe-input-output-in-c-sharp
         public static void RunServer(string npipe, string technique, string simulator, string log, bool privileged = false)
         {
@@ -69,6 +69,9 @@ namespace PurpleSharp.Lib
             }
         }
 
+     */
+
+         /*
         public static string RunClient(string rhost, string domain, string ruser, string rpwd, string npipe, bool quit = false)
         {
             string msg = "ACK";
@@ -104,85 +107,33 @@ namespace PurpleSharp.Lib
                 }
             }
         }
-
-        //Based on https://github.com/malcomvetter/NamedPipes
-        /*
-        public static void RunServer_test(string npipe, string technique, string simulator, string log, bool privileged = false)
-        {
-            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
-            bool running = true;
-            using (var pipe = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
-            {
-                while (running)
-                {
-                    logger.TimestampInfo("[*] Waiting for client connection...");
-                    pipe.WaitForConnection();
-                    logger.TimestampInfo("[*] Client connected!");
-                    var messageBytes = ReadMessage(pipe);
-                    var line = Encoding.UTF8.GetString(messageBytes);
-                    logger.TimestampInfo("[*] Received from client: " + line);
-
-                    if (line.ToLower().Equals("syn"))
-                    {
-                        var response = Encoding.UTF8.GetBytes("ACK");
-                        logger.TimestampInfo("[*] sending back to client: " + "SYN/ACK");
-                        pipe.Write(response, 0, response.Length);
-                    }
-                    else if (line.ToLower().Equals("recon"))
-                    {
-                        Process parentprocess = Recon.GetHostProcess(privileged);
-                        if (parentprocess != null)
-                        {
-                            string loggedUser = Recon.GetProcessUser(Recon.GetExplorer()).Split('\\')[1];
-                            string payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
-                            var recon = Encoding.UTF8.GetBytes(payload);
-                            logger.TimestampInfo("[*] sending back to client: " + payload);
-                            pipe.Write(recon, 0, recon.Length);
-                        }
-
-                    }
-                    else if (line.ToLower().Equals("quit"))
-                    {
-                        logger.TimestampInfo("[*] Received quit! Exitting namedpipe");
-                        var quit = Encoding.UTF8.GetBytes("quit");
-                        logger.TimestampInfo("[*] sending back to client: " + "quit");
-                        pipe.Write(quit, 0, quit.Length);
-                        running = false;
-                    }
-                    else if (line.ToLower().StartsWith("sc:"))
-                    {
-                        logger.TimestampInfo("[*] Got shellcode from client");
-                        var quit = Encoding.UTF8.GetBytes("ACK");
-                        logger.TimestampInfo("[*] sending back to client: " + "ACK");
-                        pipe.Write(quit, 0, quit.Length);
-
-
-                    }
-
-                    pipe.Disconnect();
-                }
-
-            }
-
-        }
         */
 
         //Based on https://github.com/malcomvetter/NamedPipes
-        public static void RunServer2(string npipe, string technique, string simulator, string log, bool privileged = false)
+        //public static void RunOrchestrationService(string npipe, string technique, string simulator, string log, bool privileged = false)
+        public static void RunOrchestrationService(string npipe, string technique, string simulator, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             bool running = true;
+            bool privileged = false;
+
+            string cmdline, opsec , path;
+            cmdline = opsec = path =  "";
+            Process parentprocess = null;
+
+
             using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
             {
+                logger.TimestampInfo("Starting orchestrator namedpipe service...");
                 while (running)
                 {
                     var reader = new StreamReader(pipeServer);
                     var writer = new StreamWriter(pipeServer);
-                    logger.TimestampInfo("Waiting for client connection...");
+                    
+                    //logger.TimestampInfo("Waiting for client connection...");
                     pipeServer.WaitForConnection();
-                    logger.TimestampInfo("Client connected!");
+                    //logger.TimestampInfo("Client connected!");
 
                     var line = reader.ReadLine();
 
@@ -190,68 +141,88 @@ namespace PurpleSharp.Lib
 
                     if (line.ToLower().Equals("syn"))
                     {
-                        logger.TimestampInfo("sending back to client: " + "SYN/ACK");
+                        //logger.TimestampInfo("sending back to client: " + "SYN/ACK");
                         writer.WriteLine("SYN/ACK");
                         writer.Flush();
                     }
-                    else if (line.ToLower().Equals("recon"))
+
+                    else if (line.ToLower().StartsWith("recon:"))
                     {
-                        Process parentprocess = Recon.GetHostProcess(privileged);
-                        if (parentprocess != null)
+                        string payload = "";
+                        if (line.Replace("recon:", "").Equals("privileged")) privileged = true;
+                        parentprocess = Recon.GetHostProcess(privileged);
+                        if (parentprocess != null && Recon.GetExplorer() != null)
                         {
                             string loggedUser = Recon.GetProcessUser(Recon.GetExplorer()).Split('\\')[1];
-                            string payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
-                            logger.TimestampInfo("sending back to client: " + payload);
-                            writer.WriteLine(payload);
-                            writer.Flush();
+                            logger.TimestampInfo(String.Format("{0} Recon identified {1} logged in. Process to Spoof: {2} PID: {3}", privileged.ToString(), loggedUser, parentprocess.ProcessName, parentprocess.Id));
+                            payload = String.Format("{0},{1},{2}", loggedUser, parentprocess.ProcessName, parentprocess.Id);
+                            path = "C:\\Users\\" + loggedUser + "\\Downloads\\" + simulator;
+                            //logger.TimestampInfo("sending back to client: " + payload);
+
                         }
+                        else
+                        {
+                            payload = ",,";
+                            logger.TimestampInfo("Recon did not identify any logged users");
+                        }
+                        writer.WriteLine(payload);
+                        writer.Flush();
                     }
                     else if (line.ToLower().Equals("quit"))
                     {
                         logger.TimestampInfo("Received quit! Exitting namedpipe");
-                        logger.TimestampInfo("sending back to client: " + "quit");
+                        //logger.TimestampInfo("sending back to client: " + "quit");
                         writer.WriteLine("quit");
                         writer.Flush();
                         running = false;
                     }
                     else if (line.ToLower().StartsWith("sc:"))
                     {
-                        logger.TimestampInfo("Got shellcode from client");
-                        logger.TimestampInfo("sending back to client: " + "ACK");
+                        //logger.TimestampInfo("Got shellcode from client");
+                        //logger.TimestampInfo("sending back to client: " + "ACK");
                         writer.WriteLine("ACK");
                         writer.Flush();
                     }
+                    else if (line.ToLower().StartsWith("params:"))
+                    {
+                        cmdline = line.Replace("params:", "");
+                        //logger.TimestampInfo("Got params from client");
+                        //logger.TimestampInfo("sending back to client: " + "ACK");
+                        writer.WriteLine("ACK");
+                        writer.Flush();
+                    }
+                    else if (line.ToLower().StartsWith("opsec:"))
+                    {
+                        opsec = line.Replace("opsec:", "");
+                        //logger.TimestampInfo("Got opsec technique from client");
+                        //logger.TimestampInfo("sending back to client: " + "ACK");
+                        writer.WriteLine("ACK");
+                        writer.Flush();
+                    }
+                    else if (line.Equals("act"))
+                    {
+                        logger.TimestampInfo("Received act!");
+                        //logger.TimestampInfo("sending back to client: " + "ACK");
+                        writer.WriteLine("ACK");
+                        writer.Flush();
+
+                        if (opsec.Equals("ppid"))
+                        {
+                            logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
+                            logger.TimestampInfo("Spoofing " + parentprocess.ProcessName + " PID: " + parentprocess.Id.ToString());
+                            logger.TimestampInfo("Executing: " + path + " " + cmdline);
+                            //Launcher.SpoofParent(pr[0].Id, path, "ChromeSetup.exe /technique " + technique);
+                            //Launcher.SpoofParent(parentprocess.Id, path, simulator + " /technique " + technique);
+                            Launcher.SpoofParent(parentprocess.Id, path, simulator + " "+cmdline);
+                        }
+                    }
                     pipeServer.Disconnect();
                 }
-
-            }
-
-        }
-
-        /*
-        public static string RunClient_test(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
-        {
-            using (new Impersonation(domain, ruser, rpwd))
-            {
-                using (var pipe = new NamedPipeClientStream(rhost, npipe, PipeDirection.InOut))
-                {
-                    pipe.Connect(5000);
-                    pipe.ReadMode = PipeTransmissionMode.Message;
-                    byte[] bytes = Encoding.Default.GetBytes(request);
-                    pipe.Write(bytes, 0, bytes.Length);
-                    //if (input.ToLower() == "exit") return;
-                    var result = ReadMessage(pipe);
-                    //Console.WriteLine(Encoding.UTF8.GetString(result));
-                    //Console.WriteLine();
-                    return (Encoding.UTF8.GetString(result));
-
-                }
             }
         }
-        */
 
         //Based on https://github.com/malcomvetter/NamedPipes
-        public static string RunClient2(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
+        public static string RunClient(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
         {
             using (new Impersonation(domain, ruser, rpwd))
             {

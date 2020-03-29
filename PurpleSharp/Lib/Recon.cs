@@ -34,7 +34,6 @@ namespace PurpleSharp.Lib
         public static Process GetExplorer()
         {
             Process explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
-
             if (explorer != null) return explorer;
             else return null;
             
@@ -42,7 +41,6 @@ namespace PurpleSharp.Lib
 
         public static Process GetHostProcess(bool privileged = false)
         {
-
             if (privileged)
             {
                 Process mmc = GetHighIntegrityProc(Process.GetProcessesByName("mmc"));
@@ -53,7 +51,6 @@ namespace PurpleSharp.Lib
                 else if (winlogon != null) return winlogon;
                 else if (svchost != null) return svchost;
                 else return null;
-
             }
             else
             {
@@ -73,10 +70,7 @@ namespace PurpleSharp.Lib
                 //else if (outlook != null) return outlook;
                 if (explorer != null) return explorer;
                 else return null;
-
             }
-
-            
 
         }
 

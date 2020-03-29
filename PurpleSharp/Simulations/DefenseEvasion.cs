@@ -33,6 +33,7 @@ namespace PurpleSharp.Simulations
             catch (Exception ex)
             {
                 logger.TimestampInfo(String.Format("Failed to clear the Security EventLog"));
+                logger.TimestampInfo(ex.Message.ToString());
             }
 
         }

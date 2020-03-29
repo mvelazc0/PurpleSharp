@@ -30,12 +30,8 @@ namespace PurpleSharp
             bool cleanup = false;
             bool opsec = false;
             bool verbose = false;
-            bool privileged = false;
             bool service = false;
             technique = tactic = rhost = domain = ruser = rpwd = dc = "";
-
-            // techniques that need to be executed from a high integrity process
-            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
 
             orchestrator = "Legit.exe";
             simulator = "Firefox_Installer.exe";
@@ -134,8 +130,9 @@ namespace PurpleSharp
             if (service)
             {
                 
-                if (privileged_techniques.Contains(technique.ToUpper())) privileged = true;
-                Lib.NamedPipes.RunServer("testpipe", technique, simulator, log, privileged);
+                //if (privileged_techniques.Contains(technique.ToUpper())) privileged = true;
+                //Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log, privileged);
+                Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log);
                 return;
 
             }
@@ -164,7 +161,7 @@ namespace PurpleSharp
             
             
         }
-
+        /*
         public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec, bool verbose)
         {
             if (rpwd == "")
@@ -269,6 +266,136 @@ namespace PurpleSharp
                 Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
             }
             
+
+
+        }
+        */
+        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec, bool verbose)
+        {
+            string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
+
+            // techniques that need to be executed from a high integrity process
+            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
+
+            if (rpwd == "")
+            {
+                Console.Write("Password: ");
+                StringBuilder passwordBuilder = new StringBuilder();
+                bool continueReading = true;
+                char newLineChar = '\r';
+                
+                while (continueReading)
+                {
+                    ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(true);
+                    char passwordChar = consoleKeyInfo.KeyChar;
+
+                    if (passwordChar == newLineChar)
+                    {
+                        continueReading = false;
+                    }
+                    else
+                    {
+                        passwordBuilder.Append(passwordChar.ToString());
+                    }
+                }
+                rpwd = passwordBuilder.ToString();
+            }
+            Console.WriteLine();
+            string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            string dirpath = "C:\\Windows\\Temp\\";
+            Lib.RemoteLauncher.upload(uploadPath, dirpath + orchestrator, rhost, ruser, rpwd, domain);
+            string cmdline = "/technique " + technique;
+            System.Threading.Thread.Sleep(3000);
+            
+            if (opsec)
+            {
+                string result = "";
+                string args = "/s";
+                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, args, domain, ruser, rpwd);
+                Console.WriteLine("[+] Connecting to orchestrator namedpipe service ...");
+
+                result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe","SYN");
+                if (result.Equals("SYN/ACK"))
+                {
+                    Console.WriteLine("[+] OK");
+                    //if (privileged_techniques.Contains(technique.ToUpper())) privileged = true;
+                    //if (privileged) result = Lib.NamedPipes.RunClient2(rhost, domain, ruser, rpwd, "testpipe", "recon:privileged");
+
+                    if (privileged_techniques.Contains(technique.ToUpper())) result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:privileged");
+                    else result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:regular");
+
+                    string[] payload = result.Split(',');
+                    string loggeduser = payload[0];
+
+                    if (loggeduser == "")
+                    {
+                        Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
+                        Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                        System.Threading.Thread.Sleep(1000);
+                        Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                        Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
+                        Console.WriteLine("[!] Exitting.");
+                        return;
+
+                    }
+                    //Console.WriteLine("[+] Sending params...");
+                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "params:"+cmdline);
+                    //Console.WriteLine("[+] Sending opsec techqniue...");
+                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "opsec:" + "ppid");
+
+
+                    Console.WriteLine("[!] Recon results: " + String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}", loggeduser, payload[1], payload[2]));
+                    string path = "C:\\Users\\" + loggeduser + "\\Downloads\\";
+                    Lib.RemoteLauncher.upload(uploadPath, path + simulator, rhost, ruser, rpwd, domain);
+
+                    Console.WriteLine("[+] Executing Simulation...");
+                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
+                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+
+                    if (verbose)
+                    {
+                        Console.WriteLine("[+] Obtaining orchestration results...");
+                        System.Threading.Thread.Sleep(1000);
+                        string oresults = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
+                        Console.WriteLine("[+] Results:");
+                        Console.WriteLine();
+                        Console.WriteLine(oresults);
+                    }
+
+                    System.Threading.Thread.Sleep(3000);
+                    Console.WriteLine("[+] Obtaining simulation results...");
+                    System.Threading.Thread.Sleep(1000);
+                    string results = Lib.RemoteLauncher.readFile(rhost, path + log, ruser, rpwd, domain);
+                    Console.WriteLine("[+] Results:");
+                    Console.WriteLine();
+                    Console.WriteLine(results);
+                    Console.WriteLine("[+] Cleaning up...");
+                    Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(path + log, rhost, ruser, rpwd, domain);
+
+
+                }
+                else
+                {
+                    Console.WriteLine("[!] Could not connect");
+                }
+            }
+            else
+            {
+                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
+                System.Threading.Thread.Sleep(3000);
+                Console.WriteLine("[+] Obtaining results...");
+                string results = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
+                Console.WriteLine("[+] Results:");
+                Console.WriteLine();
+                Console.WriteLine(results);
+                Console.WriteLine("[+] Cleaning up...");
+                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
+            }
+
 
 
         }
