@@ -10,6 +10,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
+
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
             logger.TimestampInfo(String.Format("Starting Process Execution on {0}", Environment.MachineName));
             logger.TimestampInfo("Command line: "+@cmdline);

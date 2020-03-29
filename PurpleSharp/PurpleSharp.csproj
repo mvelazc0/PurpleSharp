@@ -79,6 +79,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulations\CredAccess.cs" />
     <Compile Include="Simulations\CredAccessHelper.cs" />
+    <Compile Include="Simulations\DefenseEvasion.cs" />
     <Compile Include="Simulations\Discovery.cs" />
     <Compile Include="Simulations\DiscoveryHelper.cs" />
     <Compile Include="Simulations\Execution.cs" />

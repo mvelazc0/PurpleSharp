@@ -35,7 +35,7 @@ namespace PurpleSharp
             technique = tactic = rhost = domain = ruser = rpwd = dc = "";
 
             // techniques that need to be executed from a high integrity process
-            string[] privileged_techniques = new string[] { "T1003" };
+            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
 
             orchestrator = "Legit.exe";
             simulator = "Firefox_Installer.exe";
@@ -151,7 +151,7 @@ namespace PurpleSharp
                     Console.WriteLine("[+] Picked Random host for simulation :" +targets[index].Fqdn);
                     ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec, verbose);
                 }
-                Console.WriteLine("[1] Could not obtain targets for the simulation");
+                else Console.WriteLine("[!] Could not obtain targets for the simulation");
             }
             else if (rhost != "")
             {
@@ -362,11 +362,24 @@ namespace PurpleSharp
                     break;
 
                 case "T1136":
-                    Simulations.Persistence.CreateAccountCmd(log);
+                    //Simulations.Persistence.CreateAccountCmd(log);
+                    Simulations.Persistence.CreateAccountApi(log);
                     break;
 
                 case "T1087":
                     Simulations.Discovery.AccountDiscovery(log);
+                    break;
+
+                case "T1070":
+                    Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+                    break;
+
+                case "T1060":
+                    Simulations.Persistence.ResistryRunKeyCmd(log);
+                    break;
+
+                case "T1050":
+                    Simulations.Persistence.CreateService(log);
                     break;
 
                 default:
