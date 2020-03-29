@@ -29,9 +29,13 @@ namespace PurpleSharp.Simulations
             ExecutionHelper.StartProcess("", @"REG ADD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V BadApp /t REG_SZ /F /D C:\Windows\Temp\xyz12345.exe", log);
         }
 
-        public static void CreateService(string log)
+        public static void CreateServiceApi(string log)
         {
             PersistenceHelper.CreateService(log);
+        }
+        public static void CreateServiceCmd(string log)
+        {
+            ExecutionHelper.StartProcess("", @"sc create UpdaterService binpath= C:\Windows\Temp\superlegit.exe type= own start= auto", log);
         }
     }
 }

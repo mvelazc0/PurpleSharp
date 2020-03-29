@@ -379,7 +379,7 @@ namespace PurpleSharp
                     break;
 
                 case "T1050":
-                    Simulations.Persistence.CreateService(log);
+                    Simulations.Persistence.CreateServiceCmd(log);
                     break;
 
                 default:
