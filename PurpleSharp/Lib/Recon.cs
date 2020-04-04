@@ -75,7 +75,7 @@ namespace PurpleSharp.Lib
         }
 
         //https://stackoverflow.com/questions/777548/how-do-i-determine-the-owner-of-a-process-in-c
-        public static string GetProcessUser(Process process)
+        public static string GetProcessOwner(Process process)
         {
             IntPtr processHandle = IntPtr.Zero;
             try
@@ -84,7 +84,6 @@ namespace PurpleSharp.Lib
                 WindowsIdentity wi = new WindowsIdentity(processHandle);
                 string user = wi.Name;
                 return user;
-                //return user.Contains(@"\") ? user.Substring(user.IndexOf(@"\") + 1) : user;
             }
             catch
             {
@@ -97,6 +96,26 @@ namespace PurpleSharp.Lib
                     WinAPI.CloseHandle(processHandle);
                 }
             }
+        }
+
+        public static string GetProcessOwnerWmi(Process process)
+        {
+            string query = "Select * From Win32_Process Where ProcessID = " + process.Id;
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+            ManagementObjectCollection processList = searcher.Get();
+
+            foreach (ManagementObject obj in processList)
+            {
+                string[] argList = new string[] { string.Empty, string.Empty };
+                int returnVal = Convert.ToInt32(obj.InvokeMethod("GetOwner", argList));
+                if (returnVal == 0)
+                {
+                    // return DOMAIN\user
+                    return argList[1] + "\\" + argList[0];
+                }
+            }
+
+            return "NO OWNER";
         }
 
         public static Process GetHighIntegrityProc(Process[] procs)

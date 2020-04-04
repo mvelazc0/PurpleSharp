@@ -22,7 +22,7 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, orchestrator, simulator, log, dc;
+            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, orchestrator, simulator, log, dc, jfile;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
@@ -31,7 +31,7 @@ namespace PurpleSharp
             bool opsec = false;
             bool verbose = false;
             bool service = false;
-            technique = tactic = rhost = domain = ruser = rpwd = dc = "";
+            technique = tactic = rhost = domain = ruser = rpwd = dc = jfile = "";
 
             orchestrator = "Legit.exe";
             simulator = "Firefox_Installer.exe";
@@ -52,6 +52,9 @@ namespace PurpleSharp
                 {
                     switch (args[i])
                     {
+                        case "/j":
+                            jfile = args[i + 1];
+                            break;
                         case "/rhost":
                             rhost = args[i + 1];
                             break;
@@ -126,13 +129,70 @@ namespace PurpleSharp
                 }
                 
             }
-            //if (rhost == "" && opsec)
+            if (!jfile.Equals(""))
+            {
+                string json = File.ReadAllText(jfile);
+                //SimulationPlaybook pb =  Json.ReadJson(json);
+                SimulationExercise engagement = Json.ReadJson(json);
+
+                foreach(SimulationPlaybook playbook in engagement.playbooks)
+                {
+
+                    Console.Write("Password for {0}\\{1}: ", playbook.domain, playbook.username);
+                    string pass = Utils.GetPassword();
+
+                    Console.WriteLine("[+][+][+] Starting Execution of {0}", playbook.name);
+
+                    PlaybookTask lastTask = playbook.tasks.Last();
+                    foreach (PlaybookTask task in playbook.tasks)
+                    {
+
+                        Console.WriteLine("[+][+][+] Executing technique {0} against {1}", task.technique, task.host);
+                        Console.WriteLine();
+
+
+                        if (task.host.Equals("random"))
+                        {
+                            List<Computer> targets = new List<Computer>();
+                            targets = Ldap.GetADComputers(10, playbook.dc, playbook.username, pass);
+                            if (targets.Count > 0)
+                            {
+                                Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
+                                var random = new Random();
+                                int index = random.Next(targets.Count);
+                                Console.WriteLine("[+] Picked Random host for simulation :" + targets[index].Fqdn);
+                                ExecuteRemote(targets[index].Fqdn, playbook.domain, playbook.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
+
+                                if (playbook.sleep > 0 && !task.Equals(lastTask))
+                                {
+                                    Console.WriteLine();
+                                    Console.WriteLine("[+][+][+] Sleeping {0} minutes until next task...", playbook.sleep);
+                                    System.Threading.Thread.Sleep(1000 * playbook.sleep);
+                                }
+                            }
+                            else Console.WriteLine("[!] Could not obtain targets for the simulation");
+
+                        }
+                        else
+                        {
+                            ExecuteRemote(task.host, playbook.domain, playbook.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
+                            if (playbook.sleep > 0 && !task.Equals(lastTask))
+                            {
+                                Console.WriteLine();
+                                Console.WriteLine("[+][+][+] Sleeping {0} minutes until next task...", playbook.sleep);
+                                System.Threading.Thread.Sleep(1000 * playbook.sleep);
+                            }
+                        }
+
+                    }
+
+                }
+            }
             if (service)
             {
-                
-                //if (privileged_techniques.Contains(technique.ToUpper())) privileged = true;
-                //Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log, privileged);
-                Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log);
+
+                //Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log);
+                Lib.NamedPipes.RunOrchestrationService("testpipe", log);
                 return;
 
             }
@@ -161,115 +221,6 @@ namespace PurpleSharp
             
             
         }
-        /*
-        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec, bool verbose)
-        {
-            if (rpwd == "")
-            {
-                Console.Write("Password: ");
-                StringBuilder passwordBuilder = new StringBuilder();
-                bool continueReading = true;
-                char newLineChar = '\r';
-                while (continueReading)
-                {
-                    ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(true);
-                    char passwordChar = consoleKeyInfo.KeyChar;
-
-                    if (passwordChar == newLineChar)
-                    {
-                        continueReading = false;
-                    }
-                    else
-                    {
-                        passwordBuilder.Append(passwordChar.ToString());
-                    }
-                }
-                rpwd = passwordBuilder.ToString();
-            }
-            Console.WriteLine();
-            string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
-            string dirpath = "C:\\Windows\\Temp\\";
-            //string orchestrator = "Legit.exe";
-            //string simulator = "Firefox_Installer.exe";
-            //string log = "001.dat";
-
-
-            //string executionPath = "C:\\Windows\\Temp\\Legit.exe";
-            Lib.RemoteLauncher.upload(uploadPath, dirpath + orchestrator, rhost, ruser, rpwd, domain);
-            System.Threading.Thread.Sleep(3000);
-            string cmdline = "/technique "+ technique;
-            if (opsec)
-            {
-                cmdline = cmdline + " /opsec /s";
-                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
-                //Console.WriteLine("[+] Performing recon on "+rhost);
-                string[] result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe").Split(',');
-                string loggeduser = result[0];
-
-                if (loggeduser == "")
-                {
-                    Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
-                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", true);
-                    System.Threading.Thread.Sleep(1000);
-                    Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
-                    Console.WriteLine("[!] Exitting.");
-                    return;
-
-                }
-
-                Console.WriteLine("[!] Recon results: " + String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}", loggeduser, result[1], result[2]));
-                //Console.WriteLine("function returned with: " + result);
-                string path = "C:\\Users\\" + loggeduser + "\\Downloads\\";
-                //string path = "C:\\Users\\" + result + "\\Downloads\\ChromeSetup.exe";
-                Lib.RemoteLauncher.upload(uploadPath, path + simulator, rhost, ruser, rpwd, domain);
-
-                Console.WriteLine("[+] Executing Simulation...");
-                //Console.WriteLine("[+] Sending stop command...");
-                Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", true);
-
-                if (verbose)
-                {
-                    Console.WriteLine("[+] Obtaining orchestration results...");
-                    System.Threading.Thread.Sleep(1000);
-                    string oresults = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
-                    Console.WriteLine("[+] Results:");
-                    Console.WriteLine();
-                    Console.WriteLine(oresults);
-
-                }
-
-                System.Threading.Thread.Sleep(3000);
-                Console.WriteLine("[+] Obtaining simulation results...");
-                System.Threading.Thread.Sleep(1000);
-                string results = Lib.RemoteLauncher.readFile(rhost, path + log, ruser, rpwd, domain);
-                Console.WriteLine("[+] Results:");
-                Console.WriteLine();
-                Console.WriteLine(results);
-                Console.WriteLine("[+] Cleaning up...");
-                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(path + log, rhost, ruser, rpwd, domain);
-            }
-            else 
-            {
-                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
-                System.Threading.Thread.Sleep(3000);
-                Console.WriteLine("[+] Obtaining results...");
-                string results = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
-                Console.WriteLine("[+] Results:");
-                Console.WriteLine();
-                Console.WriteLine(results);
-                Console.WriteLine("[+] Cleaning up...");
-                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
-            }
-            
-
-
-        }
-        */
         public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec, bool verbose)
         {
             string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
@@ -279,26 +230,8 @@ namespace PurpleSharp
 
             if (rpwd == "")
             {
-                Console.Write("Password: ");
-                StringBuilder passwordBuilder = new StringBuilder();
-                bool continueReading = true;
-                char newLineChar = '\r';
-                
-                while (continueReading)
-                {
-                    ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(true);
-                    char passwordChar = consoleKeyInfo.KeyChar;
-
-                    if (passwordChar == newLineChar)
-                    {
-                        continueReading = false;
-                    }
-                    else
-                    {
-                        passwordBuilder.Append(passwordChar.ToString());
-                    }
-                }
-                rpwd = passwordBuilder.ToString();
+                Console.Write("Password for {0}\\{1}: ", domain, ruser);
+                rpwd = Utils.GetPassword();
             }
             Console.WriteLine();
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
@@ -318,9 +251,7 @@ namespace PurpleSharp
                 if (result.Equals("SYN/ACK"))
                 {
                     Console.WriteLine("[+] OK");
-                    //if (privileged_techniques.Contains(technique.ToUpper())) privileged = true;
-                    //if (privileged) result = Lib.NamedPipes.RunClient2(rhost, domain, ruser, rpwd, "testpipe", "recon:privileged");
-
+                    
                     if (privileged_techniques.Contains(technique.ToUpper())) result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:privileged");
                     else result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:regular");
 
@@ -338,6 +269,8 @@ namespace PurpleSharp
                         return;
 
                     }
+                    //Console.WriteLine("[+] Sending simulator binary...");
+                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "simbin:" + simulator);
                     //Console.WriteLine("[+] Sending params...");
                     Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "params:"+cmdline);
                     //Console.WriteLine("[+] Sending opsec techqniue...");
