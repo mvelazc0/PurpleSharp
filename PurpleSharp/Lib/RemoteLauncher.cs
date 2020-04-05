@@ -46,7 +46,6 @@ namespace PurpleSharp.Lib
                 //string share = executionPath.Replace(":", "$");
                 //string destpath = @"\\" + rhost + @"\" + share;
                 //Console.WriteLine("[+] Grabbing file from " + uploadPath);
-                Console.WriteLine("[+] Uploading PurpleSharp to " + destpath);
                 File.Copy(uploadPath, destpath);
                 Console.WriteLine("[+] File uploaded successfully");
             }
@@ -57,7 +56,6 @@ namespace PurpleSharp.Lib
                     //string share = executionPath.Replace(":", "$");
                     //string destpath = @"\\" + rhost + @"\" + share;
                     //Console.WriteLine("[+] Grabbing file from " + uploadPath);
-                    Console.WriteLine("[+] Uploading PurpleSharp to " + destpath);
 
                     /*
                     Console.WriteLine("ExecutionPath is: " + executionPath);
@@ -65,11 +63,7 @@ namespace PurpleSharp.Lib
                     Console.WriteLine("share is: " + share);
                     Console.WriteLine("destpath is is: " + destpath);
                     */
-
-
                     File.Copy(uploadPath, destpath);
-
-
                     //Console.WriteLine("[+] File uploaded successfully");
                 }
             }

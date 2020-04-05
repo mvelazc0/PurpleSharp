@@ -27,8 +27,8 @@ namespace PurpleSharp.Lib
     public class SimulationPlaybook
     {
         public string name { get; set; }
-        public string orchbin { get; set; }
-        public string simbin { get; set; }
+        public string scoutfpath { get; set; }
+        public string simrpath { get; set; }
         public int sleep { get; set; }
         
         public List<PlaybookTask> tasks { get; set; }

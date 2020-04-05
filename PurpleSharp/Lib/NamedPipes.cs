@@ -14,15 +14,15 @@ namespace PurpleSharp.Lib
     {
 
         //Based on https://github.com/malcomvetter/NamedPipes
-        public static void RunOrchestrationService(string npipe, string log)
+        public static void RunScoutService(string npipe, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             bool running = true;
             bool privileged = false;
 
-            string cmdline, opsec, simpath, simbin, loggeduser;
-            cmdline = opsec = simpath = simbin = loggeduser = "";
+            string cmdline, opsec, simpfath, simrpath, loggeduser, simbinary;
+            cmdline = opsec = simpfath = simrpath = loggeduser = simbinary = "";
             Process parentprocess = null;
 
             try
@@ -95,12 +95,16 @@ namespace PurpleSharp.Lib
                             writer.WriteLine("ACK");
                             writer.Flush();
                         }
-                        else if (line.ToLower().StartsWith("simbin:"))
+                        else if (line.ToLower().StartsWith("simrpath:"))
                         {
-                            simbin = line.Replace("simbin:", "");
+                            simrpath = line.Replace("simrpath:", "");
                             //logger.TimestampInfo("Got opsec technique from client");
                             //logger.TimestampInfo("sending back to client: " + "ACK");
-                            simpath = "C:\\Users\\" + loggeduser + "\\Downloads\\" + simbin;
+                            //simpath = "C:\\Users\\" + loggeduser + "\\Downloads\\" + simbin;
+                            simpfath = "C:\\Users\\" + loggeduser + "\\" + simrpath;
+                            int index = simrpath.LastIndexOf(@"\");
+                            simbinary = simrpath.Substring(index + 1);
+
                             writer.WriteLine("ACK");
                             writer.Flush();
                         }
@@ -116,9 +120,10 @@ namespace PurpleSharp.Lib
                                 logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
                                 logger.TimestampInfo("Spoofing " + parentprocess.ProcessName + " PID: " + parentprocess.Id.ToString());
                                 //logger.TimestampInfo("Executing: " + simpath + " " + cmdline);
-                                logger.TimestampInfo("Executing: " + simpath + " /s");
+                                logger.TimestampInfo("Executing: " + simpfath + " /s");
                                 //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
-                                Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " /s");
+                                //Launcher.SpoofParent(parentprocess.Id, simpfath, simrpath + " /s");
+                                Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
                                 System.Threading.Thread.Sleep(2000);
                                 logger.TimestampInfo("Sending technique through namedpipe:"+ cmdline.Replace("/technique ", ""));
@@ -232,7 +237,6 @@ namespace PurpleSharp.Lib
                 //logger.TimestampInfo(ex.Message.ToString());
                 return "";
             }
-
 
         }
 

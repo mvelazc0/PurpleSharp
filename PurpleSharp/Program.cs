@@ -22,7 +22,7 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, orchestrator, simulator, log, dc, jfile;
+            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, jfile;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
@@ -34,8 +34,8 @@ namespace PurpleSharp
             bool simservice = false;
             technique = tactic = rhost = domain = ruser = rpwd = dc = jfile = "";
 
-            orchestrator = "Legit.exe";
-            simulator = "Firefox_Installer.exe";
+            scoutfpath = "C:\\Windows\\Temp\\Legit.exe";
+            simrpath = "AppData\\Local\\Temp\\Firefox_Installer.exe";
             log = "0001.dat";
             command = "ipconfig.exe";
             pwd = "Summer2019!";
@@ -136,7 +136,7 @@ namespace PurpleSharp
             if (orchservice)
             {
                 //Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log);
-                Lib.NamedPipes.RunOrchestrationService("testpipe", log);
+                Lib.NamedPipes.RunScoutService("testpipe", log);
                 return;
             }
             if (simservice)
@@ -179,13 +179,13 @@ namespace PurpleSharp
                                     Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
                                     var random = new Random();
                                     int index = random.Next(targets.Count);
-                                    Console.WriteLine("[+] Picked Random host for simulation :" + targets[index].Fqdn);
-                                    ExecuteRemote(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
+                                    Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
+                                    ExecuteRemote(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, true);
 
                                     if (playbook.sleep > 0 && !task.Equals(lastTask))
                                     {
                                         Console.WriteLine();
-                                        Console.WriteLine("[+][+][+] Sleeping {0} minutes until next task...", playbook.sleep);
+                                        Console.WriteLine("[+][+] Sleeping {0} minutes until next task...", playbook.sleep);
                                         System.Threading.Thread.Sleep(1000 * playbook.sleep);
                                     }
                                 }
@@ -194,7 +194,7 @@ namespace PurpleSharp
                             }
                             else
                             {
-                                ExecuteRemote(task.host, engagement.domain, engagement.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
+                                ExecuteRemote(task.host, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, true);
                                 if (playbook.sleep > 0 && !task.Equals(lastTask))
                                 {
                                     Console.WriteLine();
@@ -224,13 +224,13 @@ namespace PurpleSharp
                     var random = new Random();
                     int index = random.Next(targets.Count);
                     Console.WriteLine("[+] Picked Random host for simulation :" +targets[index].Fqdn);
-                    ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec, verbose);
+                    ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
                 }
                 else Console.WriteLine("[!] Could not obtain targets for the simulation");
             }
             else if (rhost != "")
             {
-                ExecuteRemote(rhost, domain, ruser, rpwd, technique, orchestrator, simulator, log, opsec, verbose);
+                ExecuteRemote(rhost, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
             }
             else 
             {
@@ -239,7 +239,7 @@ namespace PurpleSharp
             
             
         }
-        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string orchestrator, string simulator, string log, bool opsec, bool verbose)
+        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
         {
             string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
 
@@ -253,8 +253,12 @@ namespace PurpleSharp
             }
             Console.WriteLine();
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
-            string dirpath = "C:\\Windows\\Temp\\";
-            Lib.RemoteLauncher.upload(uploadPath, dirpath + orchestrator, rhost, ruser, rpwd, domain);
+            int index = scoutfpath.LastIndexOf(@"\");
+            string scoutFolder = scoutfpath.Substring(0,index+1);
+            //Console.WriteLine("[+] Uploading Scout agent to " + dirpath + scoutpath);
+            //Lib.RemoteLauncher.upload(uploadPath, dirpath + scoutpath, rhost, ruser, rpwd, domain);
+            Console.WriteLine("[+] Uploading Scout agent to " + scoutfpath);
+            Lib.RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
             string cmdline = "/technique " + technique;
             System.Threading.Thread.Sleep(3000);
             
@@ -262,7 +266,9 @@ namespace PurpleSharp
             {
                 string result = "";
                 string args = "/o";
-                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, args, domain, ruser, rpwd);
+
+                //Lib.RemoteLauncher.wmiexec(rhost, dirpath + scoutpath, args, domain, ruser, rpwd);
+                Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
                 Console.WriteLine("[+] Connecting to orchestrator namedpipe service ...");
 
                 result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe","SYN");
@@ -281,14 +287,16 @@ namespace PurpleSharp
                         Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
                         Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
                         System.Threading.Thread.Sleep(1000);
-                        Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
-                        Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
+
+                        //Lib.RemoteLauncher.delete(dirpath + scoutpath, rhost, ruser, rpwd, domain);
+                        Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                        Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
                         Console.WriteLine("[!] Exitting.");
                         return;
 
                     }
                     //Console.WriteLine("[+] Sending simulator binary...");
-                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "simbin:" + simulator);
+                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "simrpath:" + simrpath);
                     //Console.WriteLine("[+] Sending params...");
                     Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "params:"+cmdline);
                     //Console.WriteLine("[+] Sending opsec techqniue...");
@@ -296,8 +304,18 @@ namespace PurpleSharp
 
 
                     Console.WriteLine("[!] Recon results: " + String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}", loggeduser, payload[1], payload[2]));
-                    string path = "C:\\Users\\" + loggeduser + "\\Downloads\\";
-                    Lib.RemoteLauncher.upload(uploadPath, path + simulator, rhost, ruser, rpwd, domain);
+                    string simfpath = "C:\\Users\\" + loggeduser + "\\"+simrpath;
+                    int index2 = simrpath.LastIndexOf(@"\");
+                    string simrfolder = simrpath.Substring(0, index2 + 1);
+
+                    //string path = "C:\\Users\\" + loggeduser + "\\Downloads\\";
+                    string simfolder = "C:\\Users\\" + loggeduser + "\\"+ simrfolder;
+
+                    //Console.WriteLine("[+] Uploading Simulation agent to " + path + simrpath);
+                    //Lib.RemoteLauncher.upload(uploadPath, path + simrpath, rhost, ruser, rpwd, domain);
+
+                    Console.WriteLine("[+] Uploading Simulation agent to " + simfpath);
+                    Lib.RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
                     Console.WriteLine("[+] Executing Simulation...");
                     Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
@@ -311,7 +329,7 @@ namespace PurpleSharp
                     {
                         Console.WriteLine("[+] Obtaining orchestration results...");
                         System.Threading.Thread.Sleep(1000);
-                        string oresults = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
+                        string oresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
                         Console.WriteLine("[+] Results:");
                         Console.WriteLine();
                         Console.WriteLine(oresults);
@@ -320,15 +338,17 @@ namespace PurpleSharp
                     System.Threading.Thread.Sleep(3000);
                     Console.WriteLine("[+] Obtaining simulation results...");
                     System.Threading.Thread.Sleep(1000);
-                    string results = Lib.RemoteLauncher.readFile(rhost, path + log, ruser, rpwd, domain);
+                    string results = Lib.RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
                     Console.WriteLine("[+] Results:");
                     Console.WriteLine();
                     Console.WriteLine(results);
                     Console.WriteLine("[+] Cleaning up...");
-                    Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(path + simulator, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(path + log, rhost, ruser, rpwd, domain);
+                    //Lib.RemoteLauncher.delete(dirpath + scoutpath, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+                    //Lib.RemoteLauncher.delete(path + simrpath, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(simfpath, rhost, ruser, rpwd, domain);
+                    Lib.RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
 
 
                 }
@@ -339,16 +359,19 @@ namespace PurpleSharp
             }
             else
             {
-                Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, cmdline, domain, ruser, rpwd);
+                //Lib.RemoteLauncher.wmiexec(rhost, dirpath + scoutpath, cmdline, domain, ruser, rpwd);
+                Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, cmdline, domain, ruser, rpwd);
                 System.Threading.Thread.Sleep(3000);
                 Console.WriteLine("[+] Obtaining results...");
-                string results = Lib.RemoteLauncher.readFile(rhost, dirpath + log, ruser, rpwd, domain);
+                string results = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
                 Console.WriteLine("[+] Results:");
                 Console.WriteLine();
                 Console.WriteLine(results);
                 Console.WriteLine("[+] Cleaning up...");
-                Lib.RemoteLauncher.delete(dirpath + orchestrator, rhost, ruser, rpwd, domain);
-                Lib.RemoteLauncher.delete(dirpath + log, rhost, ruser, rpwd, domain);
+
+                //Lib.RemoteLauncher.delete(dirpath + scoutpath, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
             }
 
 
