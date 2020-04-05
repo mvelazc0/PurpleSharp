@@ -178,16 +178,16 @@ namespace PurpleSharp.Simulations
             {
                 DateTime dtime = DateTime.Now;
                 logger.TimestampInfo(String.Format("LSASS successfully dumped to {0}\\Temp\\debug{1}.out", systemRoot, targetProcessId));
-                Console.WriteLine("{0}[{1}] LSASS dump successful on {2} running as {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name);
+                //Console.WriteLine("{0}[{1}] LSASS dump successful on {2} running as {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name);
                 File.Delete(dumpFile);
                 logger.TimestampInfo(String.Format("Dump file deleted"));
-                Console.WriteLine("[*] Dump file deleted");
+                //Console.WriteLine("[*] Dump file deleted");
             }
             else
             {
                 logger.TimestampInfo(String.Format("LSASS dump failed!"));
                 DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] LSASS dump failed on {2} running as {3}. Error Code {4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name, errorCode);
+//                Console.WriteLine("{0}[{1}] LSASS dump failed on {2} running as {3}. Error Code {4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name, errorCode);
             }
         }
 

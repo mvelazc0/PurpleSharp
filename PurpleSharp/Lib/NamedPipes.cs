@@ -5,6 +5,8 @@ using System.IO.Pipes;
 using System.Management;
 using System.Linq;
 using System.Text;
+using System.Security.Principal;
+using System.Security.AccessControl;
 
 namespace PurpleSharp.Lib
 {
@@ -25,8 +27,6 @@ namespace PurpleSharp.Lib
 
             try
             {
-
-
                 using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
                 {
                     logger.TimestampInfo("Starting orchestrator namedpipe service...");
@@ -115,8 +115,15 @@ namespace PurpleSharp.Lib
                             {
                                 logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
                                 logger.TimestampInfo("Spoofing " + parentprocess.ProcessName + " PID: " + parentprocess.Id.ToString());
-                                logger.TimestampInfo("Executing: " + simpath + " " + cmdline);
-                                Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
+                                //logger.TimestampInfo("Executing: " + simpath + " " + cmdline);
+                                logger.TimestampInfo("Executing: " + simpath + " /s");
+                                //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
+                                Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " /s");
+
+                                System.Threading.Thread.Sleep(2000);
+                                logger.TimestampInfo("Sending technique through namedpipe:"+ cmdline.Replace("/technique ", ""));
+                                RunNoAuthClient("simargs", "technique:" + cmdline.Replace("/technique ", ""));
+                                System.Threading.Thread.Sleep(2000);
                             }
                         }
                         else if (line.ToLower().Equals("quit"))
@@ -138,6 +145,97 @@ namespace PurpleSharp.Lib
             }
         }
 
+        /*
+        public static string RunSimulationService(string npipe, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + "simagent.txt");
+            try
+            {
+                logger.TimestampInfo("starting!");
+                string technique;
+                
+                using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
+                //using (var pipeServer = new NamedPipeServerStream(npipe))
+                {
+                    var reader = new StreamReader(pipeServer);
+                    var writer = new StreamWriter(pipeServer);
+
+                    //logger.TimestampInfo("Waiting for client connection...");
+                    pipeServer.WaitForConnection();
+                    logger.TimestampInfo("Client connected!");
+
+                    var line = reader.ReadLine();
+                    logger.TimestampInfo("received from client: " + line);
+                    if (line.ToLower().StartsWith("technique:"))
+                    {
+                        technique = line.Replace("technique:", "");
+                        writer.WriteLine("ACK");
+                        writer.Flush();
+                        return technique;
+                    }
+                    pipeServer.Disconnect();
+
+                }
+                return "";
+            }
+            catch (Exception ex)
+            {
+                logger.TimestampInfo(ex.ToString());
+                logger.TimestampInfo(ex.Message.ToString());
+                return "";
+            }
+            
+
+        }
+        */
+
+        public static string RunSimulationService(string npipe, string log)
+        {
+            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            //Lib.Logger logger = new Lib.Logger(currentPath + "simagent.txt");
+            try
+            {
+                //https://helperbyte.com/questions/171742/how-to-connect-to-a-named-pipe-without-administrator-rights
+                PipeSecurity ps = new PipeSecurity();
+                ps.SetAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite, AccessControlType.Allow));
+
+                //logger.TimestampInfo("starting!");
+                string technique;
+                using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 4028, 4028, ps))
+                //using (var pipeServer = new NamedPipeServerStream(npipe))
+                {
+                    var reader = new StreamReader(pipeServer);
+                    var writer = new StreamWriter(pipeServer);
+
+                    //logger.TimestampInfo("Waiting for client connection...");
+                    pipeServer.WaitForConnection();
+                    //logger.TimestampInfo("Client connected!");
+
+                    var line = reader.ReadLine();
+                    //logger.TimestampInfo("received from client: " + line);
+                    if (line.ToLower().StartsWith("technique:"))
+                    {
+                        technique = line.Replace("technique:", "");
+                        writer.WriteLine("ACK");
+                        writer.Flush();
+                        return technique;
+                    }
+                    pipeServer.Disconnect();
+
+                }
+                return "";
+            }
+            catch (Exception ex)
+            {
+                //logger.TimestampInfo(ex.ToString());
+                //logger.TimestampInfo(ex.Message.ToString());
+                return "";
+            }
+
+
+        }
+
         //Based on https://github.com/malcomvetter/NamedPipes
         public static string RunClient(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
         {
@@ -156,6 +254,23 @@ namespace PurpleSharp.Lib
                     return (result.ToString());
                 }
             }
+        }
+
+        public static string RunNoAuthClient(string npipe, string request)
+        {
+            using (var pipeClient = new NamedPipeClientStream(".", npipe, PipeDirection.InOut))
+            {
+                pipeClient.Connect(5000);
+                pipeClient.ReadMode = PipeTransmissionMode.Message;
+
+                var reader = new StreamReader(pipeClient);
+                var writer = new StreamWriter(pipeClient);
+                writer.WriteLine(request);
+                writer.Flush();
+                var result = reader.ReadLine();
+                return (result.ToString());
+            }
+            
         }
     }
 }

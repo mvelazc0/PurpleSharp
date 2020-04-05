@@ -11,6 +11,10 @@ namespace PurpleSharp.Lib
 
     public class SimulationExercise
     {
+        public string domain { get; set; }
+        public string username { get; set; }
+        public string dc { get; set; }
+        public int sleep { get; set; }
         public List<SimulationPlaybook> playbooks { get; set; }
     }
 
@@ -23,12 +27,10 @@ namespace PurpleSharp.Lib
     public class SimulationPlaybook
     {
         public string name { get; set; }
-        public string domain { get; set; }
-        public string username { get; set; }
         public string orchbin { get; set; }
         public string simbin { get; set; }
         public int sleep { get; set; }
-        public string dc { get; set; }
+        
         public List<PlaybookTask> tasks { get; set; }
     }
 
@@ -37,11 +39,17 @@ namespace PurpleSharp.Lib
     {
         public static SimulationExercise ReadJson(string jsoninput)
         {
-
-            SimulationExercise engagement = JsonConvert.DeserializeObject<SimulationExercise>(jsoninput);
-            return engagement;
-            //SimulationPlaybook pb = JsonConvert.DeserializeObject<SimulationPlaybook>(jsoninput);
-            //return pb;
+            try
+            {
+                SimulationExercise engagement = JsonConvert.DeserializeObject<SimulationExercise>(jsoninput);
+                return engagement;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            
+            
 
         }
     }

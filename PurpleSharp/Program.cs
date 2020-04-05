@@ -30,7 +30,8 @@ namespace PurpleSharp
             bool cleanup = false;
             bool opsec = false;
             bool verbose = false;
-            bool service = false;
+            bool orchservice = false;
+            bool simservice = false;
             technique = tactic = rhost = domain = ruser = rpwd = dc = jfile = "";
 
             orchestrator = "Legit.exe";
@@ -46,7 +47,7 @@ namespace PurpleSharp
 
             }
 
-            for (int i = 0; i < args.Length; i++)   
+            for (int i = 0; i < args.Length; i++)
             {
                 try
                 {
@@ -112,8 +113,11 @@ namespace PurpleSharp
                         case "/v":
                             verbose = true;
                             break;
+                        case "/o":
+                            orchservice = true;
+                            break;
                         case "/s":
-                            service = true;
+                            simservice = true;
                             break;
                         default:
                             break;
@@ -127,75 +131,89 @@ namespace PurpleSharp
                     return;
 
                 }
-                
+
+            }
+            if (orchservice)
+            {
+                //Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log);
+                Lib.NamedPipes.RunOrchestrationService("testpipe", log);
+                return;
+            }
+            if (simservice)
+            {
+
+                string tech = Lib.NamedPipes.RunSimulationService("simargs", log);
+                ExecuteTechnique(tech, type, usertype, nusers, hosttype, nhosts, protocol, sleep, pwd, command, log, cleanup);         
+                return;
             }
             if (!jfile.Equals(""))
             {
                 string json = File.ReadAllText(jfile);
-                //SimulationPlaybook pb =  Json.ReadJson(json);
                 SimulationExercise engagement = Json.ReadJson(json);
-
-                foreach(SimulationPlaybook playbook in engagement.playbooks)
+                if (engagement == null) Console.WriteLine("[!] Could not parse JSON input. Check if its valid.");
+                else
                 {
-
-                    Console.Write("Password for {0}\\{1}: ", playbook.domain, playbook.username);
+                    Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
                     string pass = Utils.GetPassword();
 
-                    Console.WriteLine("[+][+][+] Starting Execution of {0}", playbook.name);
-
-                    PlaybookTask lastTask = playbook.tasks.Last();
-                    foreach (PlaybookTask task in playbook.tasks)
+                    SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
+                    foreach (SimulationPlaybook playbook in engagement.playbooks)
                     {
 
-                        Console.WriteLine("[+][+][+] Executing technique {0} against {1}", task.technique, task.host);
-                        Console.WriteLine();
+                        Console.WriteLine("[+][+] Starting Execution of {0}", playbook.name);
 
-
-                        if (task.host.Equals("random"))
+                        PlaybookTask lastTask = playbook.tasks.Last();
+                        foreach (PlaybookTask task in playbook.tasks)
                         {
-                            List<Computer> targets = new List<Computer>();
-                            targets = Ldap.GetADComputers(10, playbook.dc, playbook.username, pass);
-                            if (targets.Count > 0)
-                            {
-                                Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
-                                var random = new Random();
-                                int index = random.Next(targets.Count);
-                                Console.WriteLine("[+] Picked Random host for simulation :" + targets[index].Fqdn);
-                                ExecuteRemote(targets[index].Fqdn, playbook.domain, playbook.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
 
+                            Console.WriteLine("[+][+] Executing technique {0} against {1}", task.technique, task.host);
+                            Console.WriteLine();
+
+
+                            if (task.host.Equals("random"))
+                            {
+                                List<Computer> targets = new List<Computer>();
+                                targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
+                                if (targets.Count > 0)
+                                {
+                                    Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
+                                    var random = new Random();
+                                    int index = random.Next(targets.Count);
+                                    Console.WriteLine("[+] Picked Random host for simulation :" + targets[index].Fqdn);
+                                    ExecuteRemote(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
+
+                                    if (playbook.sleep > 0 && !task.Equals(lastTask))
+                                    {
+                                        Console.WriteLine();
+                                        Console.WriteLine("[+][+][+] Sleeping {0} minutes until next task...", playbook.sleep);
+                                        System.Threading.Thread.Sleep(1000 * playbook.sleep);
+                                    }
+                                }
+                                else Console.WriteLine("[!] Could not obtain targets for the simulation");
+
+                            }
+                            else
+                            {
+                                ExecuteRemote(task.host, engagement.domain, engagement.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
                                 if (playbook.sleep > 0 && !task.Equals(lastTask))
                                 {
                                     Console.WriteLine();
-                                    Console.WriteLine("[+][+][+] Sleeping {0} minutes until next task...", playbook.sleep);
+                                    Console.WriteLine("[+][+] Sleeping {0} minutes until next task...", playbook.sleep);
                                     System.Threading.Thread.Sleep(1000 * playbook.sleep);
                                 }
                             }
-                            else Console.WriteLine("[!] Could not obtain targets for the simulation");
-
                         }
-                        else
+                        if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
                         {
-                            ExecuteRemote(task.host, playbook.domain, playbook.username, pass, task.technique, playbook.orchbin, playbook.simbin, log, true, true);
-                            if (playbook.sleep > 0 && !task.Equals(lastTask))
-                            {
-                                Console.WriteLine();
-                                Console.WriteLine("[+][+][+] Sleeping {0} minutes until next task...", playbook.sleep);
-                                System.Threading.Thread.Sleep(1000 * playbook.sleep);
-                            }
+                            Console.WriteLine();
+                            Console.WriteLine("[+][+] Sleeping {0} minutes until next playbook...", engagement.sleep);
+                            System.Threading.Thread.Sleep(1000 * playbook.sleep);
                         }
 
                     }
-
                 }
             }
-            if (service)
-            {
 
-                //Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log);
-                Lib.NamedPipes.RunOrchestrationService("testpipe", log);
-                return;
-
-            }
             if (rhost == "random")
             {
                 List<Computer> targets = new List<Computer>();
@@ -243,7 +261,7 @@ namespace PurpleSharp
             if (opsec)
             {
                 string result = "";
-                string args = "/s";
+                string args = "/o";
                 Lib.RemoteLauncher.wmiexec(rhost, dirpath + orchestrator, args, domain, ruser, rpwd);
                 Console.WriteLine("[+] Connecting to orchestrator namedpipe service ...");
 
@@ -284,6 +302,10 @@ namespace PurpleSharp
                     Console.WriteLine("[+] Executing Simulation...");
                     Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
                     Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+
+                    //System.Threading.Thread.Sleep(5000);
+                    //Console.WriteLine("[+] Sending technique to simulation agent...");
+                    //Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "simargs", "technique:"+technique);
 
                     if (verbose)
                     {
