@@ -110,9 +110,9 @@ namespace PurpleSharp.Lib
             {
                 ManagementScope myScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", rhost));
                 ManagementClass myClass = new ManagementClass(myScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
-                Console.WriteLine("[+] Executing command: " + executionPath + " " + cmdArgs + " On:" + rhost);
+                //Console.WriteLine("[+] Executing command: " + executionPath + " " + cmdArgs + " On:" + rhost);
                 myClass.InvokeMethod("Create", myProcess);
-                Console.WriteLine("[!] Process created successfully");
+                //Console.WriteLine("[!] Process created successfully");
             }
             else
             {
@@ -125,7 +125,7 @@ namespace PurpleSharp.Lib
                 myConnection.Password = password;
                 ManagementScope myScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", rhost), myConnection);
                 ManagementClass myClass = new ManagementClass(myScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
-                Console.WriteLine("[+] Executing command " + executionPath + " " + cmdArgs + " on:" + rhost);
+                //Console.WriteLine("[+] Executing command " + executionPath + " " + cmdArgs + " on:" + rhost);
                 myClass.InvokeMethod("Create", myProcess);
                 //Console.WriteLine("[!] Process created successfully");
             }

@@ -250,16 +250,14 @@ namespace PurpleSharp
             {
                 Console.Write("Password for {0}\\{1}: ", domain, ruser);
                 rpwd = Utils.GetPassword();
+                Console.WriteLine();
             }
-            Console.WriteLine();
+            
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             int index = scoutfpath.LastIndexOf(@"\");
             string scoutFolder = scoutfpath.Substring(0,index+1);
-            //Console.WriteLine("[+] Uploading Scout agent to " + dirpath + scoutpath);
-            //Lib.RemoteLauncher.upload(uploadPath, dirpath + scoutpath, rhost, ruser, rpwd, domain);
-            Console.WriteLine("[+] Uploading Scout agent to " + scoutfpath);
-            Lib.RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
-            string cmdline = "/technique " + technique;
+            
+            
             System.Threading.Thread.Sleep(3000);
             
             if (opsec)
@@ -267,9 +265,12 @@ namespace PurpleSharp
                 string result = "";
                 string args = "/o";
 
-                //Lib.RemoteLauncher.wmiexec(rhost, dirpath + scoutpath, args, domain, ruser, rpwd);
+                Console.WriteLine("[+] Uploading Scout agent to {0} on {1}", scoutfpath, rhost);
+                Lib.RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
+
+                Console.WriteLine("[+] Executing the Scout agent via WMI ...");
                 Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
-                Console.WriteLine("[+] Connecting to orchestrator namedpipe service ...");
+                Console.WriteLine("[+] Connecting to namedpipe service ...");
 
                 result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe","SYN");
                 if (result.Equals("SYN/ACK"))
@@ -280,86 +281,87 @@ namespace PurpleSharp
                     else result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:regular");
 
                     string[] payload = result.Split(',');
-                    string loggeduser = payload[0];
+                    string duser = payload[0];
+                    
 
-                    if (loggeduser == "")
+                    if (duser == "")
                     {
                         Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
                         Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
                         System.Threading.Thread.Sleep(1000);
-
-                        //Lib.RemoteLauncher.delete(dirpath + scoutpath, rhost, ruser, rpwd, domain);
                         Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
                         Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
                         Console.WriteLine("[!] Exitting.");
                         return;
 
                     }
-                    //Console.WriteLine("[+] Sending simulator binary...");
-                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "simrpath:" + simrpath);
-                    //Console.WriteLine("[+] Sending params...");
-                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "params:"+cmdline);
-                    //Console.WriteLine("[+] Sending opsec techqniue...");
-                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "opsec:" + "ppid");
-
-
-                    Console.WriteLine("[!] Recon results: " + String.Format("Logged on user: {0} | Spoofing process: {1} | PID: {2}", loggeduser, payload[1], payload[2]));
-                    string simfpath = "C:\\Users\\" + loggeduser + "\\"+simrpath;
-                    int index2 = simrpath.LastIndexOf(@"\");
-                    string simrfolder = simrpath.Substring(0, index2 + 1);
-
-                    //string path = "C:\\Users\\" + loggeduser + "\\Downloads\\";
-                    string simfolder = "C:\\Users\\" + loggeduser + "\\"+ simrfolder;
-
-                    //Console.WriteLine("[+] Uploading Simulation agent to " + path + simrpath);
-                    //Lib.RemoteLauncher.upload(uploadPath, path + simrpath, rhost, ruser, rpwd, domain);
-
-                    Console.WriteLine("[+] Uploading Simulation agent to " + simfpath);
-                    Lib.RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
-
-                    Console.WriteLine("[+] Executing Simulation...");
-                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
-                    Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
-
-                    //System.Threading.Thread.Sleep(5000);
-                    //Console.WriteLine("[+] Sending technique to simulation agent...");
-                    //Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "simargs", "technique:"+technique);
-
-                    if (verbose)
+                    else
                     {
-                        Console.WriteLine("[+] Obtaining orchestration results...");
+                        string user = duser.Split('\\')[1];
+                        //Console.WriteLine("[+] Sending simulator binary...");
+                        Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "simrpath:" + simrpath);
+                        //Console.WriteLine("[+] Sending technique ...");
+                        Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "technique:" + technique);
+                        //Console.WriteLine("[+] Sending opsec techqniue...");
+                        Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "opsec:" + "ppid");
+
+
+                        Console.WriteLine("[!] Recon -> " + String.Format("Logged user: {0} | Process: {1}.exe | PID: {2} | High Integrity: {3}", duser, payload[1], payload[2], payload[3]));
+                        string simfpath = "C:\\Users\\" + user + "\\" + simrpath;
+                        int index2 = simrpath.LastIndexOf(@"\");
+                        string simrfolder = simrpath.Substring(0, index2 + 1);
+
+                        string simfolder = "C:\\Users\\" + user + "\\" + simrfolder;
+
+                        Console.WriteLine("[+] Uploading Simulation agent to " + simfpath);
+                        Lib.RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
+
+                        Console.WriteLine("[+] Triggering Simulation...");
+                        Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
+                        Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+
+                        //System.Threading.Thread.Sleep(5000);
+                        //Console.WriteLine("[+] Sending technique to simulation agent...");
+                        //Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "simargs", "technique:"+technique);
+
+                        if (verbose)
+                        {
+                            Console.WriteLine("[+] Obtaining scout results...");
+                            System.Threading.Thread.Sleep(1000);
+                            string oresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
+                            Console.WriteLine("[+] Results:");
+                            Console.WriteLine();
+                            Console.WriteLine(oresults);
+                        }
+
+                        System.Threading.Thread.Sleep(3000);
+                        Console.WriteLine("[+] Obtaining simulation results...");
                         System.Threading.Thread.Sleep(1000);
-                        string oresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
+                        string results = Lib.RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
                         Console.WriteLine("[+] Results:");
                         Console.WriteLine();
-                        Console.WriteLine(oresults);
+                        Console.WriteLine(results);
+                        Console.WriteLine("[+] Cleaning up...");
+                        Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                        Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+                        Lib.RemoteLauncher.delete(simfpath, rhost, ruser, rpwd, domain);
+                        Lib.RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
+
                     }
-
-                    System.Threading.Thread.Sleep(3000);
-                    Console.WriteLine("[+] Obtaining simulation results...");
-                    System.Threading.Thread.Sleep(1000);
-                    string results = Lib.RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
-                    Console.WriteLine("[+] Results:");
-                    Console.WriteLine();
-                    Console.WriteLine(results);
-                    Console.WriteLine("[+] Cleaning up...");
-                    //Lib.RemoteLauncher.delete(dirpath + scoutpath, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
-                    //Lib.RemoteLauncher.delete(path + simrpath, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(simfpath, rhost, ruser, rpwd, domain);
-                    Lib.RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
-
-
                 }
                 else
                 {
-                    Console.WriteLine("[!] Could not connect");
+                    Console.WriteLine("[!] Could not connect to namedpipe service");
+                    return;
                 }
             }
             else
             {
-                //Lib.RemoteLauncher.wmiexec(rhost, dirpath + scoutpath, cmdline, domain, ruser, rpwd);
+                Console.WriteLine("[+] Uploading PurpleSharp to {0} on {1}", scoutfpath, rhost);
+                Lib.RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
+
+                string cmdline = "/technique " + technique;
+                Console.WriteLine("[+] Executing PurpleSharp via WMI ...");
                 Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, cmdline, domain, ruser, rpwd);
                 System.Threading.Thread.Sleep(3000);
                 Console.WriteLine("[+] Obtaining results...");
@@ -368,13 +370,9 @@ namespace PurpleSharp
                 Console.WriteLine();
                 Console.WriteLine(results);
                 Console.WriteLine("[+] Cleaning up...");
-
-                //Lib.RemoteLauncher.delete(dirpath + scoutpath, rhost, ruser, rpwd, domain);
                 Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
                 Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
             }
-
-
 
         }
 

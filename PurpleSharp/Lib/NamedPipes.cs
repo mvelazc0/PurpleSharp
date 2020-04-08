@@ -21,15 +21,15 @@ namespace PurpleSharp.Lib
             bool running = true;
             bool privileged = false;
 
-            string cmdline, opsec, simpfath, simrpath, loggeduser, simbinary;
-            cmdline = opsec = simpfath = simrpath = loggeduser = simbinary = "";
+            string technique, opsec, simpfath, simrpath, duser, user, simbinary;
+            technique = opsec = simpfath = simrpath = duser = user = simbinary = "";
             Process parentprocess = null;
 
             try
             {
                 using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
                 {
-                    logger.TimestampInfo("Starting orchestrator namedpipe service...");
+                    logger.TimestampInfo("Starting scout namedpipe service...");
                     while (running)
                     {
                         var reader = new StreamReader(pipeServer);
@@ -58,15 +58,17 @@ namespace PurpleSharp.Lib
                             if (parentprocess != null && Recon.GetExplorer() != null)
                             {
                                 //loggeduser = Recon.GetProcessOwner(Recon.GetExplorer()).Split('\\')[1];
-                                loggeduser = Recon.GetProcessOwnerWmi(Recon.GetExplorer()).Split('\\')[1];
-                                logger.TimestampInfo(String.Format("{0} Recon identified {1} logged in. Process to Spoof: {2} PID: {3}", privileged.ToString(), loggeduser, parentprocess.ProcessName, parentprocess.Id));
-                                payload = String.Format("{0},{1},{2}", loggeduser, parentprocess.ProcessName, parentprocess.Id);
+                                //duser = Recon.GetProcessOwnerWmi(Recon.GetExplorer()).Split('\\')[1];
+                                duser = Recon.GetProcessOwnerWmi(Recon.GetExplorer());
+                                user = duser.Split('\\')[1];
+                                logger.TimestampInfo(String.Format("Recon identified {0} logged in. Process to Spoof: {1} PID: {2}", duser, parentprocess.ProcessName, parentprocess.Id));
+                                payload = String.Format("{0},{1},{2},{3}", duser, parentprocess.ProcessName, parentprocess.Id, privileged.ToString());
                                 //logger.TimestampInfo("sending back to client: " + payload);
 
                             }
                             else
                             {
-                                payload = ",,";
+                                payload = ",,,";
                                 logger.TimestampInfo("Recon did not identify any logged users");
                             }
                             writer.WriteLine(payload);
@@ -79,9 +81,9 @@ namespace PurpleSharp.Lib
                             writer.WriteLine("ACK");
                             writer.Flush();
                         }
-                        else if (line.ToLower().StartsWith("params:"))
+                        else if (line.ToLower().StartsWith("technique:"))
                         {
-                            cmdline = line.Replace("params:", "");
+                            technique = line.Replace("technique:", "");
                             //logger.TimestampInfo("Got params from client");
                             //logger.TimestampInfo("sending back to client: " + "ACK");
                             writer.WriteLine("ACK");
@@ -98,10 +100,9 @@ namespace PurpleSharp.Lib
                         else if (line.ToLower().StartsWith("simrpath:"))
                         {
                             simrpath = line.Replace("simrpath:", "");
-                            //logger.TimestampInfo("Got opsec technique from client");
                             //logger.TimestampInfo("sending back to client: " + "ACK");
                             //simpath = "C:\\Users\\" + loggeduser + "\\Downloads\\" + simbin;
-                            simpfath = "C:\\Users\\" + loggeduser + "\\" + simrpath;
+                            simpfath = "C:\\Users\\" + user + "\\" + simrpath;
                             int index = simrpath.LastIndexOf(@"\");
                             simbinary = simrpath.Substring(index + 1);
 
@@ -126,8 +127,10 @@ namespace PurpleSharp.Lib
                                 Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
                                 System.Threading.Thread.Sleep(2000);
-                                logger.TimestampInfo("Sending technique through namedpipe:"+ cmdline.Replace("/technique ", ""));
-                                RunNoAuthClient("simargs", "technique:" + cmdline.Replace("/technique ", ""));
+                                //logger.TimestampInfo("Sending technique through namedpipe:"+ technique.Replace("/technique ", ""));
+                                logger.TimestampInfo("Sending technique through namedpipe:" + technique);
+                                //RunNoAuthClient("simargs", "technique:" + technique.Replace("/technique ", ""));
+                                RunNoAuthClient("simargs", "technique:" + technique);
                                 System.Threading.Thread.Sleep(2000);
                             }
                         }
