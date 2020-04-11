@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -12,7 +13,7 @@ namespace PurpleSharp.Simulations
             Lib.Logger logger = new Lib.Logger(currentPath + log);
 
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
-            logger.TimestampInfo(String.Format("Starting Process Execution on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Starting Process Execution on {0}. Running with PID:{1}", Environment.MachineName, Process.GetCurrentProcess().Id));
             logger.TimestampInfo("Command line: "+@cmdline);
 
             bool retValue;

@@ -29,7 +29,7 @@ namespace PurpleSharp.Lib
             {
                 using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
                 {
-                    logger.TimestampInfo("Starting scout namedpipe service...");
+                    logger.TimestampInfo("Starting scout namedpipe service with PID:"+ Process.GetCurrentProcess().Id);
                     while (running)
                     {
                         var reader = new StreamReader(pipeServer);

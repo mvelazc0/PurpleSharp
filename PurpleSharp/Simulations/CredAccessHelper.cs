@@ -144,7 +144,6 @@ namespace PurpleSharp.Simulations
             targetProcessId = (uint)targetProcess.Id;
             logger.TimestampInfo(String.Format("Identified lsass.exe with Process ID:{0}", targetProcessId));
             
-
             try
             {
                 if (!IsHighIntegrity())

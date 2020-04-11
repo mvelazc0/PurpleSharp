@@ -71,8 +71,14 @@ namespace PurpleSharp
                         case "/dc":
                             dc = args[i + 1];
                             break;
-                        case "/technique":
+                        case "/t":
                             technique = args[i + 1];
+                            break;
+                        case "/scout":
+                            scoutfpath = args[i + 1];
+                            break;
+                        case "/simulator":
+                            simrpath = args[i + 1];
                             break;
                         case "/pwd":
                             pwd = args[i + 1];
@@ -360,7 +366,7 @@ namespace PurpleSharp
                 Console.WriteLine("[+] Uploading PurpleSharp to {0} on {1}", scoutfpath, rhost);
                 Lib.RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
 
-                string cmdline = "/technique " + technique;
+                string cmdline = "/t " + technique;
                 Console.WriteLine("[+] Executing PurpleSharp via WMI ...");
                 Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, cmdline, domain, ruser, rpwd);
                 System.Threading.Thread.Sleep(3000);
@@ -380,62 +386,13 @@ namespace PurpleSharp
         {
             switch (technique)
             {
-                //T1110 - Brute Force
-                case "T1110":
-                    if (type == 1)
-                    {
-                        Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password);
-                        break;
-                    }
-                    else if ( type == 2)
-                    {
-                        Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password);
-                        break;
-                    }
-                    break;
 
-                case "localspray":
-                //T1110 - Brute Force
-                    Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password);
-                    break;
+                // Initial Access
 
-                //T1110 - Brute Force    
-                case "networkspray":
-                    Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password);
-                    break;
+                // Execution
 
-                //T1208 - Kerberoasting
-                case "kerberoast": case "T1208":
-                    Simulations.CredAccess.Kerberoasting(sleep);
-                    break;
-
-                //T1135 - Network Share Discovery
-                case "shareenum":
-                case "T1135":
-                    Simulations.Discovery.EnumerateShares(computertype, nhosts, sleep);
-                    break;
-
-                case "privenum":
-                    Simulations.Discovery.PrivilegeEnumeration(computertype, nhosts, sleep);
-                    break;
-
-                //T1003 - Credential Dumping
-                case "lsassdump":
-                case "T1003":
-                    
-                    Simulations.CredAccess.Lsass(log);
-                    break;
-
-                //T1021 - Remote Service
-                case "remoteservice":
-                case "T1021":
-                    
-                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(computertype, nhosts, sleep, cleanup);
-                    break;
-
-                //T1028 - Windows Remote Management
-                case "wmiexec":
-                    Simulations.LateralMovement.ExecuteWmiOnHosts(computertype, nhosts, sleep, command);
+                case "T1117":
+                    Simulations.Execution.ExecuteRegsvr32(log);
                     break;
 
                 //T1053 - Scheduled Task
@@ -444,45 +401,138 @@ namespace PurpleSharp
                     Simulations.LateralMovement.CreateSchTaskOnHosts(computertype, nhosts, sleep, command, cleanup);
                     break;
 
-                //T1028 - Windows Remote Management
-                case "winrmexec":
-                case "T1028":
-                    Simulations.LateralMovement.ExecuteWinRMOnHosts(computertype, nhosts, sleep, command);
-                    break;
-
-                //T1423 - Network Service Scanning
-                case "portscan":
-                case "T1423":
-                    Simulations.Discovery.NetworkServiceDiscovery(computertype, nhosts, sleep);
-                    break;
-
                 case "T1086":
                     Simulations.Execution.ExecutePowershell(log);
                     break;
 
-                case "T1117":
-                    Simulations.Execution.ExecuteRegsvr32(log);
-                    break;
+                //T1028 - Windows Remote Management
+
+                // Persistence
+
+                //T1053 - Scheduled Task
 
                 case "T1136":
                     //Simulations.Persistence.CreateAccountCmd(log);
                     Simulations.Persistence.CreateAccountApi(log);
                     break;
 
-                case "T1087":
-                    Simulations.Discovery.AccountDiscovery(log);
-                    break;
-
-                case "T1070":
-                    Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+                case "T1050":
+                    Simulations.Persistence.CreateServiceCmd(log);
                     break;
 
                 case "T1060":
                     Simulations.Persistence.ResistryRunKeyCmd(log);
                     break;
 
-                case "T1050":
-                    Simulations.Persistence.CreateServiceCmd(log);
+                // Privilege Escalation
+
+                //T1050 - New Service
+
+                //T1053 - Scheduled Task
+
+                // Defense Evasion
+
+                case "T1070":
+                    Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+                    break;
+
+                case "T1055":
+                    Simulations.DefenseEvasion.ProcessInjection(log);
+                    break;
+
+                //T1117 - Regsvr32
+
+
+                // Credential Access
+
+                //T1110 - Brute Force
+                case "T1110":
+                    if (type == 1)
+                    {
+                        Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password);
+                        break;
+                    }
+                    else if (type == 2)
+                    {
+                        Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password);
+                        break;
+                    }
+                    break;
+
+                case "localspray":
+                    //T1110 - Brute Force
+                    Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password);
+                    break;
+
+                //T1110 - Brute Force    
+                case "networkspray":
+                    Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password);
+                    break;
+
+
+                //T1208 - Kerberoasting
+                case "kerberoast":
+                case "T1208":
+                    Simulations.CredAccess.Kerberoasting(sleep);
+                    break;
+
+                //T1003 - Credential Dumping
+                case "lsassdump":
+                case "T1003":
+                    Simulations.CredAccess.Lsass(log);
+                    break;
+
+                // Discovery
+
+                //T1135 - Network Share Discovery
+                case "shareenum":
+                case "T1135":
+                    Simulations.Discovery.EnumerateShares(computertype, nhosts, sleep);
+                    break;
+
+                //T1046 - Network Service Scanning
+                case "portscan":
+                case "T1046":
+                    Simulations.Discovery.NetworkServiceDiscovery(computertype, nhosts, sleep);
+                    break;
+
+                case "T1087":
+                    Simulations.Discovery.AccountDiscovery(log);
+                    break;
+
+                // Lateral Movement
+
+                //T1028 - Windows Remote Management
+                case "winrmexec":
+                case "T1028":
+                    Simulations.LateralMovement.ExecuteWinRMOnHosts(computertype, nhosts, sleep, command);
+                    break;
+
+                //T1021 - Remote Service
+                case "remoteservice":
+                case "T1021":
+                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(computertype, nhosts, sleep, cleanup);
+                    break;
+
+                //T1047 - Windows Management Instrumentation
+                case "wmiexec":
+                case "T1047":
+                    Simulations.LateralMovement.ExecuteWmiOnHosts(computertype, nhosts, sleep, command);
+                    break;
+
+
+                // Collection
+
+                // Command and Control
+
+                // Exfiltration
+
+                // Impact
+
+                // Other
+
+                case "privenum":
+                    Simulations.Discovery.PrivilegeEnumeration(computertype, nhosts, sleep);
                     break;
 
                 default:

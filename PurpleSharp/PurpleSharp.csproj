@@ -79,12 +79,14 @@
     <Compile Include="Lib\NamedPipes.cs" />
     <Compile Include="Lib\Recon.cs" />
     <Compile Include="Lib\RemoteLauncher.cs" />
+    <Compile Include="Lib\Static.cs" />
     <Compile Include="Lib\Utils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulations\CredAccess.cs" />
     <Compile Include="Simulations\CredAccessHelper.cs" />
     <Compile Include="Simulations\DefenseEvasion.cs" />
+    <Compile Include="Simulations\DefenseEvasionHelper.cs" />
     <Compile Include="Simulations\Discovery.cs" />
     <Compile Include="Simulations\DiscoveryHelper.cs" />
     <Compile Include="Simulations\Execution.cs" />

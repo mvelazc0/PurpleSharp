@@ -176,6 +176,16 @@ public static class WinAPI
     out uint ReturnLength
     );
 
+    [DllImport("kernel32.dll")]
+    public static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
+    int dwSize, uint flNewProtect, out uint lpflOldProtect);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr OpenThread(Structs.ThreadAccess dwDesiredAccess, bool bInheritHandle, int dwThreadId);
+
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr QueueUserAPC(IntPtr pfnAPC, IntPtr hThread, IntPtr dwData);
+
 
 
 
