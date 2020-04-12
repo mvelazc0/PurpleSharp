@@ -305,7 +305,6 @@ namespace PurpleSharp
                         Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
                         Console.WriteLine("[!] Exitting.");
                         return;
-
                     }
                     else
                     {
@@ -340,10 +339,10 @@ namespace PurpleSharp
                         {
                             Console.WriteLine("[+] Grabbing the Scout Agent output...");
                             System.Threading.Thread.Sleep(1000);
-                            string oresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
+                            string sresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
                             Console.WriteLine("[+] Results:");
                             Console.WriteLine();
-                            Console.WriteLine(oresults);
+                            Console.WriteLine(sresults);
                         }
 
                         System.Threading.Thread.Sleep(3000);
@@ -354,15 +353,18 @@ namespace PurpleSharp
                         Console.WriteLine();
                         Console.WriteLine(results);
                         Console.WriteLine("[+] Cleaning up...");
+                        Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
                         Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                        Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
                         Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+                        Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + simfpath.Replace(":", "$"));
                         Lib.RemoteLauncher.delete(simfpath, rhost, ruser, rpwd, domain);
+                        Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (simfolder + log).Replace(":", "$"));
                         Lib.RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
-                        Console.WriteLine("[+] Writin JSON with results...");
+                        Console.WriteLine("[+] Writing JSON with results...");
                         Json.WriteJson(results, duser);
                         Console.WriteLine();
                         
-
                     }
                 }
                 else
@@ -386,12 +388,12 @@ namespace PurpleSharp
                 Console.WriteLine();
                 Console.WriteLine(results);
                 Console.WriteLine("[+] Cleaning up...");
+                Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
                 Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
                 Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
             }
-
         }
-
         public static void ExecuteTechnique(string technique, int type, int usertype, int nuser, int computertype, int nhosts, int protocol, int sleep, string password, string command, string log, bool cleanup)
         {
             switch (technique)

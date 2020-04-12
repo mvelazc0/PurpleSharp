@@ -79,7 +79,7 @@ namespace PurpleSharp.Lib
                 {
                     string share = executionPath.Replace(":", "$");
                     string destpath = @"\\" + rhost + @"\" + share;
-                    Console.WriteLine("[+] Deleting " + destpath);
+                    //Console.WriteLine("[+] Deleting " + destpath);
                     File.Delete(destpath);
                     //Console.WriteLine("[+] File removed successfully");
                     Console.WriteLine();
@@ -90,7 +90,7 @@ namespace PurpleSharp.Lib
                     {
                         string share = executionPath.Replace(":", "$");
                         string destpath = @"\\" + rhost + @"\" + share;
-                        Console.WriteLine("[+] Deleting " + destpath);
+                        //Console.WriteLine("[+] Deleting " + destpath);
                         File.Delete(destpath);
                         //Console.WriteLine("[+] File removed successfully");
                     }
