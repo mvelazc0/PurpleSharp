@@ -19,7 +19,7 @@ namespace PurpleSharp.Simulations
         const int PROCESS_VM_WRITE = 0x0020;
         const int PROCESS_VM_READ = 0x0010;
 
-        public static void ProcInjection_CreateRemoteThread(byte[] shellcode, Process proc)
+        public static void ProcInjection_CreateRemoteThread(byte[] shellcode, Process proc, Lib.Logger logger)
         {
             IntPtr procHandle = WinAPI.OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
             Int32 size = shellcode.Length;
@@ -28,10 +28,11 @@ namespace PurpleSharp.Simulations
             UIntPtr bytesWritten;
             IntPtr size2 = new IntPtr(shellcode.Length);
             bool bWrite = WinAPI.WriteProcessMemory(procHandle, spaceAddr, shellcode, (uint)size2, out bytesWritten);
+            logger.TimestampInfo(String.Format("Calling CreateRemoteThread on PID:{0}", proc.Id));
             WinAPI.CreateRemoteThread(procHandle, new IntPtr(0), new uint(), spaceAddr, new IntPtr(0), new uint(), new IntPtr(0));
         }
 
-        public static void ProcInjection_APC(byte[] shellcode, Process proc)
+        public static void ProcInjection_APC(byte[] shellcode, Process proc, Lib.Logger logger)
         {
             IntPtr procHandle = WinAPI.OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
             Int32 size = shellcode.Length;

@@ -186,7 +186,7 @@ namespace PurpleSharp
                                     var random = new Random();
                                     int index = random.Next(targets.Count);
                                     Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
-                                    ExecuteRemote(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, true);
+                                    ExecuteRemote(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
 
                                     if (playbook.sleep > 0 && !task.Equals(lastTask))
                                     {
@@ -200,7 +200,7 @@ namespace PurpleSharp
                             }
                             else
                             {
-                                ExecuteRemote(task.host, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, true);
+                                ExecuteRemote(task.host, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
                                 if (playbook.sleep > 0 && !task.Equals(lastTask))
                                 {
                                     Console.WriteLine();
@@ -222,6 +222,12 @@ namespace PurpleSharp
 
             if (rhost == "random")
             {
+                if (rpwd == "")
+                {
+                    Console.Write("Password for {0}\\{1}: ", domain, ruser);
+                    rpwd = Utils.GetPassword();
+                    Console.WriteLine();
+                }
                 List<Computer> targets = new List<Computer>();
                 targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
                 if (targets.Count > 0)
@@ -229,7 +235,7 @@ namespace PurpleSharp
                     Console.WriteLine("[+] Obtained {0} possible targets.",targets.Count);
                     var random = new Random();
                     int index = random.Next(targets.Count);
-                    Console.WriteLine("[+] Picked Random host for simulation :" +targets[index].Fqdn);
+                    Console.WriteLine("[+] Picked Random host for simulation: " +targets[index].Fqdn);
                     ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
                 }
                 else Console.WriteLine("[!] Could not obtain targets for the simulation");
@@ -322,7 +328,7 @@ namespace PurpleSharp
                         Console.WriteLine("[+] Uploading Simulation agent to " + simfpath);
                         Lib.RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
-                        Console.WriteLine("[+] Triggering Simulation...");
+                        Console.WriteLine("[+] Triggering simulation...");
                         Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
                         Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
 
@@ -332,7 +338,7 @@ namespace PurpleSharp
 
                         if (verbose)
                         {
-                            Console.WriteLine("[+] Obtaining scout results...");
+                            Console.WriteLine("[+] Grabbing the Scout Agent output...");
                             System.Threading.Thread.Sleep(1000);
                             string oresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
                             Console.WriteLine("[+] Results:");
@@ -341,7 +347,7 @@ namespace PurpleSharp
                         }
 
                         System.Threading.Thread.Sleep(3000);
-                        Console.WriteLine("[+] Obtaining simulation results...");
+                        Console.WriteLine("[+] Obtaining the Simulation Agent output...");
                         System.Threading.Thread.Sleep(1000);
                         string results = Lib.RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
                         Console.WriteLine("[+] Results:");
@@ -352,6 +358,10 @@ namespace PurpleSharp
                         Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
                         Lib.RemoteLauncher.delete(simfpath, rhost, ruser, rpwd, domain);
                         Lib.RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
+                        Console.WriteLine("[+] Writin JSON with results...");
+                        Json.WriteJson(results, duser);
+                        Console.WriteLine();
+                        
 
                     }
                 }

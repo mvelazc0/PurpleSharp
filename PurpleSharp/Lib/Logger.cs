@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PurpleSharp.Lib
 {
     // Reference https://gist.github.com/heiswayi/69ef5413c0f28b3a58d964447c275058
-    class Logger
+    public class Logger
     {
     private const string FILE_EXT = ".log";
     private readonly string datetimeFormat;

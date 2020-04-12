@@ -32,5 +32,11 @@ namespace PurpleSharp.Lib
             Console.WriteLine();
             return pass;
         }
+
+        public static string GetCurrentTime()
+        {
+            string datetimeFormat = "MM/dd/yyyy HH:mm:ss";
+            return System.DateTime.Now.ToString(datetimeFormat);
+        }
     }
 }
