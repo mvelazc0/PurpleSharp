@@ -125,12 +125,12 @@ namespace PurpleSharp.Simulations
         }
 
         //Adapted from https://github.com/GhostPack/SharpDump
-        public static void LsassMemoryDump(string log)
+        public static void LsassMemoryDump(Lib.Logger logger)
         {
-            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            //Lib.Logger logger = new Lib.Logger(currentPath + log);
 
-            logger.TimestampInfo(String.Format("Starting LSASS Dump on {0}  ", Environment.MachineName));
+            //logger.TimestampInfo(String.Format("Starting LSASS Dump on {0}  ", Environment.MachineName));
 
             //Console.WriteLine("Starting LSASS Dump on {0}", Environment.MachineName);
             IntPtr targetProcessHandle = IntPtr.Zero;
@@ -144,6 +144,7 @@ namespace PurpleSharp.Simulations
             targetProcessId = (uint)targetProcess.Id;
             logger.TimestampInfo(String.Format("Identified lsass.exe with Process ID:{0}", targetProcessId));
             
+            /*
             try
             {
                 if (!IsHighIntegrity())
@@ -157,6 +158,7 @@ namespace PurpleSharp.Simulations
             {
                 logger.TimestampInfo(ex.Message);
             }
+            */
             targetProcessHandle = targetProcess.Handle;
 
 
@@ -177,6 +179,7 @@ namespace PurpleSharp.Simulations
             {
                 DateTime dtime = DateTime.Now;
                 logger.TimestampInfo(String.Format("LSASS successfully dumped to {0}\\Temp\\debug{1}.out", systemRoot, targetProcessId));
+                logger.TimestampInfo("Success");
                 //Console.WriteLine("{0}[{1}] LSASS dump successful on {2} running as {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name);
                 File.Delete(dumpFile);
                 logger.TimestampInfo(String.Format("Dump file deleted"));
@@ -184,9 +187,10 @@ namespace PurpleSharp.Simulations
             }
             else
             {
-                logger.TimestampInfo(String.Format("LSASS dump failed!"));
-                DateTime dtime = DateTime.Now;
-//                Console.WriteLine("{0}[{1}] LSASS dump failed on {2} running as {3}. Error Code {4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name, errorCode);
+                logger.TimestampInfo("Failed");
+                //logger.TimestampInfo(String.Format("LSASS dump failed!"));
+                //DateTime dtime = DateTime.Now;
+                //Console.WriteLine("{0}[{1}] LSASS dump failed on {2} running as {3}. Error Code {4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name, errorCode);
             }
         }
 

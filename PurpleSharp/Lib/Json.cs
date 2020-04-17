@@ -56,7 +56,7 @@ namespace PurpleSharp.Lib
         public string user { get; set; }
         public string simprocess { get; set; }
         public int simprocessid { get; set; }
-        public bool result { get; set; }
+        public bool success { get; set; }
 
     }
 
@@ -76,7 +76,7 @@ namespace PurpleSharp.Lib
             }  
         }
 
-        public static void WriteJson(string results, string user)
+        public static PlaybookTaskResult GetTaskResult(string results, string user)
         {
 
             PlaybookTaskResult taskresult = new PlaybookTaskResult();
@@ -102,13 +102,24 @@ namespace PurpleSharp.Lib
                     taskresult.simprocess = strip.Split(' ')[0];
                     taskresult.simprocessid = Int32.Parse(strip.Split(' ')[1]);
                     //taskresult.simprocessid = 111;
-                    taskresult.result = true;
+                    //taskresult.success = true;
+                }
+                if (line.Contains("Success"))
+                {
+                    taskresult.success = true;
+                }
+                if (line.Contains("Failed"))
+                {
+                    taskresult.success = false;
                 }
                 //Console.WriteLine(line.Substring(line.LastIndexOf(']') + 1));
             }
-            File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
-
-
+            return taskresult;
+            //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
+        }
+        public static void WriteJsonPlaybookResults(SimulationExerciseResult engagementResult)
+        {
+            File.WriteAllText("result.json", JsonConvert.SerializeObject(engagementResult));
 
         }
 

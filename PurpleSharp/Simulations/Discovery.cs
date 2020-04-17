@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
@@ -81,8 +82,12 @@ namespace PurpleSharp.Simulations
 
         public static void AccountDiscovery(string log)
         {
-            ExecutionHelper.StartProcess("", "net user /domain", log);
-            ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1087 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            ExecutionHelper.StartProcess3("", "net user /domain", logger);
+            //ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
 
         }
 

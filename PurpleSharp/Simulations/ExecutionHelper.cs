@@ -9,11 +9,8 @@ namespace PurpleSharp.Simulations
     {
         public static void StartProcess2(string binary, string cmdline, Lib.Logger logger)
         {
-            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            //Lib.Logger logger = new Lib.Logger(currentPath + log);
 
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
-            //logger.TimestampInfo(String.Format("Starting Process Execution on {0}. Running with PID:{1}", Environment.MachineName, Process.GetCurrentProcess().Id));
             logger.TimestampInfo("Executing Command line: "+@cmdline);
 
             bool retValue;
@@ -30,8 +27,34 @@ namespace PurpleSharp.Simulations
             if (retValue)
             {
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + pInfo.dwProcessId));
+                logger.TimestampInfo(String.Format("Success"));
             }
-            else logger.TimestampInfo(String.Format("CreateProcess Failed"));
+            else logger.TimestampInfo(String.Format("Failed"));
+        }
+
+        public static void StartProcess3(string binary, string cmdline, Lib.Logger logger, bool cleanup = false)
+        {
+
+            if (!cleanup) logger.TimestampInfo("Executing Command: " + cmdline);
+            else logger.TimestampInfo("Executing Cleanup Command: " + cmdline);
+
+            const uint NORMAL_PRIORITY_CLASS = 0x0020;
+            bool retValue;
+            Structs.PROCESS_INFORMATION pInfo = new Structs.PROCESS_INFORMATION();
+            Structs.STARTUPINFO sInfo = new Structs.STARTUPINFO();
+            Structs.SECURITY_ATTRIBUTES pSec = new Structs.SECURITY_ATTRIBUTES();
+            Structs.SECURITY_ATTRIBUTES tSec = new Structs.SECURITY_ATTRIBUTES();
+            pSec.nLength = Marshal.SizeOf(pSec);
+            tSec.nLength = Marshal.SizeOf(tSec);
+
+            retValue = WinAPI.CreateProcess(null, cmdline, ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
+
+            if (retValue && cleanup == false)
+            {
+                logger.TimestampInfo(String.Format("Process successfully created. (PID): " + pInfo.dwProcessId));
+                logger.TimestampInfo("Success");
+            }
+            else if (retValue != false && cleanup == false ) logger.TimestampInfo("Failed");
         }
 
         public static void StartProcess(string binary, string cmdline, string log)

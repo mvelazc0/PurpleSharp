@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -142,7 +143,13 @@ namespace PurpleSharp.Simulations
 
         public static void Lsass(string log, int type = 0)
         {
-            if (type == 0) CredAccessHelper.LsassMemoryDump(log);
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1003 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+
+
+            if (type == 0) CredAccessHelper.LsassMemoryDump(logger);
             else CredAccessHelper.LsassRead(log);
         }
 

@@ -52,7 +52,7 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void CreateUser(String username, string log)
+        public static void CreateUser(String username, Lib.Logger logger)
         {
             //https://stackoverflow.com/questions/1100926/pinvoke-of-netuseradd-returns-24
             Structs.USER_INFO_2 userInfo2 = new Structs.USER_INFO_2()
@@ -83,49 +83,52 @@ namespace PurpleSharp.Simulations
                 workstations = ""
             };
 
-            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log );
-            logger.TimestampInfo(String.Format("Starting Create Account Simulation on {0}", Environment.MachineName));
+            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            //Lib.Logger logger = new Lib.Logger(currentPath + log );
+            //logger.TimestampInfo(String.Format("Starting Create Account Simulation on {0}", Environment.MachineName));
 
             uint output;
             int result = WinAPI.NetUserAdd(null, 2, userInfo2, out output);
             if (result == 0)
             {
-                Console.WriteLine("Successfully created local user");
-                logger.TimestampInfo(String.Format("Successfully created local user {0}", username));
+                //Console.WriteLine("Successfully created local user");
+                logger.TimestampInfo(String.Format("Successfully created local user {0} with NetUserAdd", username));
+                logger.TimestampInfo("Success");
             }
             else
             {
 
-                Console.WriteLine("Could not create user");
+                //Console.WriteLine("Could not create user");
                 logger.TimestampInfo(String.Format("Could not create local user {0}. Error code: {1} ", username, result.ToString()));
+                logger.TimestampInfo("Failed");
 
             }
 
             //#TODO Look addmin group with LookupAccountSid: https://www.pinvoke.net/default.aspx/netapi32.netlocalgroupaddmembers
-
+            /*
             Structs.LOCALGROUP_MEMBERS_INFO_3 info;
             info.Domain = username;
             int result2 = WinAPI.NetLocalGroupAddMembers(null, "Administrators", 3, ref info, 1);
             if (result2 == 0)
             {
-                Console.WriteLine("Successfully added created user to the Administrators group");
+                //Console.WriteLine("Successfully added created user to the Administrators group");
                 logger.TimestampInfo("Successfully added created user to the Administrators group");
             }
-
+            */
+            System.Threading.Thread.Sleep(4000);
             if (result == 0)
             {
                 int result3 = WinAPI.NetUserDel(null, username);
                 if (result3 == 0)
                 {
-                    logger.TimestampInfo(String.Format("Successfully removed user {0}", username));
+                    logger.TimestampInfo(String.Format("Successfully removed user with NetUserDel", username));
                     
                 }
                 else
                 {
-                    Console.WriteLine("Could not delete user");
+                    //Console.WriteLine("Could not delete user");
                     logger.TimestampInfo("Could not delete user");
-                    Console.WriteLine(result3);
+                    //Console.WriteLine(result3);
                 }
             }
 
@@ -160,12 +163,12 @@ namespace PurpleSharp.Simulations
             return serviceHandleCreated != IntPtr.Zero;
         }
 
-        public static void CreateService(string log)
+        public static void CreateService(string log, Lib.Logger logger)
         {
 
-            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.TimestampInfo(String.Format("Starting Create Service Simulation on {0}", Environment.MachineName));
+            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            //Lib.Logger logger = new Lib.Logger(currentPath + log);
+            //logger.TimestampInfo(String.Format("Starting Create Service Simulation on {0}", Environment.MachineName));
 
             var scmHandle = WinAPI.OpenSCManager(null, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
 
@@ -188,16 +191,18 @@ namespace PurpleSharp.Simulations
             if (created)
             {
                 //DateTime dtime = DateTime.Now;
-                logger.TimestampInfo(String.Format("Successfully created Service: {0} ImagePath: {1}", serviceName, servicePath));
+                logger.TimestampInfo(String.Format("Successfully created Service: {0} ImagePath: {1} using CreateService", serviceName, servicePath));
+                logger.TimestampInfo("Success");
                 //Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
                 IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
                 bool deletedService = WinAPI.DeleteService(svcHandleOpened);
-                logger.TimestampInfo(String.Format("Deleted Service: {0} ImagePath: {1}", serviceName, servicePath));
+                logger.TimestampInfo(String.Format("Deleted Service: {0} ImagePath: {1} with DeleteService", serviceName, servicePath));
                 WinAPI.CloseServiceHandle(svcHandleOpened);
             }
             else
             {
-                logger.TimestampInfo("Could not create Service. Error Code: " + createdErr);   
+                logger.TimestampInfo("Could not create Service. Error Code: " + createdErr);
+                logger.TimestampInfo("Failed");
             }
             /*
             if (!created)

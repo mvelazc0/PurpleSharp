@@ -21,11 +21,13 @@ namespace PurpleSharp.Lib
 
 
         //string logHeader = logFilename + " is created.";
+        /*
         string logHeader = "[*]";
         if (!System.IO.File.Exists(logFilename))
         {
             WriteLine(System.DateTime.Now.ToString(datetimeFormat) + " " + logHeader, false);
         }
+        */
     }
 
 
