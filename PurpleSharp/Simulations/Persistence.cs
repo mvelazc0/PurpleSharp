@@ -36,7 +36,11 @@ namespace PurpleSharp.Simulations
 
         public static void RegistryRunKeyNET(string log)
         {
-            PersistenceHelper.RegistryRunKey(log);
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1060 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            PersistenceHelper.RegistryRunKey(logger);
         }
 
         public static void RegistryRunKeyCmd(string log)

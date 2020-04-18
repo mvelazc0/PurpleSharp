@@ -22,12 +22,12 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void ClearSecurityEventLog(string log)
+        public static void ClearSecurityEventLogNET(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-
-            logger.TimestampInfo(String.Format("Starting Security Event Log clearing Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Starting T1070 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
             try
             {
@@ -35,12 +35,14 @@ namespace PurpleSharp.Simulations
                 eventlog.Source = "Security";
                 eventlog.Clear();
                 eventlog.Close();
-                logger.TimestampInfo(String.Format("Succesffully cleared the Security EventLog"));
+                logger.TimestampInfo(String.Format("Cleared the Security EventLog using .NETs EventLog"));
+                logger.TimestampInfo("Success");
             }
-            catch (Exception ex)
+            catch
             {
                 logger.TimestampInfo(String.Format("Failed to clear the Security EventLog"));
-                logger.TimestampInfo(ex.Message.ToString());
+                logger.TimestampInfo("Failed");
+                //logger.TimestampInfo(ex.Message.ToString());
             }
 
         }

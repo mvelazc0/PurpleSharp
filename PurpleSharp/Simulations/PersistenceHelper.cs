@@ -22,13 +22,8 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void RegistryRunKey(string log)
+        public static void RegistryRunKey(Lib.Logger logger)
         {
-
-            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
-
-            logger.TimestampInfo(String.Format("Starting Registry Run Keys Simulation on {0}", Environment.MachineName));
 
             try
             {
@@ -36,6 +31,7 @@ namespace PurpleSharp.Simulations
                 //RegistryKey registryKey2 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce", true);
                 registryKey1.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
                 logger.TimestampInfo(@"Created Regkey: HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run - C:\Windows\Temp\xyz123456.exe ");
+                logger.TimestampInfo("Success");
                 //registryKey2.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
                 //logger.TimestampInfo(@"Created Regkey: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce - C:\Windows\Temp\xyz123456.exe ");
                 registryKey1.DeleteValue("BadApp");
@@ -46,8 +42,9 @@ namespace PurpleSharp.Simulations
             }
             catch ( Exception ex)
             {
+                logger.TimestampInfo("Failed");
                 logger.TimestampInfo("Error Creating Registry keys");
-                logger.TimestampInfo(ex.Message.ToString());
+                //logger.TimestampInfo(ex.Message.ToString());
             }
 
         }

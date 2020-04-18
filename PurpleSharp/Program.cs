@@ -376,8 +376,7 @@ namespace PurpleSharp
                         Lib.RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
                         //Console.WriteLine("[+] Writing JSON with results...");
                         //Json.GetTaskResult(results, duser);
-                        //Console.WriteLine();
-                        
+                        //Console.WriteLine();    
                     }
                 }
                 else
@@ -571,7 +570,8 @@ namespace PurpleSharp
                     break;
 
                 case "T1060":
-                    Simulations.Persistence.RegistryRunKeyCmd(log);
+                    Simulations.Persistence.RegistryRunKeyNET(log);
+                    //Simulations.Persistence.RegistryRunKeyCmd(log);
                     break;
 
                 // Privilege Escalation
@@ -583,7 +583,8 @@ namespace PurpleSharp
                 // Defense Evasion
 
                 case "T1070":
-                    Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+                    //Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+                    Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
                     break;
 
                 case "T1055":
@@ -648,6 +649,18 @@ namespace PurpleSharp
 
                 case "T1087":
                     Simulations.Discovery.AccountDiscovery(log);
+                    break;
+
+                case "T1007":
+                    Simulations.Discovery.SystemServiceDiscovery(log);
+                    break;
+
+                case "T1033":
+                    Simulations.Discovery.SystemUserDiscovery(log);
+                    break;
+
+                case "T1049":
+                    Simulations.Discovery.SystemNetworkDiscovery(log);
                     break;
 
                 // Lateral Movement

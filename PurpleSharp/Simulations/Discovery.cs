@@ -91,6 +91,38 @@ namespace PurpleSharp.Simulations
 
         }
 
+        public static void SystemServiceDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1007 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            ExecutionHelper.StartProcess3("", "net start", logger);
+            ExecutionHelper.StartProcess3("", "tasklist /svc", logger);
+
+        }
+
+        public static void SystemUserDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1033 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            ExecutionHelper.StartProcess3("", "whoami", logger);
+            ExecutionHelper.StartProcess3("", "query user", logger);
+        }
+
+        public static void SystemNetworkDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1049 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            ExecutionHelper.StartProcess3("", "netstat", logger);
+            ExecutionHelper.StartProcess3("", "net use", logger);
+            ExecutionHelper.StartProcess3("", "net session", logger);
+        }
+
 
     }
 
