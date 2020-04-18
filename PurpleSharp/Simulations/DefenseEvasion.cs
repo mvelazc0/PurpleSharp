@@ -71,7 +71,7 @@ namespace PurpleSharp.Simulations
             }
             catch ( Exception ex)
             {
-                logger.TimestampInfo(String.Format("Error running T1055rm P"));
+                logger.TimestampInfo(String.Format("Error running T1055"));
                 logger.TimestampInfo(String.Format(ex.ToString()));
                 logger.TimestampInfo(String.Format(ex.Message.ToString()));
             }

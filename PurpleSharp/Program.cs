@@ -171,6 +171,7 @@ namespace PurpleSharp
                     {
                         SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
                         playbookResults.taskresults = new List<PlaybookTaskResult>();
+                        playbookResults.name = playbook.name;
                         Console.WriteLine("[+] Starting Execution of {0}", playbook.name);
 
                         PlaybookTask lastTask = playbook.tasks.Last();
@@ -228,6 +229,7 @@ namespace PurpleSharp
 
                     Console.WriteLine("Writting JSON results...");
                     Json.WriteJsonPlaybookResults(engagementResults);
+                    Console.WriteLine("DONE. Open results.json");
 
                 }
                 else Console.WriteLine("[!] Could not parse JSON input.");
@@ -648,7 +650,8 @@ namespace PurpleSharp
                     break;
 
                 case "T1087":
-                    Simulations.Discovery.AccountDiscovery(log);
+                    //Simulations.Discovery.AccountDiscoveryLdap(log);
+                    Simulations.Discovery.AccountDiscoveryCmd(log);
                     break;
 
                 case "T1007":

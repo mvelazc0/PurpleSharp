@@ -45,6 +45,7 @@ namespace PurpleSharp.Lib
 
     public class SimulationPlaybookResult
     {
+        public string name { get; set; }
         public List<PlaybookTaskResult> taskresults { get; set; }
     }
 
@@ -57,7 +58,13 @@ namespace PurpleSharp.Lib
         public string simprocess { get; set; }
         public int simprocessid { get; set; }
         public bool success { get; set; }
+        public List<TaskDebugMsg> debugmsgs { get; set; }
 
+    }
+
+    public class TaskDebugMsg
+    {
+        public string msg { get; set; }
     }
 
 
@@ -80,6 +87,8 @@ namespace PurpleSharp.Lib
         {
 
             PlaybookTaskResult taskresult = new PlaybookTaskResult();
+            List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
+
 
             string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -89,13 +98,13 @@ namespace PurpleSharp.Lib
                 {
                     taskresult.timestamp = line.Substring(0, line.IndexOf('[')).Trim();
 
-                    string strip = line.Substring(line.LastIndexOf("]")+1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
+                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
 
                     taskresult.technique = strip.Split(' ')[0];
                     taskresult.host = strip.Split(' ')[1];
                     taskresult.user = user;
                 }
-                if (line.Contains("Simulation agent"))
+                else if (line.Contains("Simulation agent"))
                 {
                     string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running as ", "").Replace("with PID:", "").Trim();
 
@@ -104,16 +113,23 @@ namespace PurpleSharp.Lib
                     //taskresult.simprocessid = 111;
                     //taskresult.success = true;
                 }
-                if (line.Contains("Success"))
+                else if (line.Contains("Success"))
                 {
                     taskresult.success = true;
                 }
-                if (line.Contains("Failed"))
+                else if (line.Contains("Failed"))
                 {
                     taskresult.success = false;
                 }
+                else
+                {
+                    TaskDebugMsg debugmsg = new TaskDebugMsg();
+                    debugmsg.msg = line;
+                    debugmsgs.Add(debugmsg);
+                }
                 //Console.WriteLine(line.Substring(line.LastIndexOf(']') + 1));
             }
+            taskresult.debugmsgs = debugmsgs;
             return taskresult;
             //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
         }

@@ -1,5 +1,8 @@
+using PurpleSharp.Lib;
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices;
+using System.DirectoryServices.AccountManagement;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -108,8 +111,86 @@ namespace PurpleSharp.Simulations
             }
             DateTime dtime = DateTime.Now;
             Console.WriteLine("{0}[{1}] Finished network service scan on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-
-
         }
+
+        public static void ListUsersLdap(Logger logger)
+        {
+            logger.TimestampInfo("pass1");
+
+            //try
+            //{
+
+               // using (new Impersonation("hacklabz", "aa", "aaaa"))
+               // {
+
+                    try
+                    {
+                        /*
+                        string logonserver, dnsdomain, dc;
+                        logger.TimestampInfo("pass2");
+                        logonserver = Environment.GetEnvironmentVariable("logonserver").Replace("\\", "");
+                        logger.TimestampInfo("pass3");
+                        logger.TimestampInfo(logonserver);
+                        dnsdomain = Environment.GetEnvironmentVariable("USERDNSDOMAIN");
+                        logger.TimestampInfo(dnsdomain);
+                        dc = logonserver + "." + dnsdomain;
+                        */
+                        using (PrincipalContext context = new PrincipalContext(ContextType.Domain))
+                        {
+                            string controller = context.ConnectedServer;
+                            logger.TimestampInfo("Domain Controller: " + controller);
+                        }
+
+
+
+                        //Console.WriteLine("[*] Using LogonServer {0} for LDAP queries", dc);
+                        //DirectoryEntry searchRoot = new DirectoryEntry("LDAP://" + dc);
+                        DirectoryEntry searchRoot = new DirectoryEntry("LDAP://192.168.0.250");
+                        DirectorySearcher search = new DirectorySearcher();
+                        search = new DirectorySearcher(searchRoot);
+                        Console.WriteLine(search);
+                        search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+                        search.PropertiesToLoad.Add("samaccountname");
+                        search.PropertiesToLoad.Add("displayname");
+                        logger.TimestampInfo("pass2");
+                        SearchResult result;
+                        SearchResultCollection resultCol = search.FindAll();
+
+                        if (resultCol != null)
+                        {
+
+                            for (int counter = 0; counter < resultCol.Count; counter++)
+                            {
+                                string UserNameEmailString = string.Empty;
+                                result = resultCol[counter];
+                                if (result.Properties.Contains("samaccountname") && result.Properties.Contains("displayname"))
+                                {
+                                    Console.WriteLine((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
+                                    logger.TimestampInfo((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
+                                }
+                            }
+                            Console.WriteLine("pass 5 !");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.TimestampInfo(ex.ToString());
+                        logger.TimestampInfo(ex.Message.ToString());
+                        Console.WriteLine(ex);
+                        Console.WriteLine(ex.Message.ToString());
+                    }
+                }
+            //}
+            /*
+            catch (Exception ex)
+            {
+                logger.TimestampInfo(ex.ToString());
+                logger.TimestampInfo(ex.Message.ToString());
+
+            }.*/
+
+        //}
+
+
     }
 }
