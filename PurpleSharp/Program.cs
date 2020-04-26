@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using PurpleSharp.Lib;
@@ -32,6 +33,7 @@ namespace PurpleSharp
             bool verbose = false;
             bool orchservice = false;
             bool simservice = false;
+            bool newchild = false;
             technique = tactic = rhost = domain = ruser = rpwd = dc = jfile = "";
 
             scoutfpath = "C:\\Windows\\Temp\\Legit.exe";
@@ -125,6 +127,9 @@ namespace PurpleSharp
                         case "/s":
                             simservice = true;
                             break;
+                        case "/n":
+                            newchild = true;
+                            break;
                         default:
                             break;
                     }
@@ -138,6 +143,20 @@ namespace PurpleSharp
 
                 }
 
+            }
+            if (newchild)
+            {
+                const uint NORMAL_PRIORITY_CLASS = 0x0020;
+                //bool retValue;
+                Structs.PROCESS_INFORMATION pInfo = new Structs.PROCESS_INFORMATION();
+                Structs.STARTUPINFO sInfo = new Structs.STARTUPINFO();
+                Structs.SECURITY_ATTRIBUTES pSec = new Structs.SECURITY_ATTRIBUTES();
+                Structs.SECURITY_ATTRIBUTES tSec = new Structs.SECURITY_ATTRIBUTES();
+                pSec.nLength = Marshal.SizeOf(pSec);
+                tSec.nLength = Marshal.SizeOf(tSec);
+
+                string currentbin = System.Reflection.Assembly.GetEntryAssembly().Location;
+                WinAPI.CreateProcess(null, currentbin + " /s", ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
             }
             if (orchservice)
             {
@@ -184,8 +203,8 @@ namespace PurpleSharp
 
                             if (task.host.Equals("random"))
                             {
-                                List<Computer> targets = new List<Computer>();
-                                targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
+                                //List<Computer> targets = new List<Computer>();
+                                List<Computer> targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
                                 if (targets.Count > 0)
                                 {
                                     Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
@@ -602,7 +621,7 @@ namespace PurpleSharp
                 case "T1110":
                     if (type == 1)
                     {
-                        Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password);
+                        Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password, log); ;
                         break;
                     }
                     else if (type == 2)
@@ -614,7 +633,7 @@ namespace PurpleSharp
 
                 case "localspray":
                     //T1110 - Brute Force
-                    Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password);
+                    Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password, log);
                     break;
 
                 //T1110 - Brute Force    
@@ -626,7 +645,7 @@ namespace PurpleSharp
                 //T1208 - Kerberoasting
                 case "kerberoast":
                 case "T1208":
-                    Simulations.CredAccess.Kerberoasting(sleep);
+                    Simulations.CredAccess.Kerberoasting(log, sleep);
                     break;
 
                 //T1003 - Credential Dumping
@@ -650,8 +669,8 @@ namespace PurpleSharp
                     break;
 
                 case "T1087":
-                    //Simulations.Discovery.AccountDiscoveryLdap(log);
-                    Simulations.Discovery.AccountDiscoveryCmd(log);
+                    Simulations.Discovery.AccountDiscoveryLdap(log);
+                    //Simulations.Discovery.AccountDiscoveryCmd(log);
                     break;
 
                 case "T1007":

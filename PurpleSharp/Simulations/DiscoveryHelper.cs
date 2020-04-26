@@ -115,81 +115,43 @@ namespace PurpleSharp.Simulations
 
         public static void ListUsersLdap(Logger logger)
         {
-            logger.TimestampInfo("pass1");
+            try
+            {
 
-            //try
-            //{
+                PrincipalContext context = new PrincipalContext(ContextType.Domain);
+                string dc = context.ConnectedServer;
+                DirectoryEntry searchRoot = new DirectoryEntry("LDAP://" + dc);
+                DirectorySearcher search = new DirectorySearcher();
+                search = new DirectorySearcher(searchRoot);
+                Console.WriteLine(search);
+                search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+                search.PropertiesToLoad.Add("samaccountname");
+                search.PropertiesToLoad.Add("displayname");
+                SearchResult result;
+                SearchResultCollection resultCol = search.FindAll();
 
-               // using (new Impersonation("hacklabz", "aa", "aaaa"))
-               // {
-
-                    try
+                if (resultCol != null)
+                {
+                    logger.TimestampInfo("Success");
+                    for (int counter = 0; counter < resultCol.Count; counter++)
                     {
-                        /*
-                        string logonserver, dnsdomain, dc;
-                        logger.TimestampInfo("pass2");
-                        logonserver = Environment.GetEnvironmentVariable("logonserver").Replace("\\", "");
-                        logger.TimestampInfo("pass3");
-                        logger.TimestampInfo(logonserver);
-                        dnsdomain = Environment.GetEnvironmentVariable("USERDNSDOMAIN");
-                        logger.TimestampInfo(dnsdomain);
-                        dc = logonserver + "." + dnsdomain;
-                        */
-                        using (PrincipalContext context = new PrincipalContext(ContextType.Domain))
+                        string UserNameEmailString = string.Empty;
+                        result = resultCol[counter];
+                        if (result.Properties.Contains("samaccountname") && result.Properties.Contains("displayname"))
                         {
-                            string controller = context.ConnectedServer;
-                            logger.TimestampInfo("Domain Controller: " + controller);
+                            Console.WriteLine((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
+                            logger.TimestampInfo((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
                         }
-
-
-
-                        //Console.WriteLine("[*] Using LogonServer {0} for LDAP queries", dc);
-                        //DirectoryEntry searchRoot = new DirectoryEntry("LDAP://" + dc);
-                        DirectoryEntry searchRoot = new DirectoryEntry("LDAP://192.168.0.250");
-                        DirectorySearcher search = new DirectorySearcher();
-                        search = new DirectorySearcher(searchRoot);
-                        Console.WriteLine(search);
-                        search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
-                        search.PropertiesToLoad.Add("samaccountname");
-                        search.PropertiesToLoad.Add("displayname");
-                        logger.TimestampInfo("pass2");
-                        SearchResult result;
-                        SearchResultCollection resultCol = search.FindAll();
-
-                        if (resultCol != null)
-                        {
-
-                            for (int counter = 0; counter < resultCol.Count; counter++)
-                            {
-                                string UserNameEmailString = string.Empty;
-                                result = resultCol[counter];
-                                if (result.Properties.Contains("samaccountname") && result.Properties.Contains("displayname"))
-                                {
-                                    Console.WriteLine((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
-                                    logger.TimestampInfo((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
-                                }
-                            }
-                            Console.WriteLine("pass 5 !");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.TimestampInfo(ex.ToString());
-                        logger.TimestampInfo(ex.Message.ToString());
-                        Console.WriteLine(ex);
-                        Console.WriteLine(ex.Message.ToString());
                     }
                 }
-            //}
-            /*
+            }
             catch (Exception ex)
             {
+                logger.TimestampInfo("Failed");
                 logger.TimestampInfo(ex.ToString());
                 logger.TimestampInfo(ex.Message.ToString());
-
-            }.*/
-
-        //}
+            }
+        }
 
 
     }

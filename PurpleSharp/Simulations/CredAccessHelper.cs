@@ -34,7 +34,7 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void LogonUser(String username, String domain, String password, int logontype, int logonprovider)
+        public static void LogonUser(String username, String domain, String password, int logontype, int logonprovider, Lib.Logger logger)
         {
             IntPtr handle;
             string protocol;
@@ -48,16 +48,18 @@ namespace PurpleSharp.Simulations
             bool ret = WinAPI.LogonUser(username, domain, password, logontype, logonprovider, out handle);
             if (ret)
             {
-                DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Successfully authenticated as {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), username, protocol);  
+                //DateTime dtime = DateTime.Now;
+                //Console.WriteLine("{0}[{1}] Successfully  as {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), username, protocol);  
+                logger.TimestampInfo(String.Format("Successfully authenticated as {0} ({1}).", username, protocol));
                 //throw new ApplicationException(string.Format("Could not impersonate the elevated user.  LogonUser returned error code {0}.", errorCode));
 
             }
             else
             {
                 var errorCode = Marshal.GetLastWin32Error();
-                DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Failed to authenticate as {2} ({3}). Error Code:{4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), username, protocol, errorCode);
+                //DateTime dtime = DateTime.Now;
+                //Console.WriteLine("{0}[{1}] Failed to authenticate as {2} ({3}). Error Code:{4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), username, protocol, errorCode);
+                logger.TimestampInfo(String.Format("Tried to authenticate as {0} ({1}). Error Code:{2}", username, protocol, errorCode));
             }
             //_handle = new SafeTokenHandle(handle);
             //_context = WindowsIdentity.Impersonate(_handle.DangerousGetHandle());
@@ -127,19 +129,12 @@ namespace PurpleSharp.Simulations
         //Adapted from https://github.com/GhostPack/SharpDump
         public static void LsassMemoryDump(Lib.Logger logger)
         {
-            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            //Lib.Logger logger = new Lib.Logger(currentPath + log);
-
-            //logger.TimestampInfo(String.Format("Starting LSASS Dump on {0}  ", Environment.MachineName));
-
-            //Console.WriteLine("Starting LSASS Dump on {0}", Environment.MachineName);
             IntPtr targetProcessHandle = IntPtr.Zero;
             uint targetProcessId = 0;
 
             Process targetProcess = null;
             Process[] processes = Process.GetProcessesByName("lsass");
             targetProcess = processes[0];
-
 
             targetProcessId = (uint)targetProcess.Id;
             logger.TimestampInfo(String.Format("Identified lsass.exe with Process ID:{0}", targetProcessId));
@@ -193,8 +188,6 @@ namespace PurpleSharp.Simulations
                 //Console.WriteLine("{0}[{1}] LSASS dump failed on {2} running as {3}. Error Code {4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), Environment.MachineName, WindowsIdentity.GetCurrent().Name, errorCode);
             }
         }
-
-
 
         public static bool IsHighIntegrity()
         {

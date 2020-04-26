@@ -186,6 +186,9 @@ public static class WinAPI
     [DllImport("kernel32.dll")]
     public static extern IntPtr QueueUserAPC(IntPtr pfnAPC, IntPtr hThread, IntPtr dwData);
 
+    [DllImport("advapi32.dll", SetLastError = true)]
+    public static extern Boolean ImpersonateLoggedOnUser(IntPtr hToken);
+
 
 
 

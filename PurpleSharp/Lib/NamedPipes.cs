@@ -124,9 +124,11 @@ namespace PurpleSharp.Lib
                                 logger.TimestampInfo("Executing: " + simpfath + " /s");
                                 //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simrpath + " /s");
-                                Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
-                                System.Threading.Thread.Sleep(2000);
+                                Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /n");
+                                //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
+
+                                System.Threading.Thread.Sleep(3000);
                                 //logger.TimestampInfo("Sending technique through namedpipe:"+ technique.Replace("/technique ", ""));
                                 logger.TimestampInfo("Sending technique through namedpipe:" + technique);
                                 //RunNoAuthClient("simargs", "technique:" + technique.Replace("/technique ", ""));
@@ -250,7 +252,7 @@ namespace PurpleSharp.Lib
             {
                 using (var pipeClient = new NamedPipeClientStream(rhost, npipe, PipeDirection.InOut))
                 {
-                    pipeClient.Connect(5000);
+                    pipeClient.Connect(100000);
                     pipeClient.ReadMode = PipeTransmissionMode.Message;
 
                     var reader = new StreamReader(pipeClient);

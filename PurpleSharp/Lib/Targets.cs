@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.DirectoryServices.AccountManagement;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -132,11 +133,16 @@ namespace PurpleSharp.Lib
         public static List<User> GetUserTargets(int usertype, int nuser)
         {
             List<User> targetusers = new List<User>();
+            /*
             string logonserver, dnsdomain, dc;
             logonserver = Environment.GetEnvironmentVariable("logonserver").Replace("\\", "");
             dnsdomain = Environment.GetEnvironmentVariable("USERDNSDOMAIN");
             dc = logonserver + "." + dnsdomain;
+            */
             
+            PrincipalContext context = new PrincipalContext(ContextType.Domain);
+            string dc = context.ConnectedServer;
+
 
             switch (usertype)
             {

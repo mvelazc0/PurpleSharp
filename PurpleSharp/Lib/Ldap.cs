@@ -209,25 +209,26 @@ namespace PurpleSharp
                             string Name = (String)result.Properties["Name"][0];
                             string dnshostname = (String)result.Properties["DNSHostname"][0];
 
-                            tasklist.Add(Task.Factory.StartNew(() =>
+                            if (!Name.ToUpper().Contains(Environment.MachineName.ToUpper()))
                             {
-
-                                //TODO: Firewalls may block ping. Instead of pinging, i should should resolve.  
-                                string ipv4 = PurpleSharp.Lib.Networking.PingHost(dnshostname);
-
-                                if (ipv4 != "")
+                                tasklist.Add(Task.Factory.StartNew(() =>
                                 {
-                                    TimeSpan interval = TimeSpan.FromSeconds(3);
-                                    if (PurpleSharp.Lib.Networking.OpenPort(ipv4, 445, interval))
+                                    //TODO: Firewalls may block ping. Instead of pinging, i should should resolve.  
+                                    string ipv4 = PurpleSharp.Lib.Networking.PingHost(dnshostname);
+                                    if (ipv4 != "")
                                     {
-                                        Computer newhost = new Computer();
-                                        newhost.ComputerName = Name;
-                                        newhost.IPv4 = ipv4;
-                                        newhost.Fqdn = dnshostname;
-                                        lstADComputers.Add(newhost);
+                                        TimeSpan interval = TimeSpan.FromSeconds(3);
+                                        if (PurpleSharp.Lib.Networking.OpenPort(ipv4, 445, interval))
+                                        {
+                                            Computer newhost = new Computer();
+                                            newhost.ComputerName = Name;
+                                            newhost.IPv4 = ipv4;
+                                            newhost.Fqdn = dnshostname;
+                                            lstADComputers.Add(newhost);
+                                        }
                                     }
-                                }
-                            }));
+                                }));
+                            }
                         }
 
                     }
