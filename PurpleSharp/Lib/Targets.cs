@@ -50,9 +50,14 @@ namespace PurpleSharp.Lib
         public static List<Computer> GetDomainNeighborTargets(int count)
         {
             List<Computer> targets = new List<Computer>();
+            /*
             string logonserver = Environment.GetEnvironmentVariable("logonserver").Replace("\\","");
             string dnsdomain = Environment.GetEnvironmentVariable("USERDNSDOMAIN");
             string dc = logonserver + "." + dnsdomain;
+            */
+            PrincipalContext context = new PrincipalContext(ContextType.Domain);
+            string dc = context.ConnectedServer;
+            //logger.TimestampInfo("[*] Obtaining domain neighbor targets ...");
             Console.WriteLine("[*] Obtaining domain neighbor targets ...");
             targets = Ldap.GetADComputers(count, dc);
 

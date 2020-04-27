@@ -18,8 +18,15 @@ namespace PurpleSharp.Simulations
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.TimestampInfo(String.Format("Starting T1070 Simulation on {0}", Environment.MachineName));
             logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
-            ExecutionHelper.StartProcess3("", "wevtutil.exe cl Security", logger);
-
+            try
+            {
+                ExecutionHelper.StartProcess3("", "wevtutil.exe cl Security", logger);
+                logger.SimulationFinished();
+            }
+            catch
+            {
+                logger.SimulationFailed();
+            }
         }
 
         public static void ClearSecurityEventLogNET(string log)
@@ -36,12 +43,12 @@ namespace PurpleSharp.Simulations
                 eventlog.Clear();
                 eventlog.Close();
                 logger.TimestampInfo(String.Format("Cleared the Security EventLog using .NETs EventLog"));
-                logger.TimestampInfo("Success");
+                logger.SimulationFinished();
             }
             catch
             {
-                logger.TimestampInfo(String.Format("Failed to clear the Security EventLog"));
-                logger.TimestampInfo("Failed");
+                //logger.TimestampInfo(String.Format("Failed to clear the Security EventLog"));
+                logger.SimulationFailed();
                 //logger.TimestampInfo(ex.Message.ToString());
             }
 
@@ -67,13 +74,13 @@ namespace PurpleSharp.Simulations
                 //DefenseEvasionHelper.ProcInjection_APC(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
 
                 //DefenseEvasionHelper.ProcInjection_CreateRemoteThread(Lib.Static.msf_meter, not);
-                logger.TimestampInfo(String.Format("Success!"));
+                logger.SimulationFinished();
             }
             catch ( Exception ex)
             {
-                logger.TimestampInfo(String.Format("Error running T1055"));
-                logger.TimestampInfo(String.Format(ex.ToString()));
-                logger.TimestampInfo(String.Format(ex.Message.ToString()));
+                logger.SimulationFailed();
+                //logger.TimestampInfo(String.Format(ex.ToString()));
+                //logger.TimestampInfo(String.Format(ex.Message.ToString()));
             }
             
         }

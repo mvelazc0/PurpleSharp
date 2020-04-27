@@ -113,11 +113,11 @@ namespace PurpleSharp.Lib
                     //taskresult.simprocessid = 111;
                     //taskresult.success = true;
                 }
-                else if (line.Contains("Success"))
+                else if (line.Contains("Simulation Finished"))
                 {
                     taskresult.success = true;
                 }
-                else if (line.Contains("Failed"))
+                else if (line.Contains("Simulation Failed"))
                 {
                     taskresult.success = false;
                 }

@@ -14,7 +14,7 @@ namespace PurpleSharp.Simulations
 
     public class DiscoveryHelper
     {
-        public static void ShareEnum(Computer computer)
+        public static void ShareEnum(Computer computer, Lib.Logger logger)
         {
             var bufPtr = IntPtr.Zero;
             var EntriesRead = 0;
@@ -23,6 +23,7 @@ namespace PurpleSharp.Simulations
 
             const uint MAX_PREFERRED_LENGTH = 0xFFFFFFFF;
 
+            //https://www.pinvoke.net/default.aspx/netapi32/netshareenum.html
             var res = WinAPI.NetShareEnum(computer.Fqdn, 1, ref bufPtr, MAX_PREFERRED_LENGTH, ref EntriesRead, ref TotalRead, ref ResumeHandle);
             var errorCode = Marshal.GetLastWin32Error();
 
@@ -33,12 +34,15 @@ namespace PurpleSharp.Simulations
             if (res == 0)
             {
                 DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Successfully enumerated shares on {2} as {3} ", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, WindowsIdentity.GetCurrent().Name);
+                //Console.WriteLine("{0}[{1}] Successfully enumerated shares on {2} as {3} ", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, WindowsIdentity.GetCurrent().Name);
+                logger.TimestampInfo(String.Format("Successfully enumerated shares on {0} as {1} ", computer.Fqdn, WindowsIdentity.GetCurrent().Name));
+                
             }
             else
             {
                 DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Failed to enumerate shares on {2} as {3}. Error Code:{4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, WindowsIdentity.GetCurrent().Name, errorCode);
+                //Console.WriteLine("{0}[{1}] Failed to enumerate shares on {2} as {3}. Error Code:{4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, WindowsIdentity.GetCurrent().Name, errorCode);
+                logger.TimestampInfo(String.Format("Successfully enumerated shares on {0} as {1} ", computer.Fqdn, WindowsIdentity.GetCurrent().Name));
             }
 
         }
@@ -70,7 +74,8 @@ namespace PurpleSharp.Simulations
         public static void PortScan(Computer computer, TimeSpan timeout)
         {
             IPAddress server2 = IPAddress.Parse(computer.IPv4);
-            List<int> ports = new List<int> { 21, 22, 23, 25, 80, 135, 139, 443, 445, 1433, 3306, 3389, 8080, 8000, 10000 };
+            //List<int> ports = new List<int> { 21, 22, 23, 25, 80, 135, 139, 443, 445, 1433, 3306, 3389, 8080, 8000, 10000 };
+            List<int> ports = new List<int> { 135, 139, 443, 445, 1433, 3306, 3389};
 
             foreach (int port in ports)
             {

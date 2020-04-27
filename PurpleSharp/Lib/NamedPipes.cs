@@ -269,7 +269,7 @@ namespace PurpleSharp.Lib
         {
             using (var pipeClient = new NamedPipeClientStream(".", npipe, PipeDirection.InOut))
             {
-                pipeClient.Connect(5000);
+                pipeClient.Connect(10000);
                 pipeClient.ReadMode = PipeTransmissionMode.Message;
 
                 var reader = new StreamReader(pipeClient);

@@ -379,7 +379,7 @@ namespace PurpleSharp
                             Console.WriteLine(sresults);
                         }
 
-                        System.Threading.Thread.Sleep(3000);
+                        System.Threading.Thread.Sleep(5000);
                         Console.WriteLine("[+] Obtaining the Simulation Agent output...");
                         System.Threading.Thread.Sleep(1000);
                         string results = Lib.RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
@@ -619,14 +619,14 @@ namespace PurpleSharp
 
                 //T1110 - Brute Force
                 case "T1110":
-                    if (type == 1)
+                    if (type == 3)
                     {
                         Simulations.CredAccess.LocalDomainPasswordSpray(usertype, nuser, protocol, sleep, password, log); ;
                         break;
                     }
-                    else if (type == 2)
+                    else if (type == 1)
                     {
-                        Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password);
+                        Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password, log);
                         break;
                     }
                     break;
@@ -638,7 +638,7 @@ namespace PurpleSharp
 
                 //T1110 - Brute Force    
                 case "networkspray":
-                    Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password);
+                    Simulations.CredAccess.RemotePasswordSpray(type, computertype, nhosts, usertype, nuser, protocol, sleep, password, log);
                     break;
 
 
@@ -659,13 +659,13 @@ namespace PurpleSharp
                 //T1135 - Network Share Discovery
                 case "shareenum":
                 case "T1135":
-                    Simulations.Discovery.EnumerateShares(computertype, nhosts, sleep);
+                    Simulations.Discovery.EnumerateShares(computertype, nhosts, sleep, log);
                     break;
 
                 //T1046 - Network Service Scanning
                 case "portscan":
                 case "T1046":
-                    Simulations.Discovery.NetworkServiceDiscovery(computertype, nhosts, sleep);
+                    Simulations.Discovery.NetworkServiceDiscovery(computertype, nhosts, sleep, log);
                     break;
 
                 case "T1087":

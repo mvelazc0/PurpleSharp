@@ -52,9 +52,8 @@ namespace PurpleSharp.Simulations
             if (retValue && cleanup == false)
             {
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + pInfo.dwProcessId));
-                logger.TimestampInfo("Success");
             }
-            else if (retValue != false && cleanup == false ) logger.TimestampInfo("Failed");
+            else if (retValue != false && cleanup == false ) logger.TimestampInfo("Could not start process!");
         }
 
         public static void StartProcess(string binary, string cmdline, string log)

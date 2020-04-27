@@ -24,14 +24,12 @@ namespace PurpleSharp.Simulations
 
         public static void RegistryRunKey(Lib.Logger logger)
         {
-
             try
             {
                 RegistryKey registryKey1 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
                 //RegistryKey registryKey2 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce", true);
                 registryKey1.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
                 logger.TimestampInfo(@"Created Regkey: HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run - C:\Windows\Temp\xyz123456.exe ");
-                logger.TimestampInfo("Success");
                 //registryKey2.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
                 //logger.TimestampInfo(@"Created Regkey: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce - C:\Windows\Temp\xyz123456.exe ");
                 registryKey1.DeleteValue("BadApp");
@@ -42,9 +40,7 @@ namespace PurpleSharp.Simulations
             }
             catch ( Exception ex)
             {
-                logger.TimestampInfo("Failed");
                 logger.TimestampInfo("Error Creating Registry keys");
-                //logger.TimestampInfo(ex.Message.ToString());
             }
 
         }
@@ -90,15 +86,11 @@ namespace PurpleSharp.Simulations
             {
                 //Console.WriteLine("Successfully created local user");
                 logger.TimestampInfo(String.Format("Successfully created local user {0} with NetUserAdd", username));
-                logger.TimestampInfo("Success");
             }
             else
             {
-
                 //Console.WriteLine("Could not create user");
                 logger.TimestampInfo(String.Format("Could not create local user {0}. Error code: {1} ", username, result.ToString()));
-                logger.TimestampInfo("Failed");
-
             }
 
             //#TODO Look addmin group with LookupAccountSid: https://www.pinvoke.net/default.aspx/netapi32.netlocalgroupaddmembers
@@ -189,7 +181,6 @@ namespace PurpleSharp.Simulations
             {
                 //DateTime dtime = DateTime.Now;
                 logger.TimestampInfo(String.Format("Successfully created Service: {0} ImagePath: {1} using CreateService", serviceName, servicePath));
-                logger.TimestampInfo("Success");
                 //Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
                 IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
                 bool deletedService = WinAPI.DeleteService(svcHandleOpened);
@@ -199,7 +190,6 @@ namespace PurpleSharp.Simulations
             else
             {
                 logger.TimestampInfo("Could not create Service. Error Code: " + createdErr);
-                logger.TimestampInfo("Failed");
             }
             /*
             if (!created)
