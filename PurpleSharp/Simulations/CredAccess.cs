@@ -17,8 +17,10 @@ namespace PurpleSharp.Simulations
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
-            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            logger.SimulationStart("T1110");
+            logger.SimulationDetails();
+            //logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
+            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             logger.TimestampInfo(String.Format("Local Domain Brute Force"));
             bool Kerberos = new bool();
             try
@@ -71,8 +73,10 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
-            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            logger.SimulationStart("T1110");
+            logger.SimulationDetails();
+            //logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
+            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             logger.TimestampInfo(String.Format("Remote Domain Brute Force"));
             bool Kerberos = new bool();
             List<Computer> targets = new List<Computer>();
@@ -105,7 +109,6 @@ namespace PurpleSharp.Simulations
 
                 if (type == 1)
                 {
-                    Kerberos = false;
                     var random = new Random();
                     int index = random.Next(targets.Count);
                     logger.TimestampInfo(String.Format("Picking {0} as a target", targets[index].ComputerName));
@@ -158,8 +161,10 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.TimestampInfo(String.Format("Starting T1208 Simulation on {0}", Environment.MachineName));
-            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            logger.SimulationStart("T1208");
+            logger.SimulationDetails();
+            //logger.TimestampInfo(String.Format("Starting T1208 Simulation on {0}", Environment.MachineName));
+            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
 
             try
@@ -189,8 +194,11 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.TimestampInfo(String.Format("Starting T1003 Simulation on {0}", Environment.MachineName));
-            logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+
+            logger.SimulationStart("T1003");
+            logger.SimulationDetails();
+            //logger.TimestampInfo(String.Format("Starting T1003 Simulation on {0}", Environment.MachineName));
+            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
             try
             {

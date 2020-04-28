@@ -379,7 +379,7 @@ namespace PurpleSharp
                             Console.WriteLine(sresults);
                         }
 
-                        System.Threading.Thread.Sleep(5000);
+                        System.Threading.Thread.Sleep(8000);
                         Console.WriteLine("[+] Obtaining the Simulation Agent output...");
                         System.Threading.Thread.Sleep(1000);
                         string results = Lib.RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
@@ -603,9 +603,25 @@ namespace PurpleSharp
 
                 // Defense Evasion
 
+                case "T1170":
+                    Simulations.DefenseEvasion.Mshta(log);
+                    break;
+
+                case "T1191":
+                    Simulations.DefenseEvasion.Csmtp(log);
+                    break;
+
+                case "T1085":
+                    Simulations.DefenseEvasion.Rundll32(log);
+                    break;
+
                 case "T1070":
                     //Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
                     Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
+                    break;
+
+                case "T1220":
+                    Simulations.DefenseEvasion.XlScriptProcessing(log);
                     break;
 
                 case "T1055":

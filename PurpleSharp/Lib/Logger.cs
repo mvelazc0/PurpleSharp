@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Principal;
 
 namespace PurpleSharp.Lib
 {
@@ -56,6 +59,19 @@ namespace PurpleSharp.Lib
         {
             WriteFormattedLog(LogLevel.TINFO, text);
         }
+
+        public void SimulationStart(string technique)
+        {
+            WriteFormattedLog(LogLevel.TINFO, String.Format("Starting {0} Simulation on {1}", technique, Environment.MachineName));
+        }
+        public void SimulationDetails()
+        {
+            WriteFormattedLog(LogLevel.TINFO, String.Format("Simulation agent running as {0} with PID:{1}", Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+        }
+        public void SimulationDetails2()
+        {
+            WriteFormattedLog(LogLevel.TINFO, String.Format("Simulation agent running as {0} with PID:{1}", Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id, WindowsIdentity.GetCurrent().Name));
+        }
         public void SimulationFinished()
         {
             WriteFormattedLog(LogLevel.TINFO, "Simulation Finished");
@@ -94,7 +110,7 @@ namespace PurpleSharp.Lib
                     break;
 
                 case LogLevel.TINFO:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [*]    ";
+                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [*]  ";
                     break;
 
                 case LogLevel.DEBUG:
