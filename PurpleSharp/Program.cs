@@ -135,12 +135,11 @@ namespace PurpleSharp
                     }
 
                 }
-                catch (Exception ex)
+                catch
                 {
                     Console.WriteLine("[*] Error parsing parameters :( ");
                     Console.WriteLine("[*] Exiting");
                     return;
-
                 }
 
             }
@@ -166,7 +165,6 @@ namespace PurpleSharp
             }
             if (simservice)
             {
-
                 string tech = Lib.NamedPipes.RunSimulationService("simargs", log);
                 ExecuteTechnique(tech, type, usertype, nusers, hosttype, nhosts, protocol, sleep, pwd, command, log, cleanup);         
                 return;

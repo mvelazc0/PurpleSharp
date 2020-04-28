@@ -60,6 +60,11 @@ namespace PurpleSharp.Lib
             WriteFormattedLog(LogLevel.TINFO, text);
         }
 
+        public void SimulationHeader(string technique)
+        {
+            SimulationStart(technique);
+            SimulationDetails();
+        }
         public void SimulationStart(string technique)
         {
             WriteFormattedLog(LogLevel.TINFO, String.Format("Starting {0} Simulation on {1}", technique, Environment.MachineName));
@@ -76,11 +81,11 @@ namespace PurpleSharp.Lib
         {
             WriteFormattedLog(LogLevel.TINFO, "Simulation Finished");
         }
-        public void SimulationFailed ()
+        public void SimulationFailed(Exception ex)
         {
             WriteFormattedLog(LogLevel.TINFO, "Simulation Failed");
+            WriteFormattedLog(LogLevel.TINFO, ex.Message.ToString());
         }
-
         private void WriteLine(string text, bool append = true)
         {
             try

@@ -24,25 +24,16 @@ namespace PurpleSharp.Simulations
 
         public static void RegistryRunKey(Lib.Logger logger)
         {
-            try
-            {
-                RegistryKey registryKey1 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-                //RegistryKey registryKey2 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce", true);
-                registryKey1.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
-                logger.TimestampInfo(@"Created Regkey: HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run - C:\Windows\Temp\xyz123456.exe ");
-                //registryKey2.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
-                //logger.TimestampInfo(@"Created Regkey: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce - C:\Windows\Temp\xyz123456.exe ");
-                registryKey1.DeleteValue("BadApp");
-                logger.TimestampInfo(@"Deleted : HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
-                //registryKey2.DeleteValue("BadApp");
-                //logger.TimestampInfo(@"Deleted: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce");
-
-            }
-            catch ( Exception ex)
-            {
-                logger.TimestampInfo("Error Creating Registry keys");
-            }
-
+            RegistryKey registryKey1 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            //RegistryKey registryKey2 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce", true);
+            registryKey1.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
+            logger.TimestampInfo(@"Created Regkey: HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run - C:\Windows\Temp\xyz123456.exe ");
+            //registryKey2.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
+            //logger.TimestampInfo(@"Created Regkey: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce - C:\Windows\Temp\xyz123456.exe ");
+            registryKey1.DeleteValue("BadApp");
+            logger.TimestampInfo(@"Deleted : HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
+            //registryKey2.DeleteValue("BadApp");
+            //logger.TimestampInfo(@"Deleted: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce");
         }
 
         public static void CreateUser(String username, Lib.Logger logger)

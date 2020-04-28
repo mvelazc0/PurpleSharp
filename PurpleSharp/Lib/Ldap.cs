@@ -232,7 +232,7 @@ namespace PurpleSharp
                         }
 
                     }
-                    catch (Exception e)
+                    catch
                     {
                         continue;
                     }

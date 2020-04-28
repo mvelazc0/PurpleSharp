@@ -16,8 +16,7 @@ namespace PurpleSharp.Simulations
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1135");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1135");
             //logger.TimestampInfo(String.Format("Starting T1135 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
@@ -46,7 +45,7 @@ namespace PurpleSharp.Simulations
             }
             catch (Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 
@@ -74,8 +73,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1046");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1046");
             //logger.TimestampInfo(String.Format("Starting T1046 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
@@ -108,7 +106,7 @@ namespace PurpleSharp.Simulations
             }
             catch (Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
 
         }
@@ -117,8 +115,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1087");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1087");
             //logger.TimestampInfo(String.Format("Starting T1087 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
@@ -127,9 +124,9 @@ namespace PurpleSharp.Simulations
                 DiscoveryHelper.ListUsersLdap(logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
             
         }
@@ -138,8 +135,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1087");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1087");
             //logger.TimestampInfo(String.Format("Starting T1087 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
@@ -149,9 +145,9 @@ namespace PurpleSharp.Simulations
                 ExecutionHelper.StartProcess("", "net user /domain", logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
             
 
@@ -161,8 +157,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1007");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1007");
             //logger.TimestampInfo(String.Format("Starting T1007 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
@@ -171,9 +166,9 @@ namespace PurpleSharp.Simulations
                 ExecutionHelper.StartProcess("", "tasklist /svc", logger);
                 logger.SimulationFinished();
             }
-            catch 
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
 
         }
@@ -182,8 +177,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1033");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1033");
             //logger.TimestampInfo(String.Format("Starting T1033 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
@@ -192,9 +186,9 @@ namespace PurpleSharp.Simulations
                 ExecutionHelper.StartProcess("", "query user", logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
             
         }
@@ -203,9 +197,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1049");
-            logger.SimulationDetails();
-
+            logger.SimulationHeader("T1049");
             //logger.TimestampInfo(String.Format("Starting T1049 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
@@ -215,9 +207,9 @@ namespace PurpleSharp.Simulations
                 ExecutionHelper.StartProcess("", "net session", logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 

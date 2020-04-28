@@ -17,8 +17,7 @@ namespace PurpleSharp.Simulations
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1110");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1110");
             //logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             logger.TimestampInfo(String.Format("Local Domain Brute Force"));
@@ -63,8 +62,7 @@ namespace PurpleSharp.Simulations
             }
             catch (Exception ex)
             {
-                //logger.TimestampInfo(ex.ToString());
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
 
         }
@@ -73,8 +71,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1110");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1110");
             //logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             logger.TimestampInfo(String.Format("Remote Domain Brute Force"));
@@ -153,7 +150,7 @@ namespace PurpleSharp.Simulations
             }
             catch (Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
         }
 
@@ -161,8 +158,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1208");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1208");
             //logger.TimestampInfo(String.Format("Starting T1208 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
@@ -183,20 +179,15 @@ namespace PurpleSharp.Simulations
             }
             catch (Exception ex)
             {
-                logger.SimulationFailed();
-                //logger.TimestampInfo(ex.Message.ToString());
+                logger.SimulationFailed(ex);
             }
 
-
         }
-
         public static void Lsass(string log, int type = 0)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-
-            logger.SimulationStart("T1003");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1003");
             //logger.TimestampInfo(String.Format("Starting T1003 Simulation on {0}", Environment.MachineName));
             //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
@@ -205,9 +196,9 @@ namespace PurpleSharp.Simulations
                 CredAccessHelper.LsassMemoryDump(logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
             
         }

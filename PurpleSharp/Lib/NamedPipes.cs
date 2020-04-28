@@ -202,8 +202,6 @@ namespace PurpleSharp.Lib
 
         public static string RunSimulationService(string npipe, string log)
         {
-            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            //Lib.Logger logger = new Lib.Logger(currentPath + "simagent.txt");
             try
             {
                 //https://helperbyte.com/questions/171742/how-to-connect-to-a-named-pipe-without-administrator-rights
@@ -232,7 +230,6 @@ namespace PurpleSharp.Lib
                         return technique;
                     }
                     pipeServer.Disconnect();
-
                 }
                 return "";
             }
