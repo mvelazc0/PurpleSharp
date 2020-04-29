@@ -34,6 +34,8 @@ namespace PurpleSharp
             bool orchservice = false;
             bool simservice = false;
             bool newchild = false;
+            bool auditpol = false;
+            bool remote = false;
             technique = tactic = rhost = domain = ruser = rpwd = dc = jfile = "";
 
             scoutfpath = "C:\\Windows\\Temp\\Legit.exe";
@@ -60,6 +62,7 @@ namespace PurpleSharp
                             break;
                         case "/rhost":
                             rhost = args[i + 1];
+                            remote = true;
                             break;
                         case "/ruser":
                             ruser = args[i + 1];
@@ -130,6 +133,9 @@ namespace PurpleSharp
                         case "/n":
                             newchild = true;
                             break;
+                        case "/auditpol":
+                            auditpol = true;
+                            break;
                         default:
                             break;
                     }
@@ -143,23 +149,70 @@ namespace PurpleSharp
                 }
 
             }
+            if (auditpol)
+            {
+                if (rpwd == "")
+                {
+                    Console.Write("Password for {0}\\{1}: ", domain, ruser);
+                    rpwd = Utils.GetPassword();
+                    Console.WriteLine();
+                }
+                if (!rhost.Equals("") && !domain.Equals("") && !ruser.Equals(""))
+                {
+                    if (!rhost.Equals("random"))
+                    {
+                        GetAuditPolicy(rhost, domain, ruser, rpwd, scoutfpath, log, verbose);
+                        return;
+                    }
+                    else if (!dc.Equals(""))
+                    {
+                        List<Computer> targets = new List<Computer>();
+                        targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
+                        if (targets.Count > 0)
+                        {
+                            Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
+                            var random = new Random();
+                            int index = random.Next(targets.Count);
+                            Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
+                            GetAuditPolicy(targets[index].ComputerName, domain, ruser, rpwd, scoutfpath, log, verbose);
+                            return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("[!] Could not obtain targets for the simulation");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("[*] Missing dc :( ");
+                        Console.WriteLine("[*] Exiting");
+                        return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("[*] Missing parameters :( ");
+                    Console.WriteLine("[*] Exiting");
+                    return;
+                }
+                
+            }
             if (newchild)
             {
                 const uint NORMAL_PRIORITY_CLASS = 0x0020;
-                //bool retValue;
                 Structs.PROCESS_INFORMATION pInfo = new Structs.PROCESS_INFORMATION();
                 Structs.STARTUPINFO sInfo = new Structs.STARTUPINFO();
                 Structs.SECURITY_ATTRIBUTES pSec = new Structs.SECURITY_ATTRIBUTES();
                 Structs.SECURITY_ATTRIBUTES tSec = new Structs.SECURITY_ATTRIBUTES();
                 pSec.nLength = Marshal.SizeOf(pSec);
                 tSec.nLength = Marshal.SizeOf(tSec);
-
                 string currentbin = System.Reflection.Assembly.GetEntryAssembly().Location;
                 WinAPI.CreateProcess(null, currentbin + " /s", ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
+                return;
             }
             if (orchservice)
             {
-                //Lib.NamedPipes.RunOrchestrationService("testpipe", technique, simulator, log);
                 Lib.NamedPipes.RunScoutService("testpipe", log);
                 return;
             }
@@ -173,7 +226,7 @@ namespace PurpleSharp
             {
                 string json = File.ReadAllText(jfile);
                 SimulationExercise engagement = Json.ReadJson(json);
-                
+
                 if (engagement != null)
                 {
                     Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
@@ -247,42 +300,116 @@ namespace PurpleSharp
                     Console.WriteLine("Writting JSON results...");
                     Json.WriteJsonPlaybookResults(engagementResults);
                     Console.WriteLine("DONE. Open results.json");
+                    return;
 
                 }
                 else Console.WriteLine("[!] Could not parse JSON input.");
+                return;
             }
 
-            if (rhost == "random")
+            if (remote)
             {
-                if (rpwd == "")
+                if (!rhost.Equals("") && !domain.Equals("") && !ruser.Equals("") && !technique.Equals(""))
                 {
-                    Console.Write("Password for {0}\\{1}: ", domain, ruser);
-                    rpwd = Utils.GetPassword();
-                    Console.WriteLine();
+                    if (rpwd == "")
+                    {
+                        Console.Write("Password for {0}\\{1}: ", domain, ruser);
+                        rpwd = Utils.GetPassword();
+                        Console.WriteLine();
+                    }
+                    if (!rhost.Equals("random"))
+                    {
+                        ExecuteRemote(rhost, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
+                        return;
+                    }
+                    else if (!dc.Equals(""))
+                    {
+                        List<Computer> targets = new List<Computer>();
+                        targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
+                        if (targets.Count > 0)
+                        {
+                            Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
+                            var random = new Random();
+                            int index = random.Next(targets.Count);
+                            Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
+                            ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
+                            return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("[!] Could not obtain targets for the simulation");
+                            return;
+                        }
+                    }
+                    else 
+                    {
+                        Console.WriteLine("[*] Missing dc :( ");
+                        Console.WriteLine("[*] Exiting");
+                        return;
+                    }
+
                 }
-                List<Computer> targets = new List<Computer>();
-                targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
-                if (targets.Count > 0)
+                else
                 {
-                    Console.WriteLine("[+] Obtained {0} possible targets.",targets.Count);
-                    var random = new Random();
-                    int index = random.Next(targets.Count);
-                    Console.WriteLine("[+] Picked Random host for simulation: " +targets[index].Fqdn);
-                    ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
+                    Console.WriteLine("[*] Missing parameters :( ");
+                    Console.WriteLine("[*] Exiting");
+                    return;
                 }
-                else Console.WriteLine("[!] Could not obtain targets for the simulation");
             }
-            else if (rhost != "")
-            {
-                ExecuteRemote(rhost, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
-            }
-            else 
+            else
             {
                 ExecuteTechnique(technique, type, usertype, nusers, hosttype, nhosts, protocol, sleep, pwd, command, log, cleanup);
             }
             
-            
         }
+
+        public static void GetAuditPolicy(string rhost, string domain, string ruser, string rpwd, string scoutfpath, string log, bool verbose)
+        {
+            if (rpwd == "")
+            {
+                Console.Write("Password for {0}\\{1}: ", domain, ruser);
+                rpwd = Utils.GetPassword();
+                Console.WriteLine();
+            }
+
+            string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            int index = scoutfpath.LastIndexOf(@"\");
+            string scoutFolder = scoutfpath.Substring(0, index + 1);
+            string args = "/o";
+
+            Console.WriteLine("[+] Uploading Scout agent to {0} on {1}", scoutfpath, rhost);
+            Lib.RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
+
+            Console.WriteLine("[+] Executing the Scout agent via WMI ...");
+            Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
+            Console.WriteLine("[+] Connecting to namedpipe service ...");
+
+            string result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "SYN");
+            if (result.Equals("SYN/ACK"))
+            {
+                Console.WriteLine("[+] OK");
+
+                string auditpol = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "auditpol");
+                Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                if (verbose)
+                {
+                    Console.WriteLine("[+] Grabbing the Scout Agent output...");
+                    System.Threading.Thread.Sleep(1000);
+                    string sresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
+                    Console.WriteLine("[+] Results:");
+                    Console.WriteLine();
+                    Console.WriteLine(sresults);
+                }
+                Console.WriteLine("[+] Auditpol Results...");
+                Console.WriteLine(Encoding.UTF8.GetString(Convert.FromBase64String(auditpol)));
+                Console.WriteLine("[+] Cleaning up...");
+                Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
+                Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
+                Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);   
+            }
+        }
+
         public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
         {
             string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
@@ -300,7 +427,6 @@ namespace PurpleSharp
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             int index = scoutfpath.LastIndexOf(@"\");
             string scoutFolder = scoutfpath.Substring(0,index+1);
-            
             
             System.Threading.Thread.Sleep(3000);
             
@@ -401,6 +527,7 @@ namespace PurpleSharp
                 else
                 {
                     Console.WriteLine("[!] Could not connect to namedpipe service");
+                    Console.WriteLine("[!] Exitting.");
                     return;
                 }
             }

@@ -49,6 +49,24 @@ namespace PurpleSharp.Lib
                             writer.WriteLine("SYN/ACK");
                             writer.Flush();
                         }
+                        else if (line.ToLower().Equals("auditpol"))
+                        {
+
+                            string output = "";
+                            Process p = new Process();
+                            // Redirect the output stream of the child process.
+                            p.StartInfo.UseShellExecute = false;
+                            p.StartInfo.RedirectStandardOutput = true;
+                            p.StartInfo.FileName = "auditpol.exe";
+                            p.StartInfo.Arguments = "/get /category:*";
+                            p.Start();
+                            //logger.TimestampInfo(output);
+                            p.WaitForExit();
+                            output = p.StandardOutput.ReadToEnd();
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(output)));
+                            writer.Flush();
+
+                        }
 
                         else if (line.ToLower().StartsWith("recon:"))
                         {
