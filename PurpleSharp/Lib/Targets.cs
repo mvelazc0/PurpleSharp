@@ -60,7 +60,7 @@ namespace PurpleSharp.Lib
             //logger.TimestampInfo("[*] Obtaining domain neighbor targets ...");
             Console.WriteLine("[*] Obtaining domain neighbor targets ...");
             targets = Ldap.GetADComputers(count, dc);
-
+            //Console.WriteLine("[*] Finished");
             return targets;
 
 

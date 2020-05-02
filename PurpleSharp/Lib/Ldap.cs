@@ -177,7 +177,7 @@ namespace PurpleSharp
             }
             else
             {
-                Console.WriteLine("[*] Using LogonServer {0} for LDAP queries", dc);
+                Console.WriteLine("[*] Using {0} for LDAP queries", dc);
                 DirectoryEntry searchRoot = new DirectoryEntry();
                 if (!username.Equals("") && !password.Equals("")) searchRoot = new DirectoryEntry("LDAP://" + dc, username, password);
                 else searchRoot = new DirectoryEntry("LDAP://" + dc);

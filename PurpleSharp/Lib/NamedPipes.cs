@@ -251,7 +251,7 @@ namespace PurpleSharp.Lib
                 }
                 return "";
             }
-            catch (Exception ex)
+            catch
             {
                 //logger.TimestampInfo(ex.ToString());
                 //logger.TimestampInfo(ex.Message.ToString());

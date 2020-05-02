@@ -28,7 +28,7 @@ namespace PurpleSharp
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
             nusers = nhosts = 5;
-            bool cleanup = false;
+            bool cleanup = true;
             bool opsec = false;
             bool verbose = false;
             bool orchservice = false;
@@ -262,7 +262,7 @@ namespace PurpleSharp
                                     var random = new Random();
                                     int index = random.Next(targets.Count);
                                     Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
-                                    taskResult = ExecuteRemote2(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
+                                    taskResult = ExecuteRemoteTechniqueJson(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
                                     playbookResults.taskresults.Add(taskResult);
                                     if (playbook.sleep > 0 && !task.Equals(lastTask))
                                     {
@@ -276,7 +276,7 @@ namespace PurpleSharp
                             }
                             else
                             {
-                                taskResult = ExecuteRemote2(task.host, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
+                                taskResult = ExecuteRemoteTechniqueJson(task.host, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
                                 playbookResults.taskresults.Add(taskResult);
                                 if (playbook.sleep > 0 && !task.Equals(lastTask))
                                 {
@@ -319,7 +319,7 @@ namespace PurpleSharp
                     }
                     if (!rhost.Equals("random"))
                     {
-                        ExecuteRemote(rhost, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
+                        ExecuteRemoteTechnique(rhost, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
                         return;
                     }
                     else if (!dc.Equals(""))
@@ -332,7 +332,7 @@ namespace PurpleSharp
                             var random = new Random();
                             int index = random.Next(targets.Count);
                             Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
-                            ExecuteRemote(targets[index].Fqdn, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
+                            ExecuteRemoteTechnique(targets[index].Fqdn, domain, ruser, rpwd, technique, scoutfpath, simrpath, log, opsec, verbose);
                             return;
                         }
                         else
@@ -410,7 +410,7 @@ namespace PurpleSharp
             }
         }
 
-        public static void ExecuteRemote(string rhost, string domain, string ruser, string rpwd, string technique, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
+        public static void ExecuteRemoteTechnique(string rhost, string domain, string ruser, string rpwd, string technique, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
         {
             string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
 
@@ -503,7 +503,7 @@ namespace PurpleSharp
                             Console.WriteLine(sresults);
                         }
 
-                        System.Threading.Thread.Sleep(8000);
+                        System.Threading.Thread.Sleep(15000);
                         Console.WriteLine("[+] Obtaining the Simulation Agent output...");
                         System.Threading.Thread.Sleep(1000);
                         string results = Lib.RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
@@ -553,7 +553,7 @@ namespace PurpleSharp
             }
         }
 
-        public static PlaybookTaskResult ExecuteRemote2(string rhost, string domain, string ruser, string rpwd, string technique, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
+        public static PlaybookTaskResult ExecuteRemoteTechniqueJson(string rhost, string domain, string ruser, string rpwd, string technique, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
         {
             string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
 
@@ -593,7 +593,7 @@ namespace PurpleSharp
 
                     if (duser == "")
                     {
-                        //Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
+                        Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
                         Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
                         System.Threading.Thread.Sleep(1000);
                         Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
@@ -641,7 +641,7 @@ namespace PurpleSharp
                         //Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (simfolder + log).Replace(":", "$"));
                         Lib.RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
                         //Console.WriteLine("[+] Writing JSON with results...");
-                        return Json.GetTaskResult(results, duser);
+                        return Json.GetTaskResult(results);
                         //Console.WriteLine();
 
                     }
@@ -673,7 +673,7 @@ namespace PurpleSharp
                 //Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
                 Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
 
-                return Json.GetTaskResult(results, "");
+                return Json.GetTaskResult(results);
             }
         }
         public static void ExecuteTechnique(string technique, int type, int usertype, int nuser, int computertype, int nhosts, int protocol, int sleep, string password, string command, string log, bool cleanup)
@@ -829,21 +829,19 @@ namespace PurpleSharp
                 // Lateral Movement
 
                 //T1028 - Windows Remote Management
-                case "winrmexec":
                 case "T1028":
-                    Simulations.LateralMovement.ExecuteWinRMOnHosts(computertype, nhosts, sleep, command);
+                    Simulations.LateralMovement.ExecuteWinRMOnHosts(computertype, nhosts, sleep, command, log);
                     break;
 
                 //T1021 - Remote Service
-                case "remoteservice":
                 case "T1021":
-                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(computertype, nhosts, sleep, cleanup);
+                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(computertype, nhosts, sleep, cleanup, log);
                     break;
 
                 //T1047 - Windows Management Instrumentation
                 case "wmiexec":
                 case "T1047":
-                    Simulations.LateralMovement.ExecuteWmiOnHosts(computertype, nhosts, sleep, command);
+                    Simulations.LateralMovement.ExecuteWmiOnHosts(computertype, nhosts, sleep, command, log);
                     break;
 
 

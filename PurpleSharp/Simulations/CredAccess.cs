@@ -83,6 +83,7 @@ namespace PurpleSharp.Simulations
             if (usertype == 4) domain = ".";
             try
             {
+                logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
                 targets = Lib.Targets.GetHostTargets(computertype, nhost);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targets.Count));
                 targetusers = Lib.Targets.GetUserTargets(usertype, nuser);

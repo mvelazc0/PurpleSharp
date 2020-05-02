@@ -13,7 +13,7 @@ namespace PurpleSharp.Simulations
     class LateralMovementHelper
     {
         // From https://stackoverflow.com/questions/23481394/programmatically-install-windows-service-on-remote-machine
-        public static void CreateRemoteService(Computer computer, bool cleanup)
+        public static void CreateRemoteService(Computer computer, bool cleanup, Lib.Logger logger)
         {
             var scmHandle = WinAPI.OpenSCManager(computer.Fqdn, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
 
@@ -21,7 +21,8 @@ namespace PurpleSharp.Simulations
             {
                 DateTime dtime = DateTime.Now;
                 int err = Marshal.GetLastWin32Error();
-                Console.WriteLine("{0}[{1}] Could not obtain a handle to SCM on {2}. Not an admin ?", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                //Console.WriteLine("{0}[{1}] Could not obtain a handle to SCM on {2}. Not an admin ?", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                logger.TimestampInfo(String.Format("Could not obtain a handle to SCM on {0}. Not an admin ?", computer.Fqdn));
                 return;
 
             }
@@ -36,17 +37,19 @@ namespace PurpleSharp.Simulations
             if (created)
             {
                 DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                logger.TimestampInfo(String.Format("Created service 'UpdaterService' on {0} with 'CreateService' Win32 API", computer.ComputerName));
+                //Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
 
                 if (cleanup)
                 {
                     IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
                     bool deletedService = WinAPI.DeleteService(svcHandleOpened);
+                    logger.TimestampInfo(String.Format("Deleted service 'UpdaterService' on {0} with 'DeleteService' Win32API", computer.ComputerName));
                     WinAPI.CloseServiceHandle(svcHandleOpened);
 
                 }
             }
-
+            /*
             if (!created)
             {
                 if (createdErr == 1073)
@@ -107,9 +110,9 @@ namespace PurpleSharp.Simulations
                 }
 
             }
+            */
 
-
-            WinAPI.StartService(svcHandleCreated, 0, null);
+            //WinAPI.StartService(svcHandleCreated, 0, null);
 
 
             WinAPI.CloseServiceHandle(svcHandleCreated);
@@ -145,7 +148,7 @@ namespace PurpleSharp.Simulations
             return serviceHandleCreated != IntPtr.Zero;
         }
 
-        public static void WinRMCodeExecution(Computer computer, string command)
+        public static void WinRMCodeExecution(Computer computer, string command, Lib.Logger logger)
         {
             try
             {
@@ -160,7 +163,8 @@ namespace PurpleSharp.Simulations
                     var results = powershell.Invoke();
                     runspace.Close();
                     DateTime dtime = DateTime.Now;
-                    Console.WriteLine("{0}[{1}] Successfully created a process using WinRM on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                    logger.TimestampInfo(String.Format("Started a process using WinRM on {0}", computer.ComputerName));
+                    //Console.WriteLine("{0}[{1}] Successfully created a process using WinRM on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
 
                     /*
                     Console.WriteLine("Return command ");
@@ -174,16 +178,28 @@ namespace PurpleSharp.Simulations
             catch (Exception ex)
             {
                 DateTime dtime = DateTime.Now;
-                if (ex.Message.Contains("Access is denied")) Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Access Denied)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                else if (ex.GetType().ToString().Contains("PSRemotingTransportException")) Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Port Closed)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                else Console.WriteLine("{0}[{1}] Failed to execute a process using WinRM on {2}. {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, ex.GetType());
+                if (ex.Message.Contains("Access is denied"))
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. (Access Denied)", computer.Fqdn));
+                    //Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Access Denied)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                }
+                else if (ex.GetType().ToString().Contains("PSRemotingTransportException"))
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. (Port Closed)", computer.Fqdn));
+                    //Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Port Closed)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. {1}", computer.Fqdn, ex.GetType()));
+                    //Console.WriteLine("{0}[{1}] Failed to execute a process using WinRM on {2}. {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, ex.GetType());
+                }
 
             }
             
 
         }
 
-        public static void WmiCodeExecution(Computer computer, string command)
+        public static void WmiCodeExecution(Computer computer, string command, Lib.Logger logger)
         {
             try
             {
@@ -193,15 +209,24 @@ namespace PurpleSharp.Simulations
                 var wmiScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", computer.Fqdn), connectoptions);
                 var wmiProcess = new ManagementClass(wmiScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
                 wmiProcess.InvokeMethod("Create", processToRun);
-                DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Successfully created a process using WMI on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                //DateTime dtime = DateTime.Now;
+                logger.TimestampInfo(String.Format("Started a process using WMI Win32_Create on {0}", computer.ComputerName));
+                //Console.WriteLine("{0}[{1}] Successfully created a process using WMI on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
 
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                DateTime dtime = DateTime.Now;
-                if (ex.Message.Contains("ACCESSDENIED")) Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Access Denied)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                else Console.WriteLine("{0}[{1}] Failed to execute a process using WMI on {2}. {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, ex.GetType());
+                //DateTime dtime = DateTime.Now;
+                if (ex.Message.Contains("ACCESSDENIED"))
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WMI Win32_Create on {0}. (Access Denied)", computer.ComputerName));
+                    //Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Access Denied)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WMI Win32_Create on {0}. {1}", computer.ComputerName, ex.GetType()));
+                    //Console.WriteLine("{0}[{1}] Failed to execute a process using WMI on {2}. {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, ex.GetType());
+                }
             }
 
 

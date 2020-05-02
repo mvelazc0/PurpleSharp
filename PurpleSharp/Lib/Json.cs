@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 namespace PurpleSharp.Lib
 {
     // Input classes
-
     public class SimulationExercise
     {
         public string domain { get; set; }
@@ -37,7 +36,6 @@ namespace PurpleSharp.Lib
 
 
     // Result classes
-
     public class SimulationExerciseResult
     {
         public List<SimulationPlaybookResult> playbookresults { get; set; }
@@ -61,7 +59,6 @@ namespace PurpleSharp.Lib
         public List<TaskDebugMsg> debugmsgs { get; set; }
 
     }
-
     public class TaskDebugMsg
     {
         public string msg { get; set; }
@@ -83,7 +80,7 @@ namespace PurpleSharp.Lib
             }  
         }
 
-        public static PlaybookTaskResult GetTaskResult(string results, string user)
+        public static PlaybookTaskResult GetTaskResult(string results)
         {
 
             PlaybookTaskResult taskresult = new PlaybookTaskResult();
@@ -102,16 +99,16 @@ namespace PurpleSharp.Lib
 
                     taskresult.technique = strip.Split(' ')[0];
                     taskresult.host = strip.Split(' ')[1];
-                    taskresult.user = user;
                 }
                 else if (line.Contains("Simulation agent"))
                 {
-                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running as ", "").Replace("with PID:", "").Trim();
+                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Trim();
+                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
+                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
 
-                    taskresult.simprocess = strip.Split(' ')[0];
-                    taskresult.simprocessid = Int32.Parse(strip.Split(' ')[1]);
-                    //taskresult.simprocessid = 111;
-                    //taskresult.success = true;
+                    taskresult.simprocess = strip.Split('|')[0];
+                    taskresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
+                    taskresult.user = strip.Split('|')[2];
                 }
                 else if (line.Contains("Simulation Finished"))
                 {
