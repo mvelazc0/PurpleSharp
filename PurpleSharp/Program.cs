@@ -158,7 +158,7 @@ namespace PurpleSharp
             if (navigator)
             {
                 string[] execution = new string[] { "T1117", "T1059","T1064", "T1086" };
-                string[] persistence = new string[] { "T1053", "T1136", "T1050", "T1060" };
+                string[] persistence = new string[] { "T1053", "T1136", "T1050", "T1060", "T1084" };
                 string[] privelege_escalation = new string[] { "T1053", "T1050" };
                 string[] defense_evasion = new string[] { "T1117", "T1170", "T1191", "T1085", "T1070", "T1220", "T1055", "T1064", "T1140" };
                 string[] credential_access = new string[] { "T1110", "T1208", "T1003" };
@@ -472,7 +472,7 @@ namespace PurpleSharp
             string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
 
             // techniques that need to be executed from a high integrity process
-            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
+            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050", "T1084" };
 
             if (rpwd == "")
             {
@@ -617,7 +617,7 @@ namespace PurpleSharp
 
 
             // techniques that need to be executed from a high integrity process
-            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
+            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050", "T1084" };
 
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             int index = scoutfpath.LastIndexOf(@"\");
@@ -784,6 +784,11 @@ namespace PurpleSharp
 
                 case "T1060":
                     Simulations.Persistence.RegistryRunKeyNET(log);
+                    //Simulations.Persistence.RegistryRunKeyCmd(log);
+                    break;
+
+                case "T1084":
+                    Simulations.Persistence.WMIEventSubscription(log);
                     //Simulations.Persistence.RegistryRunKeyCmd(log);
                     break;
 
