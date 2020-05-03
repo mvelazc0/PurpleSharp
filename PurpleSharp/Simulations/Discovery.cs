@@ -193,7 +193,7 @@ namespace PurpleSharp.Simulations
             
         }
 
-        public static void SystemNetworkDiscovery(string log)
+        public static void SystemNetworkConnectionsDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
@@ -211,6 +211,40 @@ namespace PurpleSharp.Simulations
             {
                 logger.SimulationFailed(ex);
             }
+        }
+
+        static public void SystemNetworkConfigurationDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1016");
+            try
+            {
+                ExecutionHelper.StartProcess("", "ipconfig /all", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        static public void FileAndDirectoryDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1083");
+            try
+            {
+                ExecutionHelper.StartProcess("", @"dir c:\ >> %temp%\download", logger);
+                ExecutionHelper.StartProcess("", @"dir C:\Users\ >> %temp%\download", logger, true);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
         }
 
 

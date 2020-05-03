@@ -23,7 +23,7 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, jfile;
+            string technique, tactic, pwd, command, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, jfile, navaction, navfile;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
@@ -36,7 +36,8 @@ namespace PurpleSharp
             bool newchild = false;
             bool auditpol = false;
             bool remote = false;
-            technique = tactic = rhost = domain = ruser = rpwd = dc = jfile = "";
+            bool navigator = false;
+            technique = tactic = rhost = domain = ruser = rpwd = dc = jfile = navaction =  navfile = "";
 
             scoutfpath = "C:\\Windows\\Temp\\Legit.exe";
             simrpath = "AppData\\Local\\Temp\\Firefox_Installer.exe";
@@ -136,6 +137,11 @@ namespace PurpleSharp
                         case "/auditpol":
                             auditpol = true;
                             break;
+                        case "/navigator":
+                            navigator = true;
+                            navaction = args[i + 1];
+                            if (navaction.Equals("import")) navfile = args[i + 2]; 
+                            break;
                         default:
                             break;
                     }
@@ -148,6 +154,57 @@ namespace PurpleSharp
                     return;
                 }
 
+            }
+            if (navigator)
+            {
+                string[] execution = new string[] { "T1117", "T1059","T1064", "T1086" };
+                string[] persistence = new string[] { "T1053", "T1136", "T1050", "T1060" };
+                string[] privelege_escalation = new string[] { "T1053", "T1050" };
+                string[] defense_evasion = new string[] { "T1117", "T1170", "T1191", "T1085", "T1070", "T1220", "T1055", "T1064", "T1140" };
+                string[] credential_access = new string[] { "T1110", "T1208", "T1003" };
+                string[] discovery = new string[] { "T1135", "T1046", "T1087", "T1007", "T1033", "T1049", "T1016", "T1083"};
+                string[] lateral_movement = new string[] { "T1021", "T1028", "T1047" };
+
+                string[] supported_techniques = execution.Union(persistence).Union(privelege_escalation).Union(defense_evasion).Union(credential_access).Union(discovery).Union(lateral_movement).ToArray();
+
+                if (navaction.Equals("export"))
+                {
+                   
+
+                    try
+                    {
+                        Console.WriteLine("[+] Generating ATT&CK Navigator JSON layer...");
+                        Json.ExportAttackLayer(supported_techniques.Distinct().ToArray());
+                        Console.WriteLine("[!] Open PurpleSharp.json");
+                        return;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("[!] Error generating JSON layer...");
+                        Console.WriteLine("[!] Exitting...");
+                        return;
+                    }
+                }
+                else if (navaction.Equals("import"))
+                {
+                    Console.WriteLine("[+] Loading {0}", navfile);
+                    string json = File.ReadAllText(navfile);
+                    NavigatorLayer layer = Json.ReadNavigatorLayer(json);
+                    Console.WriteLine("[!] Loaded attack navigator '{0}'", layer.name);
+                    Console.WriteLine("[+] Converting ATT&CK navigator Json...");
+                    SimulationExercise engagement = Json.ConvertNavigatorToSimulationExercise(layer, supported_techniques.Distinct().ToArray());
+                    Json.CreateSimulationExercise(engagement);
+                    Console.WriteLine("[!] Done");
+                    Console.WriteLine("[+] Open simulation.json");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("[!] Didnt recognize parameter...");
+                    Console.WriteLine("[!] Exitting...");
+                    return;
+                }
+                
             }
             if (auditpol)
             {
@@ -555,7 +612,9 @@ namespace PurpleSharp
 
         public static PlaybookTaskResult ExecuteRemoteTechniqueJson(string rhost, string domain, string ruser, string rpwd, string technique, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
         {
-            string[] supported_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
+
+
+
 
             // techniques that need to be executed from a high integrity process
             string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050" };
@@ -689,10 +748,18 @@ namespace PurpleSharp
                     Simulations.Execution.ExecuteRegsvr32(log);
                     break;
 
+                case "T1064":
+                    Simulations.Execution.Scripting(log);
+                    break;
+
                 //T1053 - Scheduled Task
                 case "atexec":
                 case "T1053":
                     Simulations.LateralMovement.CreateSchTaskOnHosts(computertype, nhosts, sleep, command, cleanup);
+                    break;
+
+                case "T1059":
+                    Simulations.Execution.ExecuteCmd(log);
                     break;
 
                 case "T1086":
@@ -727,6 +794,10 @@ namespace PurpleSharp
                 //T1053 - Scheduled Task
 
                 // Defense Evasion
+
+                case "T1140":
+                    Simulations.DefenseEvasion.DeobfuscateDecode(log);
+                    break;
 
                 case "T1170":
                     Simulations.DefenseEvasion.Mshta(log);
@@ -796,9 +867,17 @@ namespace PurpleSharp
                     break;
 
                 // Discovery
+                //T1016 System Network Configuration Discovery
+                case "T1016":
+                    Simulations.Discovery.SystemNetworkConfigurationDiscovery(log);
+                    break;
+
+                //T1083 File and Directory Discovery
+                case "T1083":
+                    Simulations.Discovery.FileAndDirectoryDiscovery(log);
+                    break;
 
                 //T1135 - Network Share Discovery
-                case "shareenum":
                 case "T1135":
                     Simulations.Discovery.EnumerateShares(computertype, nhosts, sleep, log);
                     break;
@@ -823,7 +902,7 @@ namespace PurpleSharp
                     break;
 
                 case "T1049":
-                    Simulations.Discovery.SystemNetworkDiscovery(log);
+                    Simulations.Discovery.SystemNetworkConnectionsDiscovery(log);
                     break;
 
                 // Lateral Movement

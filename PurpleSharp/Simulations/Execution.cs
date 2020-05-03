@@ -27,6 +27,42 @@ namespace PurpleSharp.Simulations
             
         }
 
+        static public void ExecuteCmd(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1059");
+            try
+            {
+                ExecutionHelper.StartProcess("", "cmd.exe /C whoami", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
+        static public void Scripting(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1064");
+            
+            try
+            {
+                string file = "invoice0420.vbs";
+                ExecutionHelper.StartProcess("", String.Format("wscript.exe {0}", file), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
         static public void ExecuteRegsvr32(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;

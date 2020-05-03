@@ -1,11 +1,8 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace PurpleSharp.Lib
 {
@@ -64,6 +61,51 @@ namespace PurpleSharp.Lib
         public string msg { get; set; }
     }
 
+    //Mitre ATT&CK 
+
+    public class NavigatorLayer
+    {
+        public string name { get; set; }
+        public string version { get; set; }
+        public string domain { get; set; }
+        public string description { get; set; }
+        public bool hideDisabled { get; set; }
+
+        public NavigatorFilters filters { get; set; }
+        public List<NavigatorTechnique> techniques { get; set; }
+
+
+        //public Gradient gradient { get; set; }
+        //public object[] legendItems { get; set; }
+        //public object[] metadata { get; set; }
+        //public bool showTacticRowBackground { get; set; }
+        //public string tacticRowBackground { get; set; }
+        //public bool selectTechniquesAcrossTactics { get; set; }
+    }
+
+    public class NavigatorFilters
+    {
+        public string[] stages { get; set; }
+        public string[] platforms { get; set; }
+    }
+
+    public class NavigatorGradient
+    {
+        public string[] colors { get; set; }
+        public int minValue { get; set; }
+        public int maxValue { get; set; }
+    }
+
+    public class NavigatorTechnique
+    {
+        public string techniqueID { get; set; }
+        //public string tactic { get; set; }
+        public string color { get; set; }
+        //public string comment { get; set; }
+        public bool enabled { get; set; }
+        //public object[] metadata { get; set; }
+    }
+
 
     class Json
     {
@@ -77,7 +119,7 @@ namespace PurpleSharp.Lib
             catch (Exception)
             {
                 return null;
-            }  
+            }
         }
 
         public static PlaybookTaskResult GetTaskResult(string results)
@@ -135,6 +177,93 @@ namespace PurpleSharp.Lib
             File.WriteAllText("result.json", JsonConvert.SerializeObject(engagementResult));
 
         }
+
+        public static void ExportAttackLayer(string[] techniques)
+        {
+
+            NavigatorLayer layer = new NavigatorLayer();
+            layer.version = "2.2";
+            layer.name = "PurpleSharp Coverage";
+            layer.domain = "mitre-enterprise";
+            layer.description = "Layer of techniques supported by PurpleSharp";
+            layer.hideDisabled = true;
+
+            NavigatorFilters filters = new NavigatorFilters();
+            filters.stages = new string [] { "act" };
+            filters.platforms = new string []{ "Windows" };
+
+            layer.filters = filters;
+
+            List<NavigatorTechnique> layertechniques = new List<NavigatorTechnique>();
+
+            foreach (string technique in techniques)
+            {
+                NavigatorTechnique tech = new NavigatorTechnique();
+                tech.techniqueID = technique;
+                tech.color = "#756bb1";
+                //tech.comment = "";
+                tech.enabled = true;
+
+                layertechniques.Add(tech);
+            }
+            layer.techniques = layertechniques;
+            File.WriteAllText("PurpleSharp.json", JsonConvert.SerializeObject(layer));
+        }
+
+        public static NavigatorLayer ReadNavigatorLayer(string jsoninput)
+        {
+            try
+            {
+                NavigatorLayer navlayer  = JsonConvert.DeserializeObject<NavigatorLayer>(jsoninput);
+                return navlayer;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+        }
+
+        public static SimulationExercise ConvertNavigatorToSimulationExercise(NavigatorLayer layer, string[] supportedtechniques)
+        {
+            SimulationExercise engagement = new SimulationExercise();
+            SimulationPlaybook playbook = new SimulationPlaybook();
+            playbook.name = layer.name;
+
+            //playbook.tasks = new List<PlaybookTask>();
+            List<PlaybookTask> tasks = new List<PlaybookTask>();
+            int notsupported = 0;
+
+            foreach (NavigatorTechnique technique in layer.techniques)
+            {
+                if (Array.IndexOf(supportedtechniques, technique.techniqueID) > -1)
+                {
+                    PlaybookTask task = new PlaybookTask();
+                    task.technique = technique.techniqueID;
+                    task.host = "random";
+                    tasks.Add(task);
+                }
+                else 
+                {
+                    Console.WriteLine("[!] {0} not supported by PurpleSharp",technique.techniqueID);
+                    notsupported += 1;
+                }
+                    
+            }
+            playbook.tasks = tasks;
+            engagement.playbooks = new List<SimulationPlaybook>();
+            engagement.playbooks.Add(playbook);
+            Console.WriteLine("[!] Found a total of {0} techniques not supported out of {1}", notsupported.ToString(), layer.techniques.Count.ToString());
+            Console.WriteLine("[!] Final number of tasks supported: {0}", tasks.Count.ToString());
+            return engagement;
+        }
+
+        public static void CreateSimulationExercise(SimulationExercise engagement)
+        {
+            File.WriteAllText("simulation.json", JsonConvert.SerializeObject(engagement));
+
+        }
+
 
 
     }
