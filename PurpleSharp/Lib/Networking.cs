@@ -16,21 +16,30 @@ namespace PurpleSharp.Lib
         public static string PingHost(string host)
         {
             Ping sendPing = new Ping();
-            PingReply reply = sendPing.Send(host, 2000);
 
-            if (reply.Status == IPStatus.Success)
+            try
             {
-                //host is alive
-                //var ipv4 = reply.Address.ToString();
-                //Console.WriteLine(host + " is alive");
-                return reply.Address.ToString();
+                PingReply reply = sendPing.Send(host, 2000);
 
+                if (reply.Status == IPStatus.Success)
+                {
+                    //host is alive
+                    //var ipv4 = reply.Address.ToString();
+                    //Console.WriteLine(host + " is alive");
+                    return reply.Address.ToString();
+
+                }
+                else
+                {
+                    //Console.WriteLine(host + " is offline");
+                    return "";
+                }
             }
-            else
+            catch
             {
-                //Console.WriteLine(host + " is offline");
                 return "";
             }
+
 
         }
 

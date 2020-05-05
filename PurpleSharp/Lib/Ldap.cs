@@ -214,6 +214,7 @@ namespace PurpleSharp
                                 tasklist.Add(Task.Factory.StartNew(() =>
                                 {
                                     //TODO: Firewalls may block ping. Instead of pinging, i should should resolve.  
+                                    //Console.WriteLine("[+] Trying to ping {0}", dnshostname);
                                     string ipv4 = PurpleSharp.Lib.Networking.PingHost(dnshostname);
                                     if (ipv4 != "")
                                     {

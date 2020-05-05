@@ -44,6 +44,25 @@ namespace PurpleSharp.Simulations
 
         }
 
+        static public void ServiceExecution(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1035");
+            try
+            {
+                ExecutionHelper.StartProcess("", "net start UpdaterService", logger);
+                ExecutionHelper.StartProcess("", "sc start UpdaterService", logger, false);
+
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
         static public void Scripting(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;

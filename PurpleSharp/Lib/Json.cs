@@ -102,6 +102,7 @@ namespace PurpleSharp.Lib
         //public string tactic { get; set; }
         public string color { get; set; }
         //public string comment { get; set; }
+        public int score { get; set; }
         public bool enabled { get; set; }
         //public object[] metadata { get; set; }
     }
@@ -203,6 +204,7 @@ namespace PurpleSharp.Lib
                 tech.color = "#756bb1";
                 //tech.comment = "";
                 tech.enabled = true;
+                tech.score = 1;
 
                 layertechniques.Add(tech);
             }

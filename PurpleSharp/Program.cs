@@ -157,10 +157,10 @@ namespace PurpleSharp
             }
             if (navigator)
             {
-                string[] execution = new string[] { "T1117", "T1059","T1064", "T1086" };
+                string[] execution = new string[] { "T1117", "T1059", "T1064", "T1086", "T1197", "T1121", "T1035", "T1118" };
                 string[] persistence = new string[] { "T1053", "T1136", "T1050", "T1060", "T1084" };
                 string[] privelege_escalation = new string[] { "T1053", "T1050" };
-                string[] defense_evasion = new string[] { "T1117", "T1170", "T1191", "T1085", "T1070", "T1220", "T1055", "T1064", "T1140" };
+                string[] defense_evasion = new string[] { "T1117", "T1170", "T1191", "T1085", "T1070", "T1220", "T1055", "T1064", "T1140", "T1197", "T1121", "T1118" };
                 string[] credential_access = new string[] { "T1110", "T1208", "T1003" };
                 string[] discovery = new string[] { "T1135", "T1046", "T1087", "T1007", "T1033", "T1049", "T1016", "T1083"};
                 string[] lateral_movement = new string[] { "T1021", "T1028", "T1047" };
@@ -169,11 +169,9 @@ namespace PurpleSharp
 
                 if (navaction.Equals("export"))
                 {
-                   
-
                     try
                     {
-                        Console.WriteLine("[+] Generating ATT&CK Navigator JSON layer...");
+                        Console.WriteLine("[+] Generating an ATT&CK Navigator layer...");
                         Json.ExportAttackLayer(supported_techniques.Distinct().ToArray());
                         Console.WriteLine("[!] Open PurpleSharp.json");
                         return;
@@ -752,6 +750,10 @@ namespace PurpleSharp
                     Simulations.Execution.Scripting(log);
                     break;
 
+                case "T1035":
+                    Simulations.Execution.ServiceExecution(log);
+                    break;
+
                 //T1053 - Scheduled Task
                 case "atexec":
                 case "T1053":
@@ -800,6 +802,14 @@ namespace PurpleSharp
 
                 // Defense Evasion
 
+                case "T1121":
+                    Simulations.DefenseEvasion.RegsvcsRegasm(log);
+                    break;
+
+                case "T1118":
+                    Simulations.DefenseEvasion.InstallUtil(log);
+                    break;
+
                 case "T1140":
                     Simulations.DefenseEvasion.DeobfuscateDecode(log);
                     break;
@@ -811,6 +821,11 @@ namespace PurpleSharp
                 case "T1191":
                     Simulations.DefenseEvasion.Csmtp(log);
                     break;
+
+                case "T1197":
+                    Simulations.DefenseEvasion.BitsJobs(log);
+                    break;
+
 
                 case "T1085":
                     Simulations.DefenseEvasion.Rundll32(log);
