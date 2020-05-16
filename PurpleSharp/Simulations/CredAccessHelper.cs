@@ -138,7 +138,7 @@ namespace PurpleSharp.Simulations
 
             targetProcessId = (uint)targetProcess.Id;
             logger.TimestampInfo(String.Format("Identified lsass.exe with Process ID:{0}", targetProcessId));
-            
+
             /*
             try
             {
@@ -154,6 +154,7 @@ namespace PurpleSharp.Simulations
                 logger.TimestampInfo(ex.Message);
             }
             */
+            logger.TimestampInfo(String.Format("Trying to obtain a process handle to lsass.exe (PID:{0})", targetProcessId));
             targetProcessHandle = targetProcess.Handle;
 
 

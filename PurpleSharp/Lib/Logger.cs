@@ -83,8 +83,8 @@ namespace PurpleSharp.Lib
         }
         public void SimulationFailed(Exception ex)
         {
+            WriteFormattedLog(LogLevel.TINFO, "Exception: "+ ex.Message.ToString());
             WriteFormattedLog(LogLevel.TINFO, "Simulation Failed");
-            WriteFormattedLog(LogLevel.TINFO, ex.Message.ToString());
         }
         private void WriteLine(string text, bool append = true)
         {

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Linq;
 
 namespace PurpleSharp.Lib
 {
@@ -16,11 +16,6 @@ namespace PurpleSharp.Lib
         public List<SimulationPlaybook> playbooks { get; set; }
     }
 
-    public class PlaybookTask
-    {
-        public string technique { get; set; }
-        public string host { get; set; }
-    }
 
     public class SimulationPlaybook
     {
@@ -28,7 +23,14 @@ namespace PurpleSharp.Lib
         public string scoutfpath { get; set; }
         public string simrpath { get; set; }
         public int sleep { get; set; }
+        public string host { get; set; }
         public List<PlaybookTask> tasks { get; set; }
+    }
+
+    public class PlaybookTask
+    {
+        public string technique { get; set; }
+        //public string host { get; set; }
     }
 
 
@@ -41,6 +43,11 @@ namespace PurpleSharp.Lib
     public class SimulationPlaybookResult
     {
         public string name { get; set; }
+        public string host { get; set; }
+        public string user { get; set; }
+        public string simprocess { get; set; }
+        public int simprocessid { get; set; }
+
         public List<PlaybookTaskResult> taskresults { get; set; }
     }
 
@@ -48,10 +55,7 @@ namespace PurpleSharp.Lib
     {
         public string timestamp { get; set; }
         public string technique { get; set; }
-        public string host { get; set; }
-        public string user { get; set; }
-        public string simprocess { get; set; }
-        public int simprocessid { get; set; }
+        //public string host { get; set; }
         public bool success { get; set; }
         public List<TaskDebugMsg> debugmsgs { get; set; }
 
@@ -141,7 +145,7 @@ namespace PurpleSharp.Lib
                     string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
 
                     taskresult.technique = strip.Split(' ')[0];
-                    taskresult.host = strip.Split(' ')[1];
+                    //taskresult.host = strip.Split(' ')[1];
                 }
                 else if (line.Contains("Simulation agent"))
                 {
@@ -149,9 +153,9 @@ namespace PurpleSharp.Lib
                     //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
                     string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
 
-                    taskresult.simprocess = strip.Split('|')[0];
-                    taskresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
-                    taskresult.user = strip.Split('|')[2];
+                    //taskresult.simprocess = strip.Split('|')[0];
+                    //taskresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
+                    //taskresult.user = strip.Split('|')[2];
                 }
                 else if (line.Contains("Simulation Finished"))
                 {
@@ -171,6 +175,70 @@ namespace PurpleSharp.Lib
             }
             taskresult.debugmsgs = debugmsgs;
             return taskresult;
+            //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
+        }
+
+        public static SimulationPlaybookResult GetPlaybookResult(string results)
+        {
+            SimulationPlaybookResult playbookresult = new SimulationPlaybookResult();
+            List<PlaybookTaskResult> taskresults = new List<PlaybookTaskResult>();
+            string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            //foreach (string line in lines)
+            for (int i=0; i < lines.Length; i++)
+            {
+                if (lines[i].Contains("Starting"))
+                {
+                    PlaybookTaskResult taskresult = new PlaybookTaskResult();
+                    List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
+
+                    taskresult.timestamp = lines[i].Substring(0, lines[i].IndexOf('[')).Trim();
+                    string strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
+                    taskresult.technique = strip.Split(' ')[0];
+                    playbookresult.host = strip.Split(' ')[1];
+                    bool finished = false;
+                    int skipped = 0;
+                    for (int k = i+1; finished==false; k++)
+                    {
+                        if (lines[k].Contains("Simulation agent"))
+                        {
+                            //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Trim();
+                            //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
+                            strip = lines[k].Substring(lines[k].LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
+
+                            playbookresult.simprocess = strip.Split('|')[0];
+                            playbookresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
+                            playbookresult.user = strip.Split('|')[2];
+                        }
+                        else if (lines[k].Contains("Simulation Finished"))
+                        {
+                            taskresult.success = true;
+                            finished = true;
+                        }
+                        else if (lines[k].Contains("Simulation Failed"))
+                        {
+                            taskresult.success = false;
+                            finished = true;
+                        }
+                        else
+                        {
+                            TaskDebugMsg debugmsg = new TaskDebugMsg();
+                            debugmsg.msg = lines[k];
+                            debugmsgs.Add(debugmsg);
+                        }
+                        skipped += 1;
+                    }
+                    taskresult.debugmsgs = debugmsgs;
+                    taskresults.Add(taskresult);
+                    i += skipped;
+
+                }
+
+
+                //Console.WriteLine(line.Substring(line.LastIndexOf(']') + 1));
+            }
+            playbookresult.taskresults = taskresults;
+            return playbookresult;
             //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
         }
         public static void WriteJsonPlaybookResults(SimulationExerciseResult engagementResult)
@@ -229,34 +297,41 @@ namespace PurpleSharp.Lib
         public static SimulationExercise ConvertNavigatorToSimulationExercise(NavigatorLayer layer, string[] supportedtechniques)
         {
             SimulationExercise engagement = new SimulationExercise();
-            SimulationPlaybook playbook = new SimulationPlaybook();
-            playbook.name = layer.name;
-
-            //playbook.tasks = new List<PlaybookTask>();
-            List<PlaybookTask> tasks = new List<PlaybookTask>();
+            List<SimulationPlaybook> playbooks = new List<SimulationPlaybook>();
             int notsupported = 0;
 
             foreach (NavigatorTechnique technique in layer.techniques)
             {
+
                 if (Array.IndexOf(supportedtechniques, technique.techniqueID) > -1)
                 {
+                    SimulationPlaybook playbook = new SimulationPlaybook();
+                    playbook.name = layer.name;
+                    playbook.host = "random";
+                    playbook.scoutfpath = @"C:\Windows\Psexesvc.exe";
+                    playbook.simrpath = @"\Downloads\Firefox_Installer.exe";
+                    List<PlaybookTask> tasks = new List<PlaybookTask>();
+
+
                     PlaybookTask task = new PlaybookTask();
                     task.technique = technique.techniqueID;
-                    task.host = "random";
                     tasks.Add(task);
+                    playbook.tasks = tasks;
+                    playbooks.Add(playbook);
                 }
                 else 
                 {
                     Console.WriteLine("[!] {0} not supported by PurpleSharp",technique.techniqueID);
                     notsupported += 1;
                 }
-                    
+                
             }
-            playbook.tasks = tasks;
-            engagement.playbooks = new List<SimulationPlaybook>();
-            engagement.playbooks.Add(playbook);
+            engagement.playbooks = playbooks;
+            //playbook.tasks = tasks;
+            //engagement.playbooks = new List<SimulationPlaybook>();
+            //engagement.playbooks.Add(playbook);
             Console.WriteLine("[!] Found a total of {0} techniques not supported out of {1}", notsupported.ToString(), layer.techniques.Count.ToString());
-            Console.WriteLine("[!] Final number of tasks supported: {0}", tasks.Count.ToString());
+            Console.WriteLine("[!] Final number of tasks supported: {0}", playbooks.Count.ToString());
             return engagement;
         }
 
