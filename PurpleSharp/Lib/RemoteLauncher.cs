@@ -1,14 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Security.Permissions;
-using System.Security.Principal;
-using Microsoft.Win32.SafeHandles;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Management;
 
@@ -30,7 +20,7 @@ namespace PurpleSharp.Lib
                 sr.Close();
 
             }
-            return txt;
+            return txt.Trim();
         }
 
 

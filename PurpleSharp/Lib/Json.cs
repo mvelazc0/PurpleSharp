@@ -114,7 +114,7 @@ namespace PurpleSharp.Lib
 
     class Json
     {
-        public static SimulationExercise ReadJson(string jsoninput)
+        public static SimulationExercise ReadSimulationPlaybook(string jsoninput)
         {
             try
             {

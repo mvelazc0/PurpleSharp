@@ -24,6 +24,7 @@ namespace PurpleSharp.Lib
             string technique, opsec, simpfath, simrpath, duser, user, simbinary;
             technique = opsec = simpfath = simrpath = duser = user = simbinary = "";
             Process parentprocess = null;
+            int sleep = 0;
 
             try
             {
@@ -107,6 +108,14 @@ namespace PurpleSharp.Lib
                             writer.WriteLine("ACK");
                             writer.Flush();
                         }
+                        else if (line.ToLower().StartsWith("sleep:"))
+                        {
+                            sleep = Int32.Parse(line.Replace("sleep:", ""));
+                            //logger.TimestampInfo("Got params from client");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
                         else if (line.ToLower().StartsWith("opsec:"))
                         {
                             opsec = line.Replace("opsec:", "");
@@ -139,7 +148,7 @@ namespace PurpleSharp.Lib
                                 logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
                                 logger.TimestampInfo("Spoofing " + parentprocess.ProcessName + " PID: " + parentprocess.Id.ToString());
                                 //logger.TimestampInfo("Executing: " + simpath + " " + cmdline);
-                                logger.TimestampInfo("Executing: " + simpfath + " /s");
+                                logger.TimestampInfo("Executing: " + simpfath + " /n");
                                 //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simrpath + " /s");
 
@@ -150,7 +159,7 @@ namespace PurpleSharp.Lib
                                 //logger.TimestampInfo("Sending technique through namedpipe:"+ technique.Replace("/technique ", ""));
                                 logger.TimestampInfo("Sending technique through namedpipe:" + technique);
                                 //RunNoAuthClient("simargs", "technique:" + technique.Replace("/technique ", ""));
-                                RunNoAuthClient("simargs", "technique:" + technique);
+                                RunNoAuthClient("simargs", "technique:" + technique+" sleep:"+sleep.ToString());
                                 System.Threading.Thread.Sleep(2000);
                             }
                         }
@@ -218,8 +227,9 @@ namespace PurpleSharp.Lib
         }
         */
 
-        public static string RunSimulationService(string npipe, string log)
+        public static string[] RunSimulationService(string npipe, string log)
         {
+            string[] result = new string[2];
             try
             {
                 //https://helperbyte.com/questions/171742/how-to-connect-to-a-named-pipe-without-administrator-rights
@@ -228,6 +238,7 @@ namespace PurpleSharp.Lib
 
                 //logger.TimestampInfo("starting!");
                 string technique;
+                string sleep;
                 using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 4028, 4028, ps))
                 //using (var pipeServer = new NamedPipeServerStream(npipe))
                 {
@@ -242,20 +253,29 @@ namespace PurpleSharp.Lib
                     //logger.TimestampInfo("received from client: " + line);
                     if (line.ToLower().StartsWith("technique:"))
                     {
-                        technique = line.Replace("technique:", "");
+                        string[] options = line.Split(' ');
+                        technique = options[0].Replace("technique:", "");
+                        sleep = options[1].Replace("sleep:", "");
+                        //technique = line.Replace("technique:", "");
                         writer.WriteLine("ACK");
                         writer.Flush();
-                        return technique;
+
+                        result[0] = technique;
+                        result[1] = sleep;
+                        return result;
+                        //return technique;
                     }
                     pipeServer.Disconnect();
                 }
-                return "";
+                return result;
+                //return "";
             }
             catch
             {
                 //logger.TimestampInfo(ex.ToString());
                 //logger.TimestampInfo(ex.Message.ToString());
-                return "";
+                //return "";
+                return result;
             }
 
         }
