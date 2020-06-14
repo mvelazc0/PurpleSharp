@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -6,13 +7,12 @@ using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PurpleSharp.Lib
 {
-
-
     class Recon
     {
         const int TOKEN_QUERY = 0x0008;
@@ -214,5 +214,223 @@ namespace PurpleSharp.Lib
                 throw new Win32Exception(errno);
             }
         }
+        public static string GetProcs()
+        {
+            string output= "======== Processes ========" + Environment.NewLine; ; ;
+            foreach (Process proc in Process.GetProcesses())
+            {
+                try
+                {
+                    string arch = (Environment.Is64BitProcess)? "x64" : "x86";
+                    output += String.Format("{0} - {1} - {2} - {3}", proc.MainModule.FileName, proc.Id, arch, GetProcessOwnerWmi(proc))  + Environment.NewLine;
+                }
+                catch    
+                {
+                }
+            }
+            output += Environment.NewLine + Environment.NewLine;
+            return output;
+        }
+        //Pre Assessment Functions
+
+        public static string GetServices()
+        {
+            string output = "======== Running Services ========" + Environment.NewLine; ;
+            ServiceController[] services = ServiceController.GetServices();
+            foreach (ServiceController service in services)
+            {
+                //string running = (service.Status == ServiceControllerStatus.Running ) ? "Running" : "Stopped";
+                if (service.Status == ServiceControllerStatus.Running)
+                {
+                    output += String.Format("{0}  -  {1} ", service.ServiceName, service.DisplayName) + Environment.NewLine;
+                }
+                    
+            }
+            output += Environment.NewLine + Environment.NewLine;
+            return output;
+        }
+             
+        public static string GetAuditPolicy()
+        {
+            string output = "======== Audit Policy Settings ========" + Environment.NewLine;
+            Process p = new Process();
+            // Redirect the output stream of the child process.
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.FileName = "auditpol.exe";
+            p.StartInfo.Arguments = "/get /category:*";
+            p.Start();
+            //logger.TimestampInfo(output);
+            p.WaitForExit();
+            output += p.StandardOutput.ReadToEnd();
+            output += Environment.NewLine;
+            return output;
+        }
+
+        public static string GetPwsLoggingSettings()
+        {
+            List<String> hives = new List<string>() { "Module Logging", "Transcription Logging", "ScriptBlock Logging" };
+            string output = "======== PowerShell Logging Settings ========" + Environment.NewLine;
+
+            foreach (String hive in hives)
+            {
+                //
+                Dictionary<string, object> settings = GetRegValues("HKLM", "SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\"+hive.Replace(" ",""));
+                output += "-------- "+hive+ " --------" + Environment.NewLine;
+                if ((settings != null) && (settings.Count != 0))
+                {
+                    foreach (KeyValuePair<string, object> kvp in settings)
+                    {
+                        if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.String"))
+                        {
+                            string result = string.Join(",", (string[])kvp.Value);
+                            //PrintItemValue(kvp.Key, result);
+                            output += $"{kvp.Key}: {result}";
+                        }
+                        else
+                        {
+                            output += $"{kvp.Key}: {kvp.Value}";
+                            //PrintItemValue(kvp.Key, kvp.Value);
+                        }
+                    }
+                    output += Environment.NewLine + Environment.NewLine;
+                    
+                }
+                else
+                {
+                    output += "No "+ hive + " Settings Found";
+                    output += Environment.NewLine + Environment.NewLine;
+                }
+
+            }
+
+            return output;
+
+        }
+
+        public static string GetCmdlineAudittingSettings()
+        {
+            string output = "======== Command Line Auditing Settings ========" + Environment.NewLine;
+            Dictionary<string, object> settings = GetRegValues("HKLM", "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Audit\\");
+            //output += "settings " + settings.ToString() + Environment.NewLine;
+            //output += "count: " + settings.Count.ToString() + Environment.NewLine; ;
+            if ((settings != null) && (settings.Count != 0))
+            {
+                foreach (KeyValuePair<string, object> kvp in settings)
+                {
+                    if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.String"))
+                    {
+                        string result = string.Join(",", (string[])kvp.Value);
+                        //PrintItemValue(kvp.Key, result);
+                        output += $"{kvp.Key}: {result}";
+                    }
+                    else
+                    {
+                        output += $"{kvp.Key}: {kvp.Value}";
+                        //PrintItemValue(kvp.Key, kvp.Value);
+                    }
+                }
+                output += Environment.NewLine + Environment.NewLine;
+                return output;
+            }
+            else
+            {
+                output += "No Command Line Auditing Settings Found";
+                output += Environment.NewLine + Environment.NewLine;
+                return output;
+            }
+        }
+
+        //Credits to https://github.com/jaredhaight/scout
+        public static string GetWefSettings()
+        {
+            string output = "======== WEF Settings ========" + Environment.NewLine;
+            Dictionary<string, object> settings = GetRegValues("HKLM", "Software\\Policies\\Microsoft\\Windows\\EventLog\\EventForwarding\\SubscriptionManager\\");
+            //output += "settings " + settings.ToString() + Environment.NewLine;
+            //output += "count: " + settings.Count.ToString() + Environment.NewLine; ;
+            if ((settings != null) && (settings.Count != 0))
+            {
+                foreach (KeyValuePair<string, object> kvp in settings)
+                {
+                    if (kvp.Value.GetType().IsArray && (kvp.Value.GetType().GetElementType().ToString() == "System.String"))
+                    {
+                        string result = string.Join(",", (string[])kvp.Value);
+                        //PrintItemValue(kvp.Key, result);
+                        output += $"{kvp.Key}: {result}";
+                    }
+                    else
+                    {
+                        output += $"{kvp.Key}: {kvp.Value}";
+                        //PrintItemValue(kvp.Key, kvp.Value);
+                    }
+                }
+                output += Environment.NewLine + Environment.NewLine;
+                return output;
+            }
+            else
+            {
+                output += "No WEF Settings Found";
+                output += Environment.NewLine + Environment.NewLine;
+                return output;
+            }
+        }
+
+        //Credits to https://github.com/jaredhaight/scout
+        public static RegistryKey GetRegistryKey(string hive, string path)
+        {
+            if (hive == "HKCU")
+            {
+                //return RegistryKey.OpenRemoteBaseKey(RegistryHive.CurrentUser, COMPUTERNAME).OpenSubKey(path);
+                return RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64).OpenSubKey(path);
+            }
+            else if (hive == "HKU")
+            {
+                //return RegistryKey.OpenRemoteBaseKey(RegistryHive.Users, COMPUTERNAME).OpenSubKey(path);
+                return RegistryKey.OpenBaseKey(RegistryHive.Users, RegistryView.Registry64).OpenSubKey(path);
+            }
+            else
+            {
+                //return RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, COMPUTERNAME).OpenSubKey(path);
+                return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64).OpenSubKey(path);
+            }
+        }
+
+        //Credits to https://github.com/jaredhaight/scout
+        public static string GetRegValue(string hive, string path, string value)
+        {
+            // returns a single registry value under the specified path in the specified hive (HKLM/HKCU)
+            string regKeyValue = "";
+            var regKey = GetRegistryKey(hive, path);
+            if (regKey != null)
+            {
+                regKeyValue = String.Format("{0}", regKey.GetValue(value));
+            }
+            return regKeyValue;
+        }
+
+        //Credits to https://github.com/jaredhaight/scout
+        public static Dictionary<string, object> GetRegValues(string hive, string path)
+        {
+            // returns all registry values under the specified path in the specified hive (HKLM/HKCU)
+            Dictionary<string, object> keyValuePairs = null;
+            try
+            {
+                using (var regKeyValues = GetRegistryKey(hive, path))
+                {
+                    if (regKeyValues != null)
+                    {
+                        var valueNames = regKeyValues.GetValueNames();
+                        keyValuePairs = valueNames.ToDictionary(name => name, regKeyValues.GetValue);
+                    }
+                }
+                return keyValuePairs;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
     }
 }

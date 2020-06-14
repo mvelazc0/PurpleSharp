@@ -52,21 +52,33 @@ namespace PurpleSharp.Lib
                         }
                         else if (line.ToLower().Equals("auditpol"))
                         {
-
-                            string output = "";
-                            Process p = new Process();
-                            // Redirect the output stream of the child process.
-                            p.StartInfo.UseShellExecute = false;
-                            p.StartInfo.RedirectStandardOutput = true;
-                            p.StartInfo.FileName = "auditpol.exe";
-                            p.StartInfo.Arguments = "/get /category:*";
-                            p.Start();
-                            //logger.TimestampInfo(output);
-                            p.WaitForExit();
-                            output = p.StandardOutput.ReadToEnd();
-                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(output)));
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetAuditPolicy())));
                             writer.Flush();
-
+                        }
+                        else if (line.ToLower().Equals("wef"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetWefSettings())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("pws"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetPwsLoggingSettings())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("ps"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetProcs())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("svcs"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetServices())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("cmdline"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetCmdlineAudittingSettings())));
+                            writer.Flush();
                         }
 
                         else if (line.ToLower().StartsWith("recon:"))
@@ -159,7 +171,7 @@ namespace PurpleSharp.Lib
                                 //logger.TimestampInfo("Sending technique through namedpipe:"+ technique.Replace("/technique ", ""));
                                 logger.TimestampInfo("Sending technique through namedpipe:" + technique);
                                 //RunNoAuthClient("simargs", "technique:" + technique.Replace("/technique ", ""));
-                                RunNoAuthClient("simargs", "technique:" + technique+" sleep:"+sleep.ToString());
+                                RunNoAuthClient("simargs", "technique:" + technique + " sleep:" + sleep.ToString());
                                 System.Threading.Thread.Sleep(2000);
                             }
                         }

@@ -43,7 +43,7 @@ namespace PurpleSharp.Simulations
                 String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
                 if (usertype == 7) domain = ".";
                 //Console.WriteLine("[*] Starting Domain Password Spray Attack on {0}", Environment.MachineName);
-                if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
+                //if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
                 foreach (var user in usertargets)
                 {
                     if (Kerberos)

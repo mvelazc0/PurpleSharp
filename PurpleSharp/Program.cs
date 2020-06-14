@@ -21,7 +21,7 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string techniques, tactic, pwd, command, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, jfile, navaction, navfile;
+            string techniques, tactic, pwd, command, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, jfile, nav_action, navfile, pre_action;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
@@ -32,10 +32,10 @@ namespace PurpleSharp
             bool orchservice = false;
             bool simservice = false;
             bool newchild = false;
-            bool auditpol = false;
+            bool pre = false;
             bool remote = false;
             bool navigator = false;
-            techniques = tactic = rhost = domain = ruser = rpwd = dc = jfile = navaction = navfile = "";
+            techniques = tactic = rhost = domain = ruser = rpwd = dc = jfile = nav_action = navfile = pre_action = "";
 
             scoutfpath = "C:\\Windows\\Temp\\Legit.exe";
             simrpath = "AppData\\Local\\Temp\\Firefox_Installer.exe";
@@ -132,13 +132,14 @@ namespace PurpleSharp
                         case "/n":
                             newchild = true;
                             break;
-                        case "/auditpol":
-                            auditpol = true;
+                        case "/pre":
+                            pre = true;
+                            pre_action = args[i + 1];
                             break;
                         case "/navigator":
                             navigator = true;
-                            navaction = args[i + 1];
-                            if (navaction.Equals("import")) navfile = args[i + 2];
+                            nav_action = args[i + 1];
+                            if (nav_action.Equals("import")) navfile = args[i + 2];
                             break;
                         default:
                             break;
@@ -165,7 +166,7 @@ namespace PurpleSharp
 
                 string[] supported_techniques = execution.Union(persistence).Union(privelege_escalation).Union(defense_evasion).Union(credential_access).Union(discovery).Union(lateral_movement).ToArray();
 
-                if (navaction.Equals("export"))
+                if (nav_action.Equals("export"))
                 {
                     try
                     {
@@ -181,7 +182,7 @@ namespace PurpleSharp
                         return;
                     }
                 }
-                else if (navaction.Equals("import"))
+                else if (nav_action.Equals("import"))
                 {
                     Console.WriteLine("[+] Loading {0}", navfile);
                     string json = File.ReadAllText(navfile);
@@ -202,19 +203,20 @@ namespace PurpleSharp
                 }
 
             }
-            if (auditpol)
+            if (pre && !pre_action.Equals(""))
             {
-                if (rpwd == "")
-                {
-                    Console.Write("Password for {0}\\{1}: ", domain, ruser);
-                    rpwd = Utils.GetPassword();
-                    Console.WriteLine();
-                }
                 if (!rhost.Equals("") && !domain.Equals("") && !ruser.Equals(""))
                 {
+                    if (rpwd == "")
+                    {
+                        Console.Write("Password for {0}\\{1}: ", domain, ruser);
+                        rpwd = Utils.GetPassword();
+                        Console.WriteLine();
+                    }
+
                     if (!rhost.Equals("random"))
                     {
-                        GetAuditPolicy(rhost, domain, ruser, rpwd, scoutfpath, log, verbose);
+                        PreAssessment(rhost, domain, ruser, rpwd, scoutfpath, log, pre_action, verbose);
                         return;
                     }
                     else if (!dc.Equals(""))
@@ -227,7 +229,7 @@ namespace PurpleSharp
                             var random = new Random();
                             int index = random.Next(targets.Count);
                             Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
-                            GetAuditPolicy(targets[index].ComputerName, domain, ruser, rpwd, scoutfpath, log, verbose);
+                            PreAssessment(targets[index].ComputerName, domain, ruser, rpwd, scoutfpath, log, pre_action, verbose);
                             return;
                         }
                         else
@@ -238,18 +240,19 @@ namespace PurpleSharp
                     }
                     else
                     {
-                        Console.WriteLine("[*] Missing dc :( ");
+                        Console.WriteLine("[*] Missing parameters :( ");
                         Console.WriteLine("[*] Exiting");
                         return;
                     }
                 }
+                /*
                 else
                 {
                     Console.WriteLine("[*] Missing parameters :( ");
                     Console.WriteLine("[*] Exiting");
                     return;
                 }
-
+                */
             }
             if (newchild)
             {
@@ -374,92 +377,6 @@ namespace PurpleSharp
                 else Console.WriteLine("[!] Could not parse JSON input.");
                 return;
             }
-            /*
-            if (!jfile.Equals(""))
-            {
-                string json = File.ReadAllText(jfile);
-                SimulationExercise engagement = Json.ReadJson(json);
-
-                if (engagement != null)
-                {
-                    Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
-                    string pass = Utils.GetPassword();
-                    Console.WriteLine("[+] PurpleSharp will execute {0} playbook(s)", engagement.playbooks.Count);
-
-                    SimulationExerciseResult engagementResults = new SimulationExerciseResult();
-                    engagementResults.playbookresults = new List<SimulationPlaybookResult>();
-
-                    SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
-                    foreach (SimulationPlaybook playbook in engagement.playbooks)
-                    {
-                        SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
-                        playbookResults.taskresults = new List<PlaybookTaskResult>();
-                        playbookResults.name = playbook.name;
-                        Console.WriteLine("[+] Starting Execution of {0}", playbook.name);
-
-                        PlaybookTask lastTask = playbook.tasks.Last();
-                        foreach (PlaybookTask task in playbook.tasks)
-                        {
-
-                            PlaybookTaskResult taskResult = new PlaybookTaskResult();
-
-                            Console.WriteLine("[+] Executing technique {0} against {1}", task.technique, playbook.host);
-
-                            if (playbook.host.Equals("random"))
-                            {
-                                //List<Computer> targets = new List<Computer>();
-                                List<Computer> targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
-                                if (targets.Count > 0)
-                                {
-                                    Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
-                                    var random = new Random();
-                                    int index = random.Next(targets.Count);
-                                    Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
-                                    taskResult = ExecuteRemoteTechniqueJson(targets[index].Fqdn, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
-                                    playbookResults.taskresults.Add(taskResult);
-                                    if (playbook.sleep > 0 && !task.Equals(lastTask))
-                                    {
-                                        Console.WriteLine();
-                                        Console.WriteLine("[+] Sleeping {0} minutes until next task...", playbook.sleep);
-                                        System.Threading.Thread.Sleep(1000 * playbook.sleep);
-                                    }
-                                }
-                                else Console.WriteLine("[!] Could not obtain targets for the simulation");
-
-                            }
-                            else
-                            {
-                                taskResult = ExecuteRemoteTechniqueJson(playbook.host, engagement.domain, engagement.username, pass, task.technique, playbook.scoutfpath, playbook.simrpath, log, true, false);
-                                playbookResults.taskresults.Add(taskResult);
-                                if (playbook.sleep > 0 && !task.Equals(lastTask))
-                                {
-                                    Console.WriteLine();
-                                    Console.WriteLine("[+] Sleeping {0} minutes until next task...", playbook.sleep);
-                                    System.Threading.Thread.Sleep(1000 * playbook.sleep);
-                                }
-                            }
-
-                        }
-                        if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine("[+] Sleeping {0} minutes until next playbook...", engagement.sleep);
-                            System.Threading.Thread.Sleep(1000 * playbook.sleep);
-                        }
-
-                        engagementResults.playbookresults.Add(playbookResults);
-                    }
-
-                    Console.WriteLine("Writting JSON results...");
-                    Json.WriteJsonPlaybookResults(engagementResults);
-                    Console.WriteLine("DONE. Open results.json");
-                    return;
-
-                }
-                else Console.WriteLine("[!] Could not parse JSON input.");
-                return;
-            }
-            */
             if (remote)
             {
                 if (!rhost.Equals("") && !domain.Equals("") && !ruser.Equals("") && !techniques.Equals(""))
@@ -517,8 +434,17 @@ namespace PurpleSharp
 
         }
 
-        public static void GetAuditPolicy(string rhost, string domain, string ruser, string rpwd, string scoutfpath, string log, bool verbose)
+        public static void PreAssessment(string rhost, string domain, string ruser, string rpwd, string scoutfpath, string log, string pre_action, bool verbose)
         {
+            List<String> actions = new List<string>() { "all", "wef", "pws", "ps", "svcs", "auditpol" };
+
+            if (!actions.Contains(pre_action))
+            {
+                Console.WriteLine("[*] Not supported.");
+                Console.WriteLine("[*] Exiting");
+                return;
+            }
+
             if (rpwd == "")
             {
                 Console.Write("Password for {0}\\{1}: ", domain, ruser);
@@ -532,35 +458,65 @@ namespace PurpleSharp
             string args = "/o";
 
             Console.WriteLine("[+] Uploading Scout agent to {0} on {1}", scoutfpath, rhost);
-            Lib.RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
+            RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
 
             Console.WriteLine("[+] Executing the Scout agent via WMI ...");
-            Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
-            Console.WriteLine("[+] Connecting to namedpipe service ...");
+            RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
+            Console.WriteLine("[+] Connecting to the Scout agent ...");
 
-            string result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "SYN");
+            string result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "SYN");
             if (result.Equals("SYN/ACK"))
             {
                 Console.WriteLine("[+] OK");
+                string results;
 
-                string auditpol = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "auditpol");
-                Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                if (pre_action.Equals("all"))
+                {
+                    string temp;
+
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "wef");
+                    results = Encoding.UTF8.GetString(Convert.FromBase64String(temp));
+
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "pws");
+                    results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
+
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "ps");
+                    results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
+
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "svcs");
+                    results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
+
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "auditpol");
+                    results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
+
+                    NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+
+                }
+                else 
+                {
+                    results = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", pre_action);
+                    results = Encoding.UTF8.GetString(Convert.FromBase64String(results));
+                    NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                }
                 if (verbose)
                 {
                     Console.WriteLine("[+] Grabbing the Scout Agent output...");
                     System.Threading.Thread.Sleep(1000);
-                    string sresults = Lib.RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
+                    string sresults = RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
                     Console.WriteLine("[+] Results:");
                     Console.WriteLine();
                     Console.WriteLine(sresults);
                 }
-                Console.WriteLine("[+] Auditpol Results...");
-                Console.WriteLine(Encoding.UTF8.GetString(Convert.FromBase64String(auditpol)));
+                Console.WriteLine("[+] Pre Assesment Results...");
+                Console.WriteLine();
+                //Console.WriteLine(Encoding.UTF8.GetString(Convert.FromBase64String(results)));
+                Console.WriteLine(results);
+                Console.WriteLine();
                 Console.WriteLine("[+] Cleaning up...");
                 Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
-                Lib.RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
+                RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
                 Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
-                Lib.RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+                RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
             }
         }
 
@@ -594,7 +550,7 @@ namespace PurpleSharp
 
                 Console.WriteLine("[+] Executing the Scout agent via WMI ...");
                 Lib.RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
-                Console.WriteLine("[+] Connecting to namedpipe service ...");
+                Console.WriteLine("[+] Connecting to the Scout agent ...");
 
                 result = Lib.NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "SYN");
                 if (result.Equals("SYN/ACK"))

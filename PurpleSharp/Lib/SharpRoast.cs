@@ -96,7 +96,7 @@ namespace PurpleSharp.Lib
                             {
                                 //Console.WriteLine("Hash                   : {0}", line);
                                 DateTime dtime = DateTime.Now;
-                                Console.WriteLine("{0}[{1}] Obtained service ticket and hash for SPN {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), spn, samaccountname);
+                                //Console.WriteLine("{0}[{1}] Obtained service ticket and hash for SPN {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), spn, samaccountname);
                                 logger.TimestampInfo(String.Format("Obtained service ticket and hash for SPN {0} ({1})", spn, samaccountname));
                             }
                             else
