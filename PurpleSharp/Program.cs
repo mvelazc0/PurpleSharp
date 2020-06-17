@@ -21,7 +21,7 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string techniques, tactic, pwd, command, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, jfile, nav_action, navfile, pre_action;
+            string techniques, pwd, command, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, jfile, nav_action, navfile, pre_action;
             int usertype, hosttype, protocol, sleep, type, nusers, nhosts;
             sleep = 0;
             usertype = hosttype = protocol = type = 1;
@@ -35,10 +35,10 @@ namespace PurpleSharp
             bool pre = false;
             bool remote = false;
             bool navigator = false;
-            techniques = tactic = rhost = domain = ruser = rpwd = dc = jfile = nav_action = navfile = pre_action = "";
+            techniques = rhost = domain = ruser = rpwd = dc = jfile = nav_action = navfile = pre_action = "";
 
-            scoutfpath = "C:\\Windows\\Temp\\Legit.exe";
-            simrpath = "AppData\\Local\\Temp\\Firefox_Installer.exe";
+            scoutfpath = "C:\\Windows\\Temp\\PurpleSharp.exe";
+            simrpath = "Downloads\\Firefox_Installer.exe";
             log = "0001.dat";
             command = "ipconfig.exe";
             pwd = "Summer2019!";
@@ -66,7 +66,7 @@ namespace PurpleSharp
                         case "/ruser":
                             ruser = args[i + 1];
                             break;
-                        case "/domain":
+                        case "/d":
                             domain = args[i + 1];
                             break;
                         case "/rpwd":
@@ -84,12 +84,6 @@ namespace PurpleSharp
                         case "/simulator":
                             simrpath = args[i + 1];
                             break;
-                        case "/pwd":
-                            pwd = args[i + 1];
-                            break;
-                        case "/tactic":
-                            tactic = args[i + 1];
-                            break;
                         case "/users":
                             usertype = Int32.Parse(args[i + 1]);
                             break;
@@ -104,18 +98,6 @@ namespace PurpleSharp
                             break;
                         case "/type":
                             type = Int32.Parse(args[i + 1]);
-                            break;
-                        case "/command":
-                            command = args[i + 1];
-                            break;
-                        case "/nusers":
-                            nusers = Int32.Parse(args[i + 1]);
-                            break;
-                        case "/nhosts":
-                            nhosts = Int32.Parse(args[i + 1]);
-                            break;
-                        case "/cleanup":
-                            cleanup = true;
                             break;
                         case "/opsec":
                             opsec = true;

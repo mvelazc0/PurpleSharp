@@ -193,52 +193,6 @@ namespace PurpleSharp.Lib
                 logger.TimestampInfo(ex.Message.ToString());
             }
         }
-
-        /*
-        public static string RunSimulationService(string npipe, string log)
-        {
-            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + "simagent.txt");
-            try
-            {
-                logger.TimestampInfo("starting!");
-                string technique;
-                
-                using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
-                //using (var pipeServer = new NamedPipeServerStream(npipe))
-                {
-                    var reader = new StreamReader(pipeServer);
-                    var writer = new StreamWriter(pipeServer);
-
-                    //logger.TimestampInfo("Waiting for client connection...");
-                    pipeServer.WaitForConnection();
-                    logger.TimestampInfo("Client connected!");
-
-                    var line = reader.ReadLine();
-                    logger.TimestampInfo("received from client: " + line);
-                    if (line.ToLower().StartsWith("technique:"))
-                    {
-                        technique = line.Replace("technique:", "");
-                        writer.WriteLine("ACK");
-                        writer.Flush();
-                        return technique;
-                    }
-                    pipeServer.Disconnect();
-
-                }
-                return "";
-            }
-            catch (Exception ex)
-            {
-                logger.TimestampInfo(ex.ToString());
-                logger.TimestampInfo(ex.Message.ToString());
-                return "";
-            }
-            
-
-        }
-        */
-
         public static string[] RunSimulationService(string npipe, string log)
         {
             string[] result = new string[2];
