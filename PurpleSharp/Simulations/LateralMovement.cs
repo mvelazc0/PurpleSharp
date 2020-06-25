@@ -9,7 +9,7 @@ namespace PurpleSharp.Simulations
     class LateralMovement
     {
 
-        static public void CreateRemoteServiceOnHosts(int computertype, int nhost, int sleep, Boolean cleanup, string log)
+        static public void CreateRemoteServiceOnHosts(int nhost, int tsleep, Boolean cleanup, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
@@ -17,9 +17,14 @@ namespace PurpleSharp.Simulations
 
             try
             {
+                var rand = new Random();
+                int computertype = rand.Next(1, 6);
+                logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
                 List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
+                logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 //Console.WriteLine("[*] Starting Service Based Lateral Movement attack from {0} as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
+                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", tsleep));
 
                 foreach (Computer computer in targethosts)
                 {
@@ -30,7 +35,7 @@ namespace PurpleSharp.Simulations
                         {
                             LateralMovementHelper.CreateRemoteService(temp, cleanup, logger);
                         }));
-                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
                     }
 
                 }
@@ -44,18 +49,21 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        static public void ExecuteWinRMOnHosts(int computertype, int nhost, int sleep, string command, string log)
+        static public void ExecuteWinRMOnHosts(int nhost, int tsleep, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1028");
             try
             {
-
+                var rand = new Random();
+                int computertype = rand.Next(1, 6);
+                logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
                 List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
+                logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 //Console.WriteLine("[*] Starting WinRM Based Lateral Movement attack from {0} running as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
-                if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
+                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", tsleep));
 
                 foreach (Computer computer in targethosts)
                 {
@@ -64,9 +72,9 @@ namespace PurpleSharp.Simulations
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            LateralMovementHelper.WinRMCodeExecution(temp, command, logger);
+                            LateralMovementHelper.WinRMCodeExecution(temp, "powershell.exe", logger);
                         }));
-                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
                     }
                 }
                 Task.WaitAll(tasklist.ToArray());
@@ -78,19 +86,21 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        static public void ExecuteWmiOnHosts(int computertype, int nhost, int sleep, string command, string log)
+        static public void ExecuteWmiOnHosts(int nhost, int tsleep, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1047");
             try
             {
+                var rand = new Random();
+                int computertype = rand.Next(1, 6);
+
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
                 List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
-                //Console.WriteLine("[*] Starting WMI Based Lateral Movement attack from {0} running as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
-                if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
+                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", tsleep));
 
                 foreach (Computer computer in targethosts)
                 {
@@ -99,9 +109,9 @@ namespace PurpleSharp.Simulations
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            LateralMovementHelper.WmiCodeExecution(temp, command, logger);
+                            LateralMovementHelper.WmiCodeExecution(temp, "powershell.exe", logger);
                         }));
-                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
                     }
 
                 }
@@ -115,8 +125,11 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        static public void CreateSchTaskOnHosts(int computertype, int nhost, int sleep, string command, bool cleanup)
+        static public void CreateSchTaskOnHosts(int nhost, int sleep, bool cleanup)
         {
+            var rand = new Random();
+            int computertype = rand.Next(1, 6);
+
             List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
             List<Task> tasklist = new List<Task>();
             Console.WriteLine("[*] Starting Scheduled Task based Lateral Movement simulation from {0} running as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
@@ -126,7 +139,7 @@ namespace PurpleSharp.Simulations
                 if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
                 {
                     Computer temp = computer;
-                    LateralMovementHelper.CreateRemoteScheduledTask(temp, command, cleanup);
+                    LateralMovementHelper.CreateRemoteScheduledTask(temp, "powershell.exe", cleanup);
                     /*
                     tasklist.Add(Task.Factory.StartNew(() =>
                     {

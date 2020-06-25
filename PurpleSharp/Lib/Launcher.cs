@@ -62,7 +62,7 @@ class Launcher
             {
                 return false;
             }
-            Console.WriteLine("successfully used InitializeProcThreadAttributeList ");
+           
 
             siEx.lpAttributeList = Marshal.AllocHGlobal(lpSize);
             success = WinAPI.InitializeProcThreadAttributeList(siEx.lpAttributeList, 1, 0, ref lpSize);
@@ -70,7 +70,7 @@ class Launcher
             {
                 return false;
             }
-            Console.WriteLine("successfully used InitializeProcThreadAttributeList");
+
 
             IntPtr parentHandle = WinAPI.OpenProcess(Structs.ProcessAccessFlags.CreateProcess | Structs.ProcessAccessFlags.DuplicateHandle, false, parentProcessId);
             if (parentHandle == null)
@@ -78,9 +78,6 @@ class Launcher
                 return false;
             }
 
-            Console.WriteLine("obtained a handle to parent process");
-
-            // This value should persist until the attribute list is destroyed using the DeleteProcThreadAttributeList function
             lpValueProc = Marshal.AllocHGlobal(IntPtr.Size);
             Marshal.WriteIntPtr(lpValueProc, parentHandle);
 
@@ -89,8 +86,6 @@ class Launcher
             {
                 return false;
             }
-            Console.WriteLine("successfully used UpdateProcThreadAttribute");
-
             
             IntPtr hCurrent = System.Diagnostics.Process.GetCurrentProcess().Handle;
             IntPtr hNewParent = WinAPI.OpenProcess(Structs.ProcessAccessFlags.DuplicateHandle, true, parentProcessId);
@@ -98,8 +93,6 @@ class Launcher
             {
                 return false;
             }
-
-            Console.WriteLine("successfully used OpenProcess");
             
 
         }
@@ -112,16 +105,14 @@ class Launcher
         ps.nLength = Marshal.SizeOf(ps);
         ts.nLength = Marshal.SizeOf(ts);
         //bool ret = CreateProcess(null, command, ref ps, ref ts, true, EXTENDED_STARTUPINFO_PRESENT | CREATE_NO_WINDOW, IntPtr.Zero, null, ref siEx, out pInfo);
-        Console.WriteLine("About to call create processd");
         bool ret = WinAPI.CreateProcess(binaryPath, cmdLine, ref ps, ref ts, true, EXTENDED_STARTUPINFO_PRESENT | CREATE_NO_WINDOW, IntPtr.Zero, null, ref siEx, out pInfo);
-        Console.WriteLine(Marshal.GetLastWin32Error());
         if (!ret)
         {
-            Console.WriteLine("[!] Proccess failed to execute!");
+            //Console.WriteLine("[!] Proccess failed to execute!");
             return false;
         }
 
-        Console.WriteLine("successfully used CreateProcess");
+        //Console.WriteLine("successfully used CreateProcess");
         return true;
     }
 

@@ -12,19 +12,20 @@ namespace PurpleSharp.Simulations
     public class CredAccess
     {
 
-        public static void LocalDomainPasswordSpray(int usertype, int nuser, int protocol, int sleep, string password, string log)
+        public static void LocalDomainPasswordSpray(int nuser, int sleep, string password, string log)
         {
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1110");
-            //logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             logger.TimestampInfo(String.Format("Local Domain Brute Force"));
             bool Kerberos = new bool();
             try
             {
+                var rand = new Random();
+                int usertype = rand.Next(1, 7);
                 List<User> usertargets = Lib.Targets.GetUserTargets(usertype, nuser);
+                int protocol = rand.Next(1, 3);
                 switch (protocol)
                 {
                     case 1:
@@ -38,12 +39,11 @@ namespace PurpleSharp.Simulations
                     default:
                         return;
                 }
-                //Console.WriteLine("[*] Obtained {0} user accounts", usertargets.Count);
                 logger.TimestampInfo(String.Format("Obtained {0} user accounts", usertargets.Count));
+                if (sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", sleep));
                 String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
-                if (usertype == 7) domain = ".";
-                //Console.WriteLine("[*] Starting Domain Password Spray Attack on {0}", Environment.MachineName);
-                //if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
+                if (usertype == 6) domain = ".";
+
                 foreach (var user in usertargets)
                 {
                     if (Kerberos)
@@ -67,27 +67,33 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void RemotePasswordSpray(int type, int computertype, int nhost, int usertype, int nuser, int protocol, int sleep, string password, string log)
+        public static void RemotePasswordSpray(int nhost, int nuser, int sleep, string password, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1110");
-            //logger.TimestampInfo(String.Format("Starting T1110 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             logger.TimestampInfo(String.Format("Remote Domain Brute Force"));
             bool Kerberos = new bool();
             List<Computer> targets = new List<Computer>();
             List<User> targetusers = new List<User>();
             List<Task> tasklist = new List<Task>();
             string  domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
-            if (usertype == 4) domain = ".";
+            
             try
             {
+                var rand = new Random();
+                int usertype = rand.Next(1, 7);
+                if (usertype == 6) domain = ".";
+                int protocol = rand.Next(1, 3);
+
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
+
+                int computertype = rand.Next(1, 5);
                 targets = Lib.Targets.GetHostTargets(computertype, nhost);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targets.Count));
                 targetusers = Lib.Targets.GetUserTargets(usertype, nuser);
                 logger.TimestampInfo(String.Format("Obtained {0} target user accounts", targetusers.Count));
+                
                 switch (protocol)
                 {
                     case 1:
@@ -95,25 +101,24 @@ namespace PurpleSharp.Simulations
                         break;
 
                     case 2:
+                        //using NTLM
                         Kerberos = false;
                         break;
 
                     default:
                         return;
                 }
-                //Console.WriteLine("[*] Starting Domain Password Spray Attack from {0}", Environment.MachineName);
-                
-                if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
+                if (sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", sleep));
 
+                int type = rand.Next(1, 3);
                 if (type == 1)
                 {
+                    //Remote spray against a random target host
                     var random = new Random();
                     int index = random.Next(targets.Count);
                     logger.TimestampInfo(String.Format("Picking {0} as a target", targets[index].ComputerName));
                     foreach (User user in targetusers)
-                    {
-
-                        
+                    { 
                         User tempuser = user;
                         int tempindex = index;
                         if (sleep > 0 && tempindex > 0) Thread.Sleep(sleep * 1000);
@@ -129,7 +134,7 @@ namespace PurpleSharp.Simulations
                 }
                 else if (type == 2)
                 {
-                    Kerberos = false;
+                    //Remote spray against several hosts, distributed
                     int loops;
                     if (targetusers.Count >= targets.Count) loops = targets.Count;
                     else loops = targetusers.Count;
@@ -155,14 +160,12 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void Kerberoasting(string log, int sleep = 0)
+        public static void Kerberoasting(string log, int sleep)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1208");
-            //logger.TimestampInfo(String.Format("Starting T1208 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
-            if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
+            if (sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each service ticket request", sleep));
 
             try
             {
@@ -184,14 +187,11 @@ namespace PurpleSharp.Simulations
             }
 
         }
-        public static void Lsass(string log, int type = 0)
+        public static void LsassMemoryDump(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1003");
-            //logger.TimestampInfo(String.Format("Starting T1003 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
-
             try
             {
                 CredAccessHelper.LsassMemoryDump(logger);

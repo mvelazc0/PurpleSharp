@@ -50,11 +50,6 @@ namespace PurpleSharp.Lib
         public static List<Computer> GetDomainNeighborTargets(int count)
         {
             List<Computer> targets = new List<Computer>();
-            /*
-            string logonserver = Environment.GetEnvironmentVariable("logonserver").Replace("\\","");
-            string dnsdomain = Environment.GetEnvironmentVariable("USERDNSDOMAIN");
-            string dc = logonserver + "." + dnsdomain;
-            */
             PrincipalContext context = new PrincipalContext(ContextType.Domain);
             string dc = context.ConnectedServer;
             //logger.TimestampInfo("[*] Obtaining domain neighbor targets ...");
@@ -99,7 +94,6 @@ namespace PurpleSharp.Lib
                     TimeSpan interval = TimeSpan.FromSeconds(3);
                     if (Lib.Networking.OpenPort(ip.ToString(), 445, interval))
                     {
-                        //Console.WriteLine("trying to resolve " + ip.ToString());
                         string hostname = Lib.Networking.ResolveIp(ip);
                         if (hostname != "")
                         {
@@ -138,16 +132,8 @@ namespace PurpleSharp.Lib
         public static List<User> GetUserTargets(int usertype, int nuser)
         {
             List<User> targetusers = new List<User>();
-            /*
-            string logonserver, dnsdomain, dc;
-            logonserver = Environment.GetEnvironmentVariable("logonserver").Replace("\\", "");
-            dnsdomain = Environment.GetEnvironmentVariable("USERDNSDOMAIN");
-            dc = logonserver + "." + dnsdomain;
-            */
-            
             PrincipalContext context = new PrincipalContext(ContextType.Domain);
             string dc = context.ConnectedServer;
-
 
             switch (usertype)
             {

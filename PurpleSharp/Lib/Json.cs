@@ -22,7 +22,8 @@ namespace PurpleSharp.Lib
         public string name { get; set; }
         public string scoutfpath { get; set; }
         public string simrpath { get; set; }
-        public int sleep { get; set; }
+        public int pbsleep { get; set; }
+        public int tsleep { get; set; }
         public string host { get; set; }
         public List<PlaybookTask> tasks { get; set; }
     }
@@ -30,7 +31,6 @@ namespace PurpleSharp.Lib
     public class PlaybookTask
     {
         public string technique { get; set; }
-        //public string host { get; set; }
     }
 
 
@@ -121,8 +121,9 @@ namespace PurpleSharp.Lib
                 SimulationExercise engagement = JsonConvert.DeserializeObject<SimulationExercise>(jsoninput);
                 return engagement;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message.ToString());
                 return null;
             }
         }
@@ -241,9 +242,9 @@ namespace PurpleSharp.Lib
             return playbookresult;
             //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
         }
-        public static void WriteJsonPlaybookResults(SimulationExerciseResult engagementResult)
+        public static void WriteJsonPlaybookResults(SimulationExerciseResult engagementResult, string outputfile)
         {
-            File.WriteAllText("result.json", JsonConvert.SerializeObject(engagementResult));
+            File.WriteAllText(outputfile, JsonConvert.SerializeObject(engagementResult));
 
         }
 

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Security.Principal;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,22 +8,22 @@ namespace PurpleSharp.Simulations
 {
     class Discovery
     {
-        public static void EnumerateShares(int hosttype, int nhosts, int sleep, string log)
+        public static void EnumerateShares(int nhosts, int tsleep, string log)
         {
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1135");
-            //logger.TimestampInfo(String.Format("Starting T1135 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
             try
             {
                 List<Task> tasklist = new List<Task>();
-                List<Computer> targetcomputers = Lib.Targets.GetHostTargets(hosttype, nhosts);
+                var rand = new Random();
+                int computertype = rand.Next(1, 6);
+
+                List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhosts);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targetcomputers.Count));
-                //Console.WriteLine("[*] Starting Network Share enumreation from {0}", Environment.MachineName);
-                if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between enumeration", sleep);
+                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each enumeration attempt", tsleep));
                 foreach (Computer computer in targetcomputers)
                 {
                     if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
@@ -36,7 +33,7 @@ namespace PurpleSharp.Simulations
                             Simulations.DiscoveryHelper.ShareEnum(computer, logger);
 
                         }));
-                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
                     }
 
                 }
@@ -49,10 +46,13 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void PrivilegeEnumeration(int computertype, int nhost, int sleep)
+        public static void PrivilegeEnumeration(int nhost, int sleep)
         {
             
             List<Task> tasklist = new List<Task>();
+            var rand = new Random();
+            int computertype = rand.Next(1, 6);
+
             List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhost);
             Console.WriteLine("[*] Starting Find local administrator from {0} as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
             if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between enumeration", sleep);
@@ -69,20 +69,19 @@ namespace PurpleSharp.Simulations
             }
             Task.WaitAll(tasklist.ToArray());
         }
-        public static void NetworkServiceDiscovery(int computertype, int nhost, int sleep, string log)
+        public static void NetworkServiceDiscovery(int nhost, int tsleep, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1046");
-            //logger.TimestampInfo(String.Format("Starting T1046 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
             {
+                var rand = new Random();
+                int computertype = rand.Next(1, 6);
                 List<Task> tasklist = new List<Task>();
                 List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhost);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers for the scan", targetcomputers.Count));
-                //Console.WriteLine("[*] Starting Network Discovery from {0} ", Environment.MachineName);
-                if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between each scan", sleep);
+                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", tsleep));
                 foreach (Computer computer in targetcomputers)
                 {
                     if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
@@ -96,7 +95,7 @@ namespace PurpleSharp.Simulations
                             DiscoveryHelper.PortScan(temp, interval);
 
                         }));
-                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
 
                     }
                 }
@@ -116,9 +115,6 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1087");
-            //logger.TimestampInfo(String.Format("Starting T1087 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
-
             try
             {
                 DiscoveryHelper.ListUsersLdap(logger);
@@ -136,8 +132,6 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1087");
-            //logger.TimestampInfo(String.Format("Starting T1087 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
             try
             {
@@ -158,8 +152,6 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1007");
-            //logger.TimestampInfo(String.Format("Starting T1007 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
             {
                 ExecutionHelper.StartProcess("", "net start", logger);
@@ -178,8 +170,6 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1033");
-            //logger.TimestampInfo(String.Format("Starting T1033 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
             {
                 ExecutionHelper.StartProcess("", "whoami", logger);
@@ -198,8 +188,6 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1049");
-            //logger.TimestampInfo(String.Format("Starting T1049 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
             try
             {
                 ExecutionHelper.StartProcess("", "netstat", logger);
@@ -244,10 +232,6 @@ namespace PurpleSharp.Simulations
             {
                 logger.SimulationFailed(ex);
             }
-
         }
-
-
     }
-
 }
