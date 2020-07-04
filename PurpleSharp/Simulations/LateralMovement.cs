@@ -9,7 +9,7 @@ namespace PurpleSharp.Simulations
     class LateralMovement
     {
 
-        static public void CreateRemoteServiceOnHosts(int nhost, int tsleep, Boolean cleanup, string log)
+        static public void CreateRemoteServiceOnHosts(int nhost, int tsleep, bool cleanup, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
@@ -33,7 +33,7 @@ namespace PurpleSharp.Simulations
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            LateralMovementHelper.CreateRemoteService(temp, cleanup, logger);
+                            LateralMovementHelper.CreateRemoteServiceApi(temp, cleanup, logger);
                         }));
                         if (tsleep > 0) Thread.Sleep(tsleep * 1000);
                     }

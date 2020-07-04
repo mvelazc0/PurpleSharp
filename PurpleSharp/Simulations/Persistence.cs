@@ -2,61 +2,94 @@
 using System.Management;
 using System.Threading;
 
+
 namespace PurpleSharp.Simulations
 {
     class Persistence
     {
-        public static void CreateAccountApi(string log)
+        public static void CreateAccountApi(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1136");
-            //logger.TimestampInfo(String.Format("Starting T1136 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
-            try 
+            try
             {
-                PersistenceHelper.CreateUser("haxor", logger);
+                PersistenceHelper.CreateUserApi("haxor", logger, cleanup);
                 logger.SimulationFinished();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.SimulationFailed(ex);
             }
         }
 
-        public static void CreateAccountCmd(string log)
+        public static void CreateAccountCmd(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1136");
-            //logger.TimestampInfo(String.Format("Starting T1136 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
             try
             {
                 string username = "haxor";
                 string pwd = "Passw0rd123El7";
                 ExecutionHelper.StartProcess("", String.Format("net user {0} {1} /add", username, pwd), logger);
-                System.Threading.Thread.Sleep(2000);
-                ExecutionHelper.StartProcess("", String.Format("net user {0} /delete", username), logger, true);
+                Thread.Sleep(2000);
+                if (cleanup)
+                {
+                    ExecutionHelper.StartProcess("", String.Format("net user {0} /delete", username), logger);
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("The created local user {0} was not deleted as part of the simulation", username));
+                }
+
+
                 logger.SimulationFinished();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.SimulationFailed(ex);
             }
         }
 
-        public static void RegistryRunKeyNET(string log)
+        public static void CreateScheduledTaskCmd(string log, bool cleanup)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1053");
+            try
+            {
+                string taskName = "BadScheduledTask";
+                string binpath = @"C:\Windows\Temp\xyz12345.exe";
+                ExecutionHelper.StartProcess("", String.Format(@"SCHTASKS /CREATE /SC DAILY /TN {0} /TR ""{1}"" /ST 13:00", taskName, binpath), logger);
+                if (cleanup)
+                {
+                    ExecutionHelper.StartProcess("", String.Format(@"SCHTASKS /DELETE /F /TN {0}", taskName, binpath), logger);
+                    Thread.Sleep(3000);
+                }
+                else
+                {
+                    logger.TimestampInfo(@"The created Scheduled Task " + taskName + " was not deleted as part of the simulation");
+                }
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+
+        }
+        public static void RegistryRunKeyNET(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1060");
-            //logger.TimestampInfo(String.Format("Starting T1060 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+
             try
             {
-                PersistenceHelper.RegistryRunKey(logger);
+                PersistenceHelper.RegistryRunKey(logger, cleanup);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -66,13 +99,11 @@ namespace PurpleSharp.Simulations
             
         }
 
-        public static void RegistryRunKeyCmd(string log)
+        public static void RegistryRunKeyCmd(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1060");
-            //logger.TimestampInfo(String.Format("Starting T1060 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
             try
             {
@@ -80,8 +111,18 @@ namespace PurpleSharp.Simulations
                 string binpath = @"C:\Windows\Temp\xyz12345.exe";
 
                 ExecutionHelper.StartProcess("", String.Format(@"REG ADD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /t REG_SZ /F /D {1}", regKey, binpath), logger);
-                System.Threading.Thread.Sleep(3000);
-                ExecutionHelper.StartProcess("", String.Format(@"REG DELETE HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /F", regKey), logger, true);
+
+                if (cleanup)
+                {
+                    Thread.Sleep(3000);
+                    ExecutionHelper.StartProcess("", String.Format(@"REG DELETE HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /F", regKey), logger);
+                }
+                else
+                {
+                    logger.TimestampInfo(@"The created RegKey : HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\" + regKey + " was not deleted as part of the simulation");
+                }
+
+                
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -92,18 +133,16 @@ namespace PurpleSharp.Simulations
             
         }
 
-        public static void CreateServiceApi(string log)
+        public static void CreateServiceApi(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1050");
-            //logger.TimestampInfo(String.Format("Starting T1050 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
 
             try
             {
                 logger.TimestampInfo("Creating a service using CreateService Win32API");
-                PersistenceHelper.CreateService(log, logger);
+                PersistenceHelper.CreateServiceApi(log, logger, cleanup);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -113,23 +152,21 @@ namespace PurpleSharp.Simulations
 
             
         }
-        public static void CreateServiceCmd(string log)
+        public static void CreateServiceCmd(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1050");
-            //logger.TimestampInfo(String.Format("Starting T1050 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
-
+            
             try
             {
                 string serviceName = "UpdaterService";
                 string servicePath = @"C:\Windows\Temp\superlegit.exe";
                 logger.TimestampInfo("Creating a service using 'sc screate'");
                 ExecutionHelper.StartProcess("", String.Format(@"sc create {0} binpath= {1} type= own start= auto", serviceName, servicePath), logger);
-                System.Threading.Thread.Sleep(3000);
-                ExecutionHelper.StartProcess("", String.Format(@"sc delete {0}", serviceName), logger, true);
-                logger.SimulationFinished();
+                Thread.Sleep(3000);
+                if (cleanup) ExecutionHelper.StartProcess("", String.Format(@"sc delete {0}", serviceName), logger);
+                else logger.TimestampInfo(String.Format("The created Service: {0} ImagePath: {1} was not deleted as part of the simulation", serviceName, servicePath));
             }
             catch(Exception ex)
             {
@@ -137,11 +174,12 @@ namespace PurpleSharp.Simulations
             }  
         }
 
-        public static void WMIEventSubscription(string log)
+        public static void WMIEventSubscription(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1084");
+            string wmiSubscription = "MaliciousWmiSubscription";
             //string vbscript64 = "<INSIDE base64 encoded VBS here>";
             //string vbscript = Encoding.UTF8.GetString(Convert.FromBase64String(vbscript64));
             try
@@ -158,17 +196,18 @@ namespace PurpleSharp.Simulations
 
                 WqlEventQuery myEventQuery = new WqlEventQuery(strQuery);
                 EventFilter = wmiEventFilter.CreateInstance();
-                EventFilter["Name"] = "MaliciousSubscription";
+                EventFilter["Name"] = wmiSubscription;
                 EventFilter["Query"] = myEventQuery.QueryString;
                 EventFilter["QueryLanguage"] = myEventQuery.QueryLanguage;
                 EventFilter["EventNameSpace"] = @"\root\cimv2";
                 EventFilter.Put();
-                logger.TimestampInfo("Event filter 'MaliciousSubscription' created.");
+                logger.TimestampInfo(String.Format("EventFilter '{0}' created.", wmiSubscription));
 
                 EventConsumer = new ManagementClass(scope, new ManagementPath("CommandLineEventConsumer"), null).CreateInstance();
-                EventConsumer["Name"] = "MaliciousSubscription";
+                EventConsumer["Name"] = wmiSubscription;
                 EventConsumer["CommandLineTemplate"] = "powershell.exe";
                 EventConsumer.Put();
+                logger.TimestampInfo(String.Format("CommandLineEventConnsumer '{0}' created.", wmiSubscription));
 
                 /*
                 EventConsumer = new ManagementClass(scope, new ManagementPath("ActiveScriptEventConsumer"), null).CreateInstance();
@@ -177,20 +216,26 @@ namespace PurpleSharp.Simulations
                 EventConsumer["ScriptText"] = vbscript;
                 EventConsumer.Put();
                 */
-
-                logger.TimestampInfo("Event consumer 'MaliciousSubscription' created.");
-
                 myBinder = new ManagementClass(scope, new ManagementPath("__FilterToConsumerBinding"), null).CreateInstance();
                 myBinder["Filter"] = EventFilter.Path.RelativePath;
                 myBinder["Consumer"] = EventConsumer.Path.RelativePath;
                 myBinder.Put();
 
-                logger.TimestampInfo("WMI Subscription created successfully");
-                Thread.Sleep(3 * 1000);
-                EventFilter.Delete();
-                EventConsumer.Delete();
-                myBinder.Delete();
-                logger.TimestampInfo("WMI Subscription Deleted");
+                logger.TimestampInfo("FilterToConsumerBinding created.");
+
+                if (cleanup)
+                {
+                    Thread.Sleep(3 * 1000);
+                    EventFilter.Delete();
+                    EventConsumer.Delete();
+                    myBinder.Delete();
+                    logger.TimestampInfo("WMI Subscription Deleted");
+                }
+                else
+                {
+                    logger.TimestampInfo("The created WMI Subscription was not deleted as part of the simulation");
+                }
+                
                 logger.SimulationFinished();
             }
             catch (Exception ex)

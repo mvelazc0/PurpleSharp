@@ -13,7 +13,7 @@ namespace PurpleSharp.Simulations
     class LateralMovementHelper
     {
         // From https://stackoverflow.com/questions/23481394/programmatically-install-windows-service-on-remote-machine
-        public static void CreateRemoteService(Computer computer, bool cleanup, Lib.Logger logger)
+        public static void CreateRemoteServiceApi(Computer computer, bool cleanup, Lib.Logger logger)
         {
             var scmHandle = WinAPI.OpenSCManager(computer.Fqdn, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
 
@@ -37,16 +37,19 @@ namespace PurpleSharp.Simulations
             if (created)
             {
                 DateTime dtime = DateTime.Now;
-                logger.TimestampInfo(String.Format("Created service 'UpdaterService' on {0} with 'CreateService' Win32 API", computer.ComputerName));
+                logger.TimestampInfo(String.Format("Created service '{0}' on {1} with 'CreateService' Win32 API", serviceName, computer.ComputerName));
                 //Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
 
                 if (cleanup)
                 {
                     IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
                     bool deletedService = WinAPI.DeleteService(svcHandleOpened);
-                    logger.TimestampInfo(String.Format("Deleted service 'UpdaterService' on {0} with 'DeleteService' Win32API", computer.ComputerName));
+                    logger.TimestampInfo(String.Format("Deleted service '{0}' on {1} with 'DeleteService' Win32API", serviceName, computer.ComputerName));
                     WinAPI.CloseServiceHandle(svcHandleOpened);
-
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("The created Service: {0} was not deleted on {1} as part of the simulation", serviceName, computer.ComputerName));
                 }
             }
             /*

@@ -55,7 +55,7 @@ namespace PurpleSharp.Simulations
             {
                 string file = @"winword.dll";
                 ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regsvcs.exe /U {0}", file), logger);
-                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regasm.exe /U {0}", file), logger, false);
+                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regasm.exe /U {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

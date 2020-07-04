@@ -22,21 +22,27 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void RegistryRunKey(Lib.Logger logger)
+        public static void RegistryRunKey(Lib.Logger logger, bool cleanup)
         {
+            string keyname = "BadApp";
+
             RegistryKey registryKey1 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            //RegistryKey registryKey2 = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce", true);
-            registryKey1.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
-            logger.TimestampInfo(@"Created Regkey: HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run - C:\Windows\Temp\xyz123456.exe ");
-            //registryKey2.SetValue("BadApp", @"C:\Windows\Temp\xyz123456.exe");
-            //logger.TimestampInfo(@"Created Regkey: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce - C:\Windows\Temp\xyz123456.exe ");
-            registryKey1.DeleteValue("BadApp");
-            logger.TimestampInfo(@"Deleted : HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
-            //registryKey2.DeleteValue("BadApp");
-            //logger.TimestampInfo(@"Deleted: HKCU\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce");
+            registryKey1.SetValue(keyname, @"C:\Windows\Temp\xyz123456.exe");
+            logger.TimestampInfo(@"Created Regkey: HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\"+ keyname+ @" - C:\\Windows\\Temp\\xyz123456.exe ");
+            if (cleanup)
+            {
+                registryKey1.DeleteValue("BadApp");
+                logger.TimestampInfo(@"Deleted RegKey : HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\"+keyname);
+            }
+            else
+            {
+                logger.TimestampInfo(@"The created RegKey : HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\"+keyname + " was not deleted as part of the simulation");
+            }
+            
+
         }
 
-        public static void CreateUser(String username, Lib.Logger logger)
+        public static void CreateUserApi(String username, Lib.Logger logger, bool cleanup)
         {
             //https://stackoverflow.com/questions/1100926/pinvoke-of-netuseradd-returns-24
             Structs.USER_INFO_2 userInfo2 = new Structs.USER_INFO_2()
@@ -66,21 +72,33 @@ namespace PurpleSharp.Simulations
                 usr_comment = "",
                 workstations = ""
             };
-
-            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            //Lib.Logger logger = new Lib.Logger(currentPath + log );
-            //logger.TimestampInfo(String.Format("Starting Create Account Simulation on {0}", Environment.MachineName));
-
             uint output;
             int result = WinAPI.NetUserAdd(null, 2, userInfo2, out output);
             if (result == 0)
             {
-                //Console.WriteLine("Successfully created local user");
                 logger.TimestampInfo(String.Format("Successfully created local user {0} with NetUserAdd", username));
+
+                if (cleanup)
+                {
+                    int delresult = WinAPI.NetUserDel(null, username);
+                    if (delresult == 0)
+                    {
+                        logger.TimestampInfo(String.Format("Successfully removed user with NetUserDel", username));
+
+                    }
+                    else
+                    {
+                        logger.TimestampInfo("Could not delete created user");
+                    }
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("The created local user {0} was not deleted as part of the simulation", username));
+                }
+
             }
             else
-            {
-                //Console.WriteLine("Could not create user");
+            {   
                 logger.TimestampInfo(String.Format("Could not create local user {0}. Error code: {1} ", username, result.ToString()));
             }
 
@@ -96,21 +114,27 @@ namespace PurpleSharp.Simulations
             }
             */
             System.Threading.Thread.Sleep(4000);
-            if (result == 0)
+
+            /*
+            // if the user was created and cleanup parameter is true
+            if (result == 0 && cleanup)
             {
-                int result3 = WinAPI.NetUserDel(null, username);
-                if (result3 == 0)
+                int delresult = WinAPI.NetUserDel(null, username);
+                if (delresult == 0)
                 {
                     logger.TimestampInfo(String.Format("Successfully removed user with NetUserDel", username));
-                    
+
                 }
                 else
                 {
-                    //Console.WriteLine("Could not delete user");
-                    logger.TimestampInfo("Could not delete user");
-                    //Console.WriteLine(result3);
+                    logger.TimestampInfo("Could not delete created user");
                 }
             }
+            else if (result == 0 && !cleanup)
+            {
+                logger.TimestampInfo(String.Format("The created local user {0} was not deleted as part of the simulation", username));
+            }
+            */
 
         }
 
@@ -143,12 +167,8 @@ namespace PurpleSharp.Simulations
             return serviceHandleCreated != IntPtr.Zero;
         }
 
-        public static void CreateService(string log, Lib.Logger logger)
+        public static void CreateServiceApi(string log, Lib.Logger logger, bool cleanup)
         {
-
-            //string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            //Lib.Logger logger = new Lib.Logger(currentPath + log);
-            //logger.TimestampInfo(String.Format("Starting Create Service Simulation on {0}", Environment.MachineName));
 
             var scmHandle = WinAPI.OpenSCManager(null, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
 
@@ -173,10 +193,19 @@ namespace PurpleSharp.Simulations
                 //DateTime dtime = DateTime.Now;
                 logger.TimestampInfo(String.Format("Successfully created Service: {0} ImagePath: {1} using CreateService", serviceName, servicePath));
                 //Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
-                bool deletedService = WinAPI.DeleteService(svcHandleOpened);
-                logger.TimestampInfo(String.Format("Deleted Service: {0} ImagePath: {1} with DeleteService", serviceName, servicePath));
-                WinAPI.CloseServiceHandle(svcHandleOpened);
+
+                if (cleanup)
+                {
+                    IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
+                    bool deletedService = WinAPI.DeleteService(svcHandleOpened);
+                    logger.TimestampInfo(String.Format("Deleted Service: {0} ImagePath: {1} with DeleteService", serviceName, servicePath));
+                    WinAPI.CloseServiceHandle(svcHandleOpened);
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("The created Service: {0} ImagePath: {1} was not deleted as part of the simulation", serviceName, servicePath));
+                }
+
             }
             else
             {

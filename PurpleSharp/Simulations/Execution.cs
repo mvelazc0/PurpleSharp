@@ -52,7 +52,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 ExecutionHelper.StartProcess("", "net start UpdaterService", logger);
-                ExecutionHelper.StartProcess("", "sc start UpdaterService", logger, false);
+                ExecutionHelper.StartProcess("", "sc start UpdaterService", logger);
 
                 logger.SimulationFinished();
             }

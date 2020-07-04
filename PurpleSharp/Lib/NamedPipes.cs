@@ -21,8 +21,8 @@ namespace PurpleSharp.Lib
             bool running = true;
             bool privileged = false;
 
-            string technique, opsec, simpfath, simrpath, duser, user, simbinary;
-            technique = opsec = simpfath = simrpath = duser = user = simbinary = "";
+            string technique, opsec, simpfath, simrpath, duser, user, simbinary, cleanup;
+            technique = opsec = simpfath = simrpath = duser = user = simbinary = cleanup = "";
             Process parentprocess = null;
             int pbsleep, tsleep;
             pbsleep = tsleep = 0;
@@ -140,6 +140,12 @@ namespace PurpleSharp.Lib
                             writer.WriteLine("ACK");
                             writer.Flush();
                         }
+                        else if (line.ToLower().StartsWith("cleanup:"))
+                        {
+                            cleanup = line.Replace("cleanup:", "");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
                         else if (line.ToLower().StartsWith("simrpath:"))
                         {
                             simrpath = line.Replace("simrpath:", "");
@@ -172,9 +178,10 @@ namespace PurpleSharp.Lib
 
                                 System.Threading.Thread.Sleep(3000);
                                 //logger.TimestampInfo("Sending technique through namedpipe:"+ technique.Replace("/technique ", ""));
-                                logger.TimestampInfo("Sending technique through namedpipe:" + technique);
+                                //logger.TimestampInfo("Sending technique through namedpipe:" + technique);
                                 //RunNoAuthClient("simargs", "technique:" + technique.Replace("/technique ", ""));
-                                RunNoAuthClient("simargs", "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:"+tsleep.ToString());
+                                logger.TimestampInfo("Sending payload through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
+                                RunNoAuthClient("simargs", "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:"+tsleep.ToString() + " cleanup:" + cleanup);
                                 System.Threading.Thread.Sleep(2000);
                             }
                         }
@@ -198,7 +205,7 @@ namespace PurpleSharp.Lib
         }
         public static string[] RunSimulationService(string npipe, string log)
         {
-            string[] result = new string[3];
+            string[] result = new string[4];
             try
             {
                 //https://helperbyte.com/questions/171742/how-to-connect-to-a-named-pipe-without-administrator-rights
@@ -206,7 +213,7 @@ namespace PurpleSharp.Lib
                 ps.SetAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite, AccessControlType.Allow));
 
                 //logger.TimestampInfo("starting!");
-                string technique, pbsleep, tsleep;
+                string technique, pbsleep, tsleep, cleanup;
                 using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 4028, 4028, ps))
                 
                 {
@@ -222,12 +229,14 @@ namespace PurpleSharp.Lib
                         technique = options[0].Replace("technique:", "");
                         pbsleep = options[1].Replace("pbsleep:", "");
                         tsleep = options[2].Replace("tsleep:", "");
+                        cleanup = options[3].Replace("cleanup:", "");
                         writer.WriteLine("ACK");
                         writer.Flush();
 
                         result[0] = technique;
                         result[1] = pbsleep;
                         result[2] = tsleep;
+                        result[3] = cleanup;
                         return result;
                     }
                     pipeServer.Disconnect();

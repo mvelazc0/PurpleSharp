@@ -225,7 +225,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 ExecutionHelper.StartProcess("", @"dir c:\ >> %temp%\download", logger);
-                ExecutionHelper.StartProcess("", @"dir C:\Users\ >> %temp%\download", logger, true);
+                ExecutionHelper.StartProcess("", @"dir C:\Users\ >> %temp%\download", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
