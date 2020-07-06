@@ -24,26 +24,22 @@ namespace PurpleSharp
 
         public static void Main(string[] args)
         {
-            string techniques, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, pb_file, nav_action, navfile, scout_action;
+            bool cleanup, opsec, verbose, scoutservice, simservice, newchild, scout, remote, navigator;
+            string techniques, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, pb_file, nav_action, navfile, scout_action, scout_np, simulator_np;
             int pbsleep, tsleep, nusers, nhosts;
             pbsleep = tsleep = 0;
             nusers = nhosts = 5;
-            bool cleanup = true;
-            bool opsec = false;
-            bool verbose = false;
-            bool scoutservice = false;
-            bool simservice = false;
-            bool newchild = false;
-            bool scout = false;
-            bool remote = false;
-            bool navigator = false;
+            opsec = cleanup = true;
+            verbose = scoutservice = simservice = newchild = scout = remote = navigator = false; 
             techniques = rhost = domain = ruser = rpwd = dc = pb_file = nav_action = navfile = scout_action = "";
 
             scoutfpath = "C:\\Windows\\Temp\\PurpleSharp.exe";
             simrpath = "Downloads\\Firefox_Installer.exe";
             log = "0001.dat";
+            scout_np = "scoutpipe";
+            simulator_np="simpipe";
 
-            //should move this to sqlite
+            //should move this to sqlite or JSON files
             string[] execution = new string[] { "T1117","T1053", "T1059", "T1064", "T1086", "T1197", "T1121", "T1035", "T1118" };
             string[] persistence = new string[] { "T1053", "T1136", "T1050", "T1060", "T1084" };
             string[] privelege_escalation = new string[] { "T1053", "T1050" };
@@ -68,7 +64,7 @@ namespace PurpleSharp
                 {
                     switch (args[i])
                     {
-                        // Operator Parameters
+                        //// User Parameters ////
                         case "/pb":
                             pb_file = args[i + 1];
                             break;
@@ -103,8 +99,8 @@ namespace PurpleSharp
                         case "/tsleep":
                             tsleep = Int32.Parse(args[i + 1]);
                             break;
-                        case "/opsec":
-                            opsec = true;
+                        case "/noopsec":
+                            opsec = false;
                             break;
                         case "/v":
                             verbose = true;
@@ -122,8 +118,7 @@ namespace PurpleSharp
                             if (nav_action.Equals("import")) navfile = args[i + 2];
                             break;
 
-
-                        // Internal Parameters
+                        //// Internal Parameters ////
                         case "/o":
                             scoutservice = true;
                             break;
@@ -146,6 +141,9 @@ namespace PurpleSharp
                 }
 
             }
+
+            //// Handling Internal Parameters ////
+
             if (newchild)
             {
                 const uint NORMAL_PRIORITY_CLASS = 0x0020;
@@ -162,15 +160,17 @@ namespace PurpleSharp
             }
             if (scoutservice)
             {
-                NamedPipes.RunScoutService("testpipe", log);
+                NamedPipes.RunScoutService(scout_np, simulator_np, log);
                 return;
             }
             if (simservice)
             {
-                string[] options = NamedPipes.RunSimulationService("simargs", log);
+                string[] options = NamedPipes.RunSimulationService(simulator_np, log);
                 ExecuteTechniques(options[0], nusers, nhosts, Int32.Parse(options[1]), Int32.Parse(options[2]), log, bool.Parse(options[3]));
                 return;
             }
+
+            //// Handling  User Parameters ////
 
             if (navigator)
             {
@@ -226,7 +226,7 @@ namespace PurpleSharp
 
                     if (!rhost.Equals("random"))
                     {
-                        Scout(rhost, domain, ruser, rpwd, scoutfpath, log, scout_action, verbose);
+                        Scout(rhost, domain, ruser, rpwd, scoutfpath, log, scout_action, scout_np, verbose);
                         return;
                     }
                     else if (!dc.Equals(""))
@@ -239,7 +239,7 @@ namespace PurpleSharp
                             var random = new Random();
                             int index = random.Next(targets.Count);
                             Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
-                            Scout(targets[index].ComputerName, domain, ruser, rpwd, scoutfpath, log, scout_action, verbose);
+                            Scout(targets[index].ComputerName, domain, ruser, rpwd, scoutfpath, log, scout_action, scout_np, verbose);
                             return;
                         }
                         else
@@ -292,9 +292,6 @@ namespace PurpleSharp
                             techs.Add(task.technique);
                         }
                         string techs2 = String.Join(",", techs);
-
-
-
                         if (playbook.host.Equals("random"))
                         {
                             List<Computer> targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
@@ -305,7 +302,7 @@ namespace PurpleSharp
                                 int index = random.Next(targets.Count);
                                 Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
                                 Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, targets[index].Fqdn);
-                                playbookResults = ExecuteRemoteTechniquesJson(targets[index].Fqdn, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, playbook.simrpath, log, true, false);
+                                playbookResults = ExecuteRemoteTechniquesJson(targets[index].Fqdn, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, scout_np, playbook.simrpath, log, true, false);
                                 playbookResults.name = playbook.name;
                             }
                             else Console.WriteLine("[!] Could not obtain targets for the simulation");
@@ -314,7 +311,7 @@ namespace PurpleSharp
                         else
                         {
                             Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, playbook.host);
-                            playbookResults = ExecuteRemoteTechniquesJson(playbook.host, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, playbook.simrpath, log, true, false);
+                            playbookResults = ExecuteRemoteTechniquesJson(playbook.host, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, scout_np, playbook.simrpath, log, true, false);
                             playbookResults.name = playbook.name;
                         }
                         if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
@@ -354,7 +351,7 @@ namespace PurpleSharp
                     }
                     if (!rhost.Equals("random"))
                     {
-                        ExecuteRemoteTechniques(rhost, domain, ruser, rpwd, techniques, pbsleep, tsleep, scoutfpath, simrpath, log, opsec, verbose, cleanup);
+                        ExecuteRemoteTechniques(rhost, domain, ruser, rpwd, techniques, pbsleep, tsleep, scoutfpath, scout_np, simrpath, simulator_np, log, opsec, verbose, cleanup);
                         return;
                     }
                     else if (!dc.Equals(""))
@@ -367,7 +364,7 @@ namespace PurpleSharp
                             var random = new Random();
                             int index = random.Next(targets.Count);
                             Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
-                            ExecuteRemoteTechniques(targets[index].Fqdn, domain, ruser, rpwd, techniques, pbsleep, tsleep, scoutfpath, simrpath, log, opsec, verbose, cleanup);
+                            ExecuteRemoteTechniques(targets[index].Fqdn, domain, ruser, rpwd, techniques, pbsleep, tsleep, scoutfpath, scout_np, simrpath, simulator_np, log, opsec, verbose, cleanup);
                             return;
                         }
                         else
@@ -399,7 +396,7 @@ namespace PurpleSharp
 
         }
 
-        public static void Scout(string rhost, string domain, string ruser, string rpwd, string scoutfpath, string log, string scout_action, bool verbose)
+        public static void Scout(string rhost, string domain, string ruser, string rpwd, string scoutfpath, string log, string scout_action, string scout_np, bool verbose)
         {
             List<String> actions = new List<string>() { "all", "wef", "pws", "ps", "svcs", "auditpol", "cmdline" };
 
@@ -427,7 +424,7 @@ namespace PurpleSharp
             RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
             Console.WriteLine("[+] Connecting to the Scout agent ...");
 
-            string result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "SYN");
+            string result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "SYN");
             if (result.Equals("SYN/ACK"))
             {
                 Console.WriteLine("[+] OK");
@@ -437,32 +434,32 @@ namespace PurpleSharp
                 {
                     string temp;
 
-                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "wef");
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "wef");
                     results = Encoding.UTF8.GetString(Convert.FromBase64String(temp));
 
-                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "pws");
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "pws");
                     results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
 
-                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "cmdline");
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "cmdline");
                     results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
 
-                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "ps");
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "ps");
                     results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
 
-                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "svcs");
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "svcs");
                     results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
 
-                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "auditpol");
+                    temp = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "auditpol");
                     results += Encoding.UTF8.GetString(Convert.FromBase64String(temp));
 
-                    NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                    NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
 
                 }
                 else 
                 {
-                    results = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", scout_action);
+                    results = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, scout_action);
                     results = Encoding.UTF8.GetString(Convert.FromBase64String(results));
-                    NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                    NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
                 }
                 if (verbose)
                 {
@@ -485,7 +482,7 @@ namespace PurpleSharp
             }
         }
 
-        public static void ExecuteRemoteTechniques(string rhost, string domain, string ruser, string rpwd, string techniques, int pbsleep, int tsleep, string scoutfpath, string simrpath, string log, bool opsec, bool verbose, bool cleanup)
+        public static void ExecuteRemoteTechniques(string rhost, string domain, string ruser, string rpwd, string techniques, int pbsleep, int tsleep, string scoutfpath, string scout_np, string simrpath, string simulator_np, string log, bool opsec, bool verbose, bool cleanup)
         {
             // techniques that need to be executed from a high integrity process
             string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050", "T1084" };
@@ -513,13 +510,13 @@ namespace PurpleSharp
                 RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
                 Console.WriteLine("[+] Connecting to the Scout agent ...");
 
-                result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "SYN");
+                result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "SYN");
                 if (result.Equals("SYN/ACK"))
                 {
                     Console.WriteLine("[+] OK");
 
-                    if (privileged_techniques.Contains(techniques.ToUpper())) result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:privileged");
-                    else result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:regular");
+                    if (privileged_techniques.Contains(techniques.ToUpper())) result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:privileged");
+                    else result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:regular");
 
                     string[] payload = result.Split(',');
                     string duser = payload[0];
@@ -528,7 +525,7 @@ namespace PurpleSharp
                     if (duser == "")
                     {
                         Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
                         Thread.Sleep(1000);
                         RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
                         RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
@@ -539,16 +536,16 @@ namespace PurpleSharp
                     {
                         string user = duser.Split('\\')[1];
                         //Console.WriteLine("[+] Sending simulator binary...");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "simrpath:" + simrpath);
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "simrpath:" + simrpath);
                         //Console.WriteLine("[+] Sending technique ...");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "technique:" + techniques);
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "technique:" + techniques);
                         //Console.WriteLine("[+] Sending opsec techqniue...");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "opsec:" + "ppid");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "opsec:" + "ppid");
                         //Console.WriteLine("[+] Sending sleep...");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "pbsleep:" + pbsleep.ToString());
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "tsleep:" + tsleep.ToString());
-                        if (cleanup) NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "cleanup:True");
-                        else NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "cleanup:False");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "pbsleep:" + pbsleep.ToString());
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "tsleep:" + tsleep.ToString());
+                        if (cleanup) NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "cleanup:True");
+                        else NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "cleanup:False");
 
 
                         Console.WriteLine("[!] Recon -> " + String.Format("Identified logged user: {0}", duser));
@@ -562,8 +559,8 @@ namespace PurpleSharp
                         RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
                         Console.WriteLine("[+] Triggering simulation using PPID Spoofing | Process: {0}.exe | PID: {1} | High Integrity: {2}", payload[1], payload[2], payload[3] );
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "act");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
 
                         if (verbose)
                         {
@@ -622,8 +619,8 @@ namespace PurpleSharp
                 RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
                 RemoteLauncher.wmiexec(rhost, scoutfpath, "/s", domain, ruser, rpwd);
                 Thread.Sleep(2000);
-                if (cleanup) NamedPipes.RunClient(rhost, domain, ruser, rpwd, "simargs", "technique:" + techniques + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:True");
-                else NamedPipes.RunClient(rhost, domain, ruser, rpwd, "simargs", "technique:" + techniques + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:False");
+                if (cleanup) NamedPipes.RunClient(rhost, domain, ruser, rpwd, simulator_np, "technique:" + techniques + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:True");
+                else NamedPipes.RunClient(rhost, domain, ruser, rpwd, simulator_np, "technique:" + techniques + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:False");
 
                 Thread.Sleep(5000);
                 bool finished = false;
@@ -656,7 +653,7 @@ namespace PurpleSharp
                 }
             }
         }
-        public static SimulationPlaybookResult ExecuteRemoteTechniquesJson(string rhost, string domain, string ruser, string rpwd, string techniques, int pbsleep, int tsleep, string scoutfpath, string simrpath, string log, bool opsec, bool verbose)
+        public static SimulationPlaybookResult ExecuteRemoteTechniquesJson(string rhost, string domain, string ruser, string rpwd, string techniques, int pbsleep, int tsleep, string scoutfpath, string scout_np, string simrpath, string log, bool opsec, bool verbose)
         {
             // techniques that need to be executed from a high integrity process
             string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050", "T1084" };
@@ -678,13 +675,13 @@ namespace PurpleSharp
                 RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
                 //Console.WriteLine("[+] Connecting to namedpipe service ...");
 
-                result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "SYN");
+                result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "SYN");
                 if (result.Equals("SYN/ACK"))
                 {
                     //Console.WriteLine("[+] OK");
 
-                    if (privileged_techniques.Contains(techniques.ToUpper())) result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:privileged");
-                    else result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "recon:regular");
+                    if (privileged_techniques.Contains(techniques.ToUpper())) result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:privileged");
+                    else result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:regular");
 
                     string[] payload = result.Split(',');
                     string duser = payload[0];
@@ -693,7 +690,7 @@ namespace PurpleSharp
                     if (duser == "")
                     {
                         Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
                         Thread.Sleep(1000);
                         RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
                         RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
@@ -703,11 +700,13 @@ namespace PurpleSharp
                     else
                     {
                         string user = duser.Split('\\')[1];
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "simrpath:" + simrpath);
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "technique:" + techniques);
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "opsec:" + "ppid");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "pbsleep:" + pbsleep.ToString());
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "tsleep:" + tsleep.ToString());
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "simrpath:" + simrpath);
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "technique:" + techniques);
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "opsec:" + "ppid");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "pbsleep:" + pbsleep.ToString());
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "tsleep:" + tsleep.ToString());
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "cleanup:True");
+
 
                         string simfpath = "C:\\Users\\" + user + "\\" + simrpath;
                         int index2 = simrpath.LastIndexOf(@"\");
@@ -719,8 +718,8 @@ namespace PurpleSharp
                         RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
                         //Console.WriteLine("[+] Triggering simulation...");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "act");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, "testpipe", "quit");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "act");
+                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
 
                         System.Threading.Thread.Sleep(5000);
                         bool finished = false;
@@ -784,9 +783,11 @@ namespace PurpleSharp
         }
         public static void ExecuteTechnique(string technique, int nuser, int nhosts, int tsleep, string log, bool cleanup)
         {
+            var rand = new Random();
+            int variation = 1;
+
             switch (technique)
             {
-
                 //// Initial Access ////
 
                 //// Execution ////
@@ -808,7 +809,9 @@ namespace PurpleSharp
                     break;
 
                 case "T1086":
-                    Simulations.Execution.ExecutePowershell(log);
+                    variation = rand.Next(1, 3);
+                    if (variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
+                    else Simulations.Execution.ExecutePowershellNET(log);
                     break;
 
                 //T1028 - Windows Remote Management
@@ -822,18 +825,21 @@ namespace PurpleSharp
                     break;
 
                 case "T1136":
-                    //Simulations.Persistence.CreateAccountCmd(log, cleanup);
-                    Simulations.Persistence.CreateAccountApi(log, cleanup);
+                    variation = rand.Next(1, 3);
+                    if (variation == 1) Simulations.Persistence.CreateAccountApi(log, cleanup);
+                    else Simulations.Persistence.CreateAccountCmd(log, cleanup);
                     break;
 
                 case "T1050":
-                    //Simulations.Persistence.CreateServiceApi(log, cleanup);
-                    Simulations.Persistence.CreateServiceCmd(log, cleanup);
+                    variation = rand.Next(1, 3);
+                    if (variation == 1)  Simulations.Persistence.CreateServiceApi(log, cleanup);
+                    else Simulations.Persistence.CreateServiceCmd(log, cleanup);
                     break;
 
                 case "T1060":
-                    //Simulations.Persistence.RegistryRunKeyNET(log, cleanup);
-                    Simulations.Persistence.RegistryRunKeyCmd(log, cleanup);
+                    variation = rand.Next(1, 3);
+                    if (variation == 1) Simulations.Persistence.RegistryRunKeyNET(log, cleanup);
+                    else Simulations.Persistence.RegistryRunKeyCmd(log, cleanup);
                     break;
 
                 case "T1084":
@@ -878,8 +884,10 @@ namespace PurpleSharp
                     break;
 
                 case "T1070":
-                    //Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
-                    Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
+                    variation = rand.Next(1, 3);
+                    if(variation ==1) Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
+                    else Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+                    
                     break;
 
                 case "T1220":
@@ -897,19 +905,11 @@ namespace PurpleSharp
 
                 //T1110 - Brute Force
                 case "T1110":
-                    var rand = new Random();
-                    int type = rand.Next(1, 3);
+                    variation = rand.Next(1, 3);
                     string password = "Summer2020";
-                    if (type == 1)
-                    {
-                        Simulations.CredAccess.LocalDomainPasswordSpray(nuser, tsleep, password, log); ;
-                        break;
-                    }
-                    else if (type == 2)
-                    {
-                        Simulations.CredAccess.RemotePasswordSpray(nhosts, nuser, tsleep, password, log);
-                        break;
-                    }
+                    if (variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(nuser, tsleep, password, log);
+                    else Simulations.CredAccess.RemotePasswordSpray(nhosts, nuser, tsleep, password, log);
+
                     break;
 
                 //T1208 - Kerberoasting
@@ -945,8 +945,9 @@ namespace PurpleSharp
                     break;
 
                 case "T1087":
-                    Simulations.Discovery.AccountDiscoveryLdap(log);
-                    //Simulations.Discovery.AccountDiscoveryCmd(log);
+                    variation = rand.Next(1, 3);
+                    if (variation ==1 ) Simulations.Discovery.AccountDiscoveryLdap(log);
+                    else Simulations.Discovery.AccountDiscoveryCmd(log);
                     break;
 
                 case "T1007":

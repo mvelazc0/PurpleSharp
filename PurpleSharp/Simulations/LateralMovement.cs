@@ -14,6 +14,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1021");
+            logger.TimestampInfo("Using the Win32 API CreateService function to execute this technique");
 
             try
             {
@@ -54,6 +55,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1028");
+            logger.TimestampInfo("Using the System.Management.Automation .NET namespace to execute this technique");
+
             try
             {
                 var rand = new Random();
@@ -91,6 +94,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1047");
+            logger.TimestampInfo("Using the System.Management .NET API to execute this technique");
+
             try
             {
                 var rand = new Random();

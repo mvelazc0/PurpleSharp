@@ -12,6 +12,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1136");
+            logger.TimestampInfo("Using the Win32 API NetUserAdd function to execute the technique");
             try
             {
                 PersistenceHelper.CreateUserApi("haxor", logger, cleanup);
@@ -28,6 +29,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1136");
+            logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
@@ -58,6 +60,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1053");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
             try
             {
                 string taskName = "BadScheduledTask";
@@ -86,6 +90,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1060");
+            logger.TimestampInfo("Using the Microsoft.Win32 .NET namespace to execute the technique");
 
             try
             {
@@ -104,6 +109,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1060");
+            logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
@@ -111,7 +117,6 @@ namespace PurpleSharp.Simulations
                 string binpath = @"C:\Windows\Temp\xyz12345.exe";
 
                 ExecutionHelper.StartProcess("", String.Format(@"REG ADD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /t REG_SZ /F /D {1}", regKey, binpath), logger);
-
                 if (cleanup)
                 {
                     Thread.Sleep(3000);
@@ -121,8 +126,6 @@ namespace PurpleSharp.Simulations
                 {
                     logger.TimestampInfo(@"The created RegKey : HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\" + regKey + " was not deleted as part of the simulation");
                 }
-
-                
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -138,10 +141,10 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1050");
+            logger.TimestampInfo("Using the Win32 API CreateService function to execute the technique");
 
             try
             {
-                logger.TimestampInfo("Creating a service using CreateService Win32API");
                 PersistenceHelper.CreateServiceApi(log, logger, cleanup);
                 logger.SimulationFinished();
             }
@@ -157,12 +160,12 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1050");
-            
+            logger.TimestampInfo("Using the command line to execute the technique");
+
             try
             {
                 string serviceName = "UpdaterService";
                 string servicePath = @"C:\Windows\Temp\superlegit.exe";
-                logger.TimestampInfo("Creating a service using 'sc screate'");
                 ExecutionHelper.StartProcess("", String.Format(@"sc create {0} binpath= {1} type= own start= auto", serviceName, servicePath), logger);
                 Thread.Sleep(3000);
                 if (cleanup) ExecutionHelper.StartProcess("", String.Format(@"sc delete {0}", serviceName), logger);
@@ -179,6 +182,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1084");
+            logger.TimestampInfo("Using the System.Management .NEt namespace to execute the technique");
+
             string wmiSubscription = "MaliciousWmiSubscription";
             //string vbscript64 = "<INSIDE base64 encoded VBS here>";
             //string vbscript = Encoding.UTF8.GetString(Convert.FromBase64String(vbscript64));

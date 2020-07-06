@@ -18,7 +18,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1110");
-            logger.TimestampInfo(String.Format("Local Domain Brute Force"));
+            logger.TimestampInfo(String.Format("Local Domain Brute Force using the LogonUser Win32 API function"));
             bool Kerberos = new bool();
             try
             {
@@ -72,7 +72,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1110");
-            logger.TimestampInfo(String.Format("Remote Domain Brute Force"));
+            logger.TimestampInfo(String.Format("Remote Domain Brute Force using the WNetAddConnection2 Win32 API function"));
             bool Kerberos = new bool();
             List<Computer> targets = new List<Computer>();
             List<User> targetusers = new List<User>();
@@ -165,6 +165,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1208");
+
+
             if (sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each service ticket request", sleep));
 
             try

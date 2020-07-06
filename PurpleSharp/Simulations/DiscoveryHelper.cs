@@ -132,12 +132,13 @@ namespace PurpleSharp.Simulations
                 search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
                 search.PropertiesToLoad.Add("samaccountname");
                 search.PropertiesToLoad.Add("displayname");
+                search.SizeLimit = 15;
                 SearchResult result;
                 SearchResultCollection resultCol = search.FindAll();
 
                 if (resultCol != null)
                 {
-                    logger.TimestampInfo("Success");
+                    logger.TimestampInfo("Obtained results via LDAP");
                     for (int counter = 0; counter < resultCol.Count; counter++)
                     {
                         string UserNameEmailString = string.Empty;

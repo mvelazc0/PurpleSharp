@@ -177,6 +177,7 @@ namespace PurpleSharp.Lib
         public static List<Computer> GetHostTargets(int servertype, int nhosts)
         {
             List<Computer> targethosts = new List<Computer>();
+            /*
             switch (servertype)
             {
                 case 1:
@@ -198,7 +199,8 @@ namespace PurpleSharp.Lib
                 default:
                     return targethosts; 
             }
-
+            */
+            targethosts = GetDomainNeighborTargets(nhosts);
             return targethosts;
 
         }

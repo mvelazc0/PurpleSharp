@@ -14,6 +14,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1135");
+            logger.TimestampInfo("Using the Win32 API NetShareEnum function to execute this technique");
 
             try
             {
@@ -30,7 +31,7 @@ namespace PurpleSharp.Simulations
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            Simulations.DiscoveryHelper.ShareEnum(computer, logger);
+                            DiscoveryHelper.ShareEnum(computer, logger);
 
                         }));
                         if (tsleep > 0) Thread.Sleep(tsleep * 1000);
@@ -74,6 +75,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1046");
+            logger.TimestampInfo("Using the System.Net.Sockets .NET namespace to execute this technique");
+
             try
             {
                 var rand = new Random();
@@ -115,6 +118,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1087");
+            logger.TimestampInfo("Using LDAP to execute this technique");
             try
             {
                 DiscoveryHelper.ListUsersLdap(logger);
@@ -132,6 +136,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1087");
+            logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
@@ -222,6 +227,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1083");
+
             try
             {
                 ExecutionHelper.StartProcess("", @"dir c:\ >> %temp%\download", logger);

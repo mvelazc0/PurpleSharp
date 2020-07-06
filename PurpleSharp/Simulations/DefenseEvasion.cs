@@ -157,8 +157,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1070");
-            //logger.TimestampInfo(String.Format("Starting T1070 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            logger.TimestampInfo("Using the command line to execute the technique");
             try
             {
                 ExecutionHelper.StartProcess("", "wevtutil.exe cl Security", logger);
@@ -175,8 +174,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1070");
-            //logger.TimestampInfo(String.Format("Starting T1070 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            logger.TimestampInfo("Using the System.Diagnostics .NET namespace to execute the technique");
 
             try
             {
@@ -198,10 +196,9 @@ namespace PurpleSharp.Simulations
         public static void ProcessInjection(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1055");
-            //logger.TimestampInfo(String.Format("Starting T1055 Simulation on {0}", Environment.MachineName));
-            //logger.TimestampInfo(String.Format("Simulation agent running as {0} with PID:{1}", System.Reflection.Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            
             try
             {
 

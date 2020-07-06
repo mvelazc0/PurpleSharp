@@ -14,7 +14,7 @@ namespace PurpleSharp.Lib
     {
 
         //Based on https://github.com/malcomvetter/NamedPipes
-        public static void RunScoutService(string npipe, string log)
+        public static void RunScoutService(string scout_np, string simulator_np, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
@@ -29,7 +29,7 @@ namespace PurpleSharp.Lib
 
             try
             {
-                using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
+                using (var pipeServer = new NamedPipeServerStream(scout_np, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
                 {
                     logger.TimestampInfo("Starting scout namedpipe service with PID:"+ Process.GetCurrentProcess().Id);
                     while (running)
@@ -177,11 +177,8 @@ namespace PurpleSharp.Lib
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
                                 System.Threading.Thread.Sleep(3000);
-                                //logger.TimestampInfo("Sending technique through namedpipe:"+ technique.Replace("/technique ", ""));
-                                //logger.TimestampInfo("Sending technique through namedpipe:" + technique);
-                                //RunNoAuthClient("simargs", "technique:" + technique.Replace("/technique ", ""));
-                                logger.TimestampInfo("Sending payload through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
-                                RunNoAuthClient("simargs", "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:"+tsleep.ToString() + " cleanup:" + cleanup);
+                                logger.TimestampInfo("Sending payload to Scout Aggent through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
+                                RunNoAuthClient(simulator_np, "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:"+tsleep.ToString() + " cleanup:" + cleanup);
                                 System.Threading.Thread.Sleep(2000);
                             }
                         }
