@@ -113,11 +113,11 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void AccountDiscoveryLdap(string log)
+        public static void DomainAccountDiscoveryLdap(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1087");
+            logger.SimulationHeader("T1087.002");
             logger.TimestampInfo("Using LDAP to execute this technique");
             try
             {
@@ -131,11 +131,11 @@ namespace PurpleSharp.Simulations
             
         }
 
-        public static void AccountDiscoveryCmd(string log)
+        public static void DomainAccountDiscoveryCmd(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1087");
+            logger.SimulationHeader("T1087.002");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
@@ -147,9 +147,26 @@ namespace PurpleSharp.Simulations
             catch(Exception ex)
             {
                 logger.SimulationFailed(ex);
-            }
-            
+            }   
+        }
 
+        public static void LocalAccountDiscoveryCmd(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1087.001");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                //ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
+                ExecutionHelper.StartProcess("", "net user /domain", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
         }
 
         public static void SystemServiceDiscovery(string log)

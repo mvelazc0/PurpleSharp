@@ -7,11 +7,11 @@ namespace PurpleSharp.Simulations
 {
     class Persistence
     {
-        public static void CreateAccountApi(string log, bool cleanup)
+        public static void CreateLocalAccountApi(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1136");
+            logger.SimulationHeader("T1136.001");
             logger.TimestampInfo("Using the Win32 API NetUserAdd function to execute the technique");
             try
             {
@@ -24,11 +24,11 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void CreateAccountCmd(string log, bool cleanup)
+        public static void CreateLocalAccountCmd(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1136");
+            logger.SimulationHeader("T1136.001");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
@@ -59,7 +59,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1053");
+            logger.SimulationHeader("T1053.005");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
@@ -85,11 +85,11 @@ namespace PurpleSharp.Simulations
 
 
         }
-        public static void RegistryRunKeyNET(string log, bool cleanup)
+        public static void CreateRegistryRunKeyNET(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1060");
+            logger.SimulationHeader("T1547.001");
             logger.TimestampInfo("Using the Microsoft.Win32 .NET namespace to execute the technique");
 
             try
@@ -104,11 +104,11 @@ namespace PurpleSharp.Simulations
             
         }
 
-        public static void RegistryRunKeyCmd(string log, bool cleanup)
+        public static void CreateRegistryRunKeyCmd(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1060");
+            logger.SimulationHeader("T1547.001");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
@@ -136,11 +136,11 @@ namespace PurpleSharp.Simulations
             
         }
 
-        public static void CreateServiceApi(string log, bool cleanup)
+        public static void CreateWindowsServiceApi(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1050");
+            logger.SimulationHeader("T1543.003");
             logger.TimestampInfo("Using the Win32 API CreateService function to execute the technique");
 
             try
@@ -155,11 +155,11 @@ namespace PurpleSharp.Simulations
 
             
         }
-        public static void CreateServiceCmd(string log, bool cleanup)
+        public static void CreateWindowsServiceCmd(string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1050");
+            logger.SimulationHeader("T1543.003");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
@@ -181,7 +181,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1084");
+            logger.SimulationHeader("T1546.003");
             logger.TimestampInfo("Using the System.Management .NEt namespace to execute the technique");
 
             string wmiSubscription = "MaliciousWmiSubscription";

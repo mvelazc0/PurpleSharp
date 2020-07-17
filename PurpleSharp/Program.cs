@@ -39,14 +39,14 @@ namespace PurpleSharp
             scout_np = "scoutpipe";
             simulator_np="simpipe";
 
-            //should move this to sqlite or JSON files
-            string[] execution = new string[] { "T1117","T1053", "T1059", "T1064", "T1086", "T1197", "T1121", "T1035", "T1118" };
-            string[] persistence = new string[] { "T1053", "T1136", "T1050", "T1060", "T1084" };
-            string[] privelege_escalation = new string[] { "T1053", "T1050" };
-            string[] defense_evasion = new string[] { "T1117", "T1170", "T1191", "T1085", "T1070", "T1220", "T1055", "T1064", "T1140", "T1197", "T1121", "T1118" };
-            string[] credential_access = new string[] { "T1110", "T1208", "T1003" };
-            string[] discovery = new string[] { "T1135", "T1046", "T1087", "T1007", "T1033", "T1049", "T1016", "T1083" };
-            string[] lateral_movement = new string[] { "T1021", "T1028", "T1047" };
+            //should move this to sqlite or a JSON file.
+            string[] execution = new string[] { "T1053.005", "T1059.003", "T1059.005", "T1059.007", "T1059.001", "T1569.002"};
+            string[] persistence = new string[] { "T1053.005", "T1136.001", "T1543.003", "T1547.001", "T1546.003", "T1197" };
+            string[] privelege_escalation = new string[] { "T1053.005", "T1543.003", "T1547.001", "T1546.003", "T1055.002", "T1055.004" };
+            string[] defense_evasion = new string[] { "T1218.010", "T1218.005", "T1218.003", "T1218.011", "T1070.001", "T1220", "T1055.002", "T1055.004", "T1140", "T1197", "T1218.009", "T1218.004" };
+            string[] credential_access = new string[] { "T1110.003", "T1558.003", "T1003.001" };
+            string[] discovery = new string[] { "T1135", "T1046", "T1087.001", "T1087.002", "T1007", "T1033", "T1049", "T1016", "T1083" };
+            string[] lateral_movement = new string[] { "T1021", "T1021.006", "T1047" };
 
             string[] supported_techniques = execution.Union(persistence).Union(privelege_escalation).Union(defense_evasion).Union(credential_access).Union(discovery).Union(lateral_movement).ToArray();
 
@@ -485,7 +485,7 @@ namespace PurpleSharp
         public static void ExecuteRemoteTechniques(string rhost, string domain, string ruser, string rpwd, string techniques, int pbsleep, int tsleep, string scoutfpath, string scout_np, string simrpath, string simulator_np, string log, bool opsec, bool verbose, bool cleanup)
         {
             // techniques that need to be executed from a high integrity process
-            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050", "T1084" };
+            string[] privileged_techniques = new string[] { "T1003.001", "T1136.001", "T1070.001", "T1543.003", "T1546.003" };
 
             if (rpwd == "")
             {
@@ -656,7 +656,7 @@ namespace PurpleSharp
         public static SimulationPlaybookResult ExecuteRemoteTechniquesJson(string rhost, string domain, string ruser, string rpwd, string techniques, int pbsleep, int tsleep, string scoutfpath, string scout_np, string simrpath, string log, bool opsec, bool verbose)
         {
             // techniques that need to be executed from a high integrity process
-            string[] privileged_techniques = new string[] { "T1003", "T1136", "T1070", "T1050", "T1084" };
+            string[] privileged_techniques = new string[] { "T1003.001", "T1136.001", "T1070.001", "T1543.003", "T1546.003" };
 
             string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             int index = scoutfpath.LastIndexOf(@"\");
@@ -792,73 +792,77 @@ namespace PurpleSharp
 
                 //// Execution ////
 
-                case "T1117":
-                    Simulations.Execution.ExecuteRegsvr32(log);
+                case "T1059.005":
+                    Simulations.Execution.VisualBasic(log);
                     break;
 
-                case "T1064":
-                    Simulations.Execution.Scripting(log);
+                case "T1059.007":
+                    Simulations.Execution.JScript(log);
                     break;
 
-                case "T1035":
+                case "T1569.002":
                     Simulations.Execution.ServiceExecution(log);
                     break;
 
-                case "T1059":
-                    Simulations.Execution.ExecuteCmd(log);
+                case "T1059.003":
+                    Simulations.Execution.WindowsCommandShell(log);
                     break;
 
-                case "T1086":
+                case "T1059.001":
                     variation = rand.Next(1, 3);
                     if (variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
                     else Simulations.Execution.ExecutePowershellNET(log);
                     break;
 
-                //T1028 - Windows Remote Management
+                //T1021.006 - Windows Remote Management
 
                 //// Persistence ////
 
-                //T1053 - Scheduled Task
+                //T1053.005 - Scheduled Task
 
-                case "T1053":
+                case "T1053.005":
                     Simulations.Persistence.CreateScheduledTaskCmd(log, cleanup);
                     break;
 
-                case "T1136":
+                case "T1136.001":
                     variation = rand.Next(1, 3);
-                    if (variation == 1) Simulations.Persistence.CreateAccountApi(log, cleanup);
-                    else Simulations.Persistence.CreateAccountCmd(log, cleanup);
+                    if (variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, cleanup);
+                    else Simulations.Persistence.CreateLocalAccountCmd(log, cleanup);
                     break;
 
-                case "T1050":
+                case "T1543.003":
                     variation = rand.Next(1, 3);
-                    if (variation == 1)  Simulations.Persistence.CreateServiceApi(log, cleanup);
-                    else Simulations.Persistence.CreateServiceCmd(log, cleanup);
+                    if (variation == 1)  Simulations.Persistence.CreateWindowsServiceApi(log, cleanup);
+                    else Simulations.Persistence.CreateWindowsServiceCmd(log, cleanup);
                     break;
 
-                case "T1060":
+                case "T1547.001":
                     variation = rand.Next(1, 3);
-                    if (variation == 1) Simulations.Persistence.RegistryRunKeyNET(log, cleanup);
-                    else Simulations.Persistence.RegistryRunKeyCmd(log, cleanup);
+                    if (variation == 1) Simulations.Persistence.CreateRegistryRunKeyNET(log, cleanup);
+                    else Simulations.Persistence.CreateRegistryRunKeyCmd(log, cleanup);
                     break;
 
-                case "T1084":
+                case "T1546.003":
                     Simulations.Persistence.WMIEventSubscription(log, cleanup);
                     break;
 
                 //// Privilege Escalation  ////
 
-                //T1050 - New Service
+                //T1543.003 - New Service
 
-                //T1053 - Scheduled Task
+                //T1053.005 - Scheduled Task
 
                 //// Defense Evasion ////
 
-                case "T1121":
+                case "T1218.010":
+                    Simulations.DefenseEvasion.Regsvr32(log);
+                    break;
+
+                case "T1218.009":
                     Simulations.DefenseEvasion.RegsvcsRegasm(log);
                     break;
 
-                case "T1118":
+                case "T1218.004":
                     Simulations.DefenseEvasion.InstallUtil(log);
                     break;
 
@@ -866,11 +870,11 @@ namespace PurpleSharp
                     Simulations.DefenseEvasion.DeobfuscateDecode(log);
                     break;
 
-                case "T1170":
+                case "T1218.005":
                     Simulations.DefenseEvasion.Mshta(log);
                     break;
 
-                case "T1191":
+                case "T1218.003":
                     Simulations.DefenseEvasion.Csmtp(log);
                     break;
 
@@ -878,12 +882,11 @@ namespace PurpleSharp
                     Simulations.DefenseEvasion.BitsJobs(log);
                     break;
 
-
-                case "T1085":
+                case "T1218.011":
                     Simulations.DefenseEvasion.Rundll32(log);
                     break;
 
-                case "T1070":
+                case "T1070.001":
                     variation = rand.Next(1, 3);
                     if(variation ==1) Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
                     else Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
@@ -894,17 +897,21 @@ namespace PurpleSharp
                     Simulations.DefenseEvasion.XlScriptProcessing(log);
                     break;
 
-                case "T1055":
-                    Simulations.DefenseEvasion.ProcessInjection(log);
+                case "T1055.002":
+                    Simulations.DefenseEvasion.PortableExecutableInjection(log);
                     break;
 
-                //T1117 - Regsvr32
+                case "T1055.004":
+                    Simulations.DefenseEvasion.AsynchronousProcedureCall(log);
+                    break;
+
+                //T1218.010 - Regsvr32
 
 
                 ////  Credential Access //// 
 
-                //T1110 - Brute Force
-                case "T1110":
+                //T1110.003 - Brute Force
+                case "T1110.003":
                     variation = rand.Next(1, 3);
                     string password = "Summer2020";
                     if (variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(nuser, tsleep, password, log);
@@ -912,13 +919,13 @@ namespace PurpleSharp
 
                     break;
 
-                //T1208 - Kerberoasting
-                case "T1208":
+                //T1558.003 - Kerberoasting
+                case "T1558.003":
                     Simulations.CredAccess.Kerberoasting(log, tsleep);
                     break;
 
-                //T1003 - Credential Dumping
-                case "T1003":
+                //T1003.001 - LSASS Memory
+                case "T1003.001":
                     Simulations.CredAccess.LsassMemoryDump(log);
                     break;
 
@@ -944,10 +951,14 @@ namespace PurpleSharp
                     Simulations.Discovery.NetworkServiceDiscovery(nhosts, tsleep, log);
                     break;
 
-                case "T1087":
+                case "T1087.001":
+                    Simulations.Discovery.LocalAccountDiscoveryCmd(log);
+                    break;
+
+                case "T1087.002":
                     variation = rand.Next(1, 3);
-                    if (variation ==1 ) Simulations.Discovery.AccountDiscoveryLdap(log);
-                    else Simulations.Discovery.AccountDiscoveryCmd(log);
+                    if (variation ==1 ) Simulations.Discovery.DomainAccountDiscoveryLdap(log);
+                    else Simulations.Discovery.DomainAccountDiscoveryCmd(log);
                     break;
 
                 case "T1007":
@@ -964,9 +975,9 @@ namespace PurpleSharp
 
                 ////  Lateral Movement //// 
 
-                //T1028 - Windows Remote Management
-                case "T1028":
-                    Simulations.LateralMovement.ExecuteWinRMOnHosts(nhosts, tsleep, log);
+                //T1021.006 - Windows Remote Management
+                case "T1021.006":
+                    Simulations.LateralMovement.WinRmCodeExec(nhosts, tsleep, log);
                     break;
 
                 //T1021 - Remote Service

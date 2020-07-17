@@ -50,11 +50,11 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        static public void ExecuteWinRMOnHosts(int nhost, int tsleep, string log)
+        static public void WinRmCodeExec(int nhost, int tsleep, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1028");
+            logger.SimulationHeader("T1021.006");
             logger.TimestampInfo("Using the System.Management.Automation .NET namespace to execute this technique");
 
             try
