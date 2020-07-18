@@ -15,9 +15,21 @@ namespace PurpleSharp
 
         static void Usage()
         {
-            Console.WriteLine("\n  PurpleSharp Usage:\n");
-            Console.WriteLine("\tPurpleSharp.exe /List                    -   Roast all users in current domain");
-            Console.WriteLine("\tPurpleSharp.exe /T [Technique_ID]        -   Roast all users in current domain using alternate creds");
+            //slant
+
+            string banner = @"
+        ____                   __    _____ __                   
+       / __ \__  ___________  / /__ / ___// /_  ____ __________ 
+      / /_/ / / / / ___/ __ \/ / _ \\__ \/ __ \/ __ `/ ___/ __ \
+     / ____/ /_/ / /  / /_/ / /  __/__/ / / / / /_/ / /  / /_/ /
+    /_/    \__,_/_/  / .___/_/\___/____/_/ /_/\__,_/_/  / .___/ 
+                    /_/                                /_/      
+            ";
+            Console.WriteLine(banner);
+            Console.WriteLine("\t\t\tby Mauricio Velazco (@mvelazco)");
+            Console.WriteLine("\t\t\thttps://github.com/mvelazc0/PurpleSharp");
+            Console.WriteLine("\t\t\thttps://purplesharp.readthedocs.io");
+            Console.WriteLine();
         }
 
 
@@ -33,7 +45,7 @@ namespace PurpleSharp
             verbose = scoutservice = simservice = newchild = scout = remote = navigator = false; 
             techniques = rhost = domain = ruser = rpwd = dc = pb_file = nav_action = navfile = scout_action = "";
 
-            scoutfpath = "C:\\Windows\\Temp\\PurpleSharp.exe";
+            scoutfpath = "C:\\Windows\\Temp\\Scout.exe";
             simrpath = "Downloads\\Firefox_Installer.exe";
             log = "0001.dat";
             scout_np = "scoutpipe";
@@ -417,12 +429,12 @@ namespace PurpleSharp
             string scoutFolder = scoutfpath.Substring(0, index + 1);
             string args = "/o";
 
-            Console.WriteLine("[+] Uploading Scout agent to {0} on {1}", scoutfpath, rhost);
+            Console.WriteLine("[+] Uploading Scout to {0} on {1}", scoutfpath, rhost);
             RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
 
-            Console.WriteLine("[+] Executing the Scout agent via WMI ...");
+            Console.WriteLine("[+] Executing the Scout via WMI ...");
             RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
-            Console.WriteLine("[+] Connecting to the Scout agent ...");
+            Console.WriteLine("[+] Connecting to the Scout ...");
 
             string result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "SYN");
             if (result.Equals("SYN/ACK"))
@@ -463,7 +475,7 @@ namespace PurpleSharp
                 }
                 if (verbose)
                 {
-                    Console.WriteLine("[+] Grabbing the Scout Agent output...");
+                    Console.WriteLine("[+] Grabbing the Scout output...");
                     System.Threading.Thread.Sleep(1000);
                     string sresults = RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
                     Console.WriteLine("[+] Results:");
@@ -505,10 +517,10 @@ namespace PurpleSharp
                 string result = "";
                 string args = "/o";
 
-                Console.WriteLine("[+] Uploading and executing the Scout agent on {0} ", @"\\" + rhost + @"\" + scoutfpath.Replace(":","$"));
+                Console.WriteLine("[+] Uploading and executing the Scout on {0} ", @"\\" + rhost + @"\" + scoutfpath.Replace(":","$"));
                 RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
                 RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
-                Console.WriteLine("[+] Connecting to the Scout agent ...");
+                Console.WriteLine("[+] Connecting to the Scout ...");
 
                 result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "SYN");
                 if (result.Equals("SYN/ACK"))
@@ -564,7 +576,7 @@ namespace PurpleSharp
 
                         if (verbose)
                         {
-                            Console.WriteLine("[+] Grabbing the Scout Agent output...");
+                            Console.WriteLine("[+] Grabbing the Scout output...");
                             System.Threading.Thread.Sleep(1000);
                             string sresults = RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
                             Console.WriteLine("[+] Results:");
@@ -668,10 +680,10 @@ namespace PurpleSharp
                 string result = "";
                 string args = "/o";
 
-                //Console.WriteLine("[+] Uploading Scout agent to {0} on {1}", scoutfpath, rhost);
+                //Console.WriteLine("[+] Uploading Scout to {0} on {1}", scoutfpath, rhost);
                 RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
 
-                //Console.WriteLine("[+] Executing the Scout agent via WMI ...");
+                //Console.WriteLine("[+] Executing the Scout via WMI ...");
                 RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
                 //Console.WriteLine("[+] Connecting to namedpipe service ...");
 

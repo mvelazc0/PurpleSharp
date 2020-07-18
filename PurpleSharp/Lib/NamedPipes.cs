@@ -26,6 +26,7 @@ namespace PurpleSharp.Lib
             Process parentprocess = null;
             int pbsleep, tsleep;
             pbsleep = tsleep = 0;
+            System.Threading.Thread.Sleep(1500);
 
             try
             {
