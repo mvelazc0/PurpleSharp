@@ -71,11 +71,11 @@ namespace PurpleSharp.Lib
         }
         public void SimulationDetails_old()
         {
-            WriteFormattedLog(LogLevel.TINFO, String.Format("Simulation agent running as {0} with PID:{1}", Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
+            WriteFormattedLog(LogLevel.TINFO, String.Format("Simulator running as {0} with PID:{1}", Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id));
         }
         public void SimulationDetails()
         {
-            WriteFormattedLog(LogLevel.TINFO, String.Format("Simulation agent running from {0} with PID:{1} as {2}", Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id, WindowsIdentity.GetCurrent().Name));
+            WriteFormattedLog(LogLevel.TINFO, String.Format("Simulator running from {0} with PID:{1} as {2}", Assembly.GetEntryAssembly().Location, Process.GetCurrentProcess().Id, WindowsIdentity.GetCurrent().Name));
         }
         public void SimulationFinished()
         {

@@ -40,6 +40,7 @@ namespace PurpleSharp.Simulations
                 Collection<PSObject> output = null;
                 output = pstest.Invoke();
                 logger.TimestampInfo("Succesfully invoked a PowerShell script using .NET");
+                logger.SimulationFinished();
 
             }
             catch (Exception ex)

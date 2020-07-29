@@ -148,11 +148,11 @@ namespace PurpleSharp.Lib
                     taskresult.technique = strip.Split(' ')[0];
                     //taskresult.host = strip.Split(' ')[1];
                 }
-                else if (line.Contains("Simulation agent"))
+                else if (line.Contains("Simulator"))
                 {
-                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Trim();
-                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
-                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
+                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Trim();
+                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
+                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
 
                     //taskresult.simprocess = strip.Split('|')[0];
                     //taskresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
@@ -181,12 +181,13 @@ namespace PurpleSharp.Lib
 
         public static SimulationPlaybookResult GetPlaybookResult(string results)
         {
+
             SimulationPlaybookResult playbookresult = new SimulationPlaybookResult();
             List<PlaybookTaskResult> taskresults = new List<PlaybookTaskResult>();
             string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             //foreach (string line in lines)
-            for (int i=0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
                 if (lines[i].Contains("Starting"))
                 {
@@ -199,15 +200,15 @@ namespace PurpleSharp.Lib
                     playbookresult.host = strip.Split(' ')[1];
                     bool finished = false;
                     int skipped = 0;
-                    for (int k = i+1; finished==false; k++)
+                    for (int k = i + 1; finished == false; k++)
                     {
-                        if (lines[k].Contains("Simulation agent"))
+                        if (lines[k].Contains("Simulator"))
                         {
-                            //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Trim();
-                            //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
-                            strip = lines[k].Substring(lines[k].LastIndexOf("]") + 1).Replace("Simulation agent running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
+                            //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Trim();
+                            //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
+                            strip = lines[k].Substring(lines[k].LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
 
-                            playbookresult.simprocess = strip.Split('|')[0];
+                            playbookresult.simprocess = strip.Split('|')[0].TrimEnd();
                             playbookresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
                             playbookresult.user = strip.Split('|')[2];
                         }
@@ -241,6 +242,7 @@ namespace PurpleSharp.Lib
             playbookresult.taskresults = taskresults;
             return playbookresult;
             //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
+            
         }
         public static void WriteJsonPlaybookResults(SimulationExerciseResult engagementResult, string outputfile)
         {

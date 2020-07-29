@@ -23,9 +23,12 @@ namespace PurpleSharp.Simulations
             try
             {
                 var rand = new Random();
-                int usertype = rand.Next(1, 7);
+                //int usertype = rand.Next(1, 7);
+                int usertype = 1;
                 List<User> usertargets = Lib.Targets.GetUserTargets(usertype, nuser);
-                int protocol = rand.Next(1, 3);
+
+                //int protocol = rand.Next(1, 3);
+                int protocol = 2;
                 switch (protocol)
                 {
                     case 1:

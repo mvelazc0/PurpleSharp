@@ -27,6 +27,7 @@ namespace PurpleSharp
             ";
             Console.WriteLine(banner);
             Console.WriteLine("\t\t\tby Mauricio Velazco (@mvelazco)");
+            Console.WriteLine();
             Console.WriteLine("\t\t\thttps://github.com/mvelazc0/PurpleSharp");
             Console.WriteLine("\t\t\thttps://purplesharp.readthedocs.io");
             Console.WriteLine();
@@ -40,7 +41,7 @@ namespace PurpleSharp
             string techniques, rhost, domain, ruser, rpwd, scoutfpath, simrpath, log, dc, pb_file, nav_action, navfile, scout_action, scout_np, simulator_np;
             int pbsleep, tsleep, nusers, nhosts;
             pbsleep = tsleep = 0;
-            nusers = nhosts = 5;
+            nusers = nhosts = 7;
             opsec = cleanup = true;
             verbose = scoutservice = simservice = newchild = scout = remote = navigator = false; 
             techniques = rhost = domain = ruser = rpwd = dc = pb_file = nav_action = navfile = scout_action = "";
@@ -166,7 +167,7 @@ namespace PurpleSharp
                 pSec.nLength = Marshal.SizeOf(pSec);
                 tSec.nLength = Marshal.SizeOf(tSec);
                 string currentbin = System.Reflection.Assembly.GetEntryAssembly().Location;
-                //run the simulation agent
+                //run the Simulator
                 WinAPI.CreateProcess(null, currentbin + " /s", ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
                 return;
             }
@@ -567,7 +568,7 @@ namespace PurpleSharp
 
                         string simfolder = "C:\\Users\\" + user + "\\" + simrfolder;
 
-                        Console.WriteLine("[+] Uploading Simulation agent to " + @"\\" + rhost + @"\" + simfpath.Replace(":", "$"));
+                        Console.WriteLine("[+] Uploading Simulator to " + @"\\" + rhost + @"\" + simfpath.Replace(":", "$"));
                         RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
                         Console.WriteLine("[+] Triggering simulation using PPID Spoofing | Process: {0}.exe | PID: {1} | High Integrity: {2}", payload[1], payload[2], payload[3] );
@@ -592,7 +593,7 @@ namespace PurpleSharp
                             
                             if (results.Split('\n').Last().Contains("Playbook Finished"))
                             {
-                                //Console.WriteLine("[+] Obtaining the Simulation Agent output...");
+                                //Console.WriteLine("[+] Obtaining the Simulator output...");
                                 Console.WriteLine("[+] Results:");
                                 Console.WriteLine();
                                 Console.WriteLine(results);
@@ -627,7 +628,7 @@ namespace PurpleSharp
             }
             else
             {
-                Console.WriteLine("[+] Uploading and executing the Simulation agent on {0} ", @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
+                Console.WriteLine("[+] Uploading and executing the Simulator on {0} ", @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
                 RemoteLauncher.upload(uploadPath, scoutfpath, rhost, ruser, rpwd, domain);
                 RemoteLauncher.wmiexec(rhost, scoutfpath, "/s", domain, ruser, rpwd);
                 Thread.Sleep(2000);
@@ -726,7 +727,7 @@ namespace PurpleSharp
 
                         string simfolder = "C:\\Users\\" + user + "\\" + simrfolder;
 
-                        //Console.WriteLine("[+] Uploading Simulation agent to " + simfpath);
+                        //Console.WriteLine("[+] Uploading Simulator to " + simfpath);
                         RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
                         //Console.WriteLine("[+] Triggering simulation...");
@@ -804,6 +805,18 @@ namespace PurpleSharp
 
                 //// Execution ////
 
+                case "T1059.001":
+                    variation = 2;
+                    //variation = rand.Next(1, 3);
+                    if (variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
+                    else Simulations.Execution.ExecutePowershellNET(log);
+                    break;
+
+                case "T1059.003":
+                    Simulations.Execution.WindowsCommandShell(log);
+                    break;
+
+
                 case "T1059.005":
                     Simulations.Execution.VisualBasic(log);
                     break;
@@ -816,15 +829,6 @@ namespace PurpleSharp
                     Simulations.Execution.ServiceExecution(log);
                     break;
 
-                case "T1059.003":
-                    Simulations.Execution.WindowsCommandShell(log);
-                    break;
-
-                case "T1059.001":
-                    variation = rand.Next(1, 3);
-                    if (variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
-                    else Simulations.Execution.ExecutePowershellNET(log);
-                    break;
 
                 //T1021.006 - Windows Remote Management
 
@@ -924,8 +928,9 @@ namespace PurpleSharp
 
                 //T1110.003 - Brute Force
                 case "T1110.003":
-                    variation = rand.Next(1, 3);
+                    //variation = rand.Next(1, 3);
                     string password = "Summer2020";
+                    variation = 1;
                     if (variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(nuser, tsleep, password, log);
                     else Simulations.CredAccess.RemotePasswordSpray(nhosts, nuser, tsleep, password, log);
 
@@ -968,7 +973,8 @@ namespace PurpleSharp
                     break;
 
                 case "T1087.002":
-                    variation = rand.Next(1, 3);
+                    variation = 1;
+                    //variation = rand.Next(1, 3);
                     if (variation ==1 ) Simulations.Discovery.DomainAccountDiscoveryLdap(log);
                     else Simulations.Discovery.DomainAccountDiscoveryCmd(log);
                     break;
@@ -1034,12 +1040,12 @@ namespace PurpleSharp
                     ExecuteTechnique(techniques[i].Trim(), nuser, nhosts, tsleep, log, cleanup);
                     if (pbsleep > 0 && i != techniques.Length-1) Thread.Sleep(1000 * pbsleep);
                 }
-                logger.TimestampInfo("Playbook Finished 1");
+                logger.TimestampInfo("Playbook Finished");
             }
             else 
             {
                 ExecuteTechnique(technique, nuser, nhosts, tsleep, log, cleanup);
-                logger.TimestampInfo("Playbook Finished 2");
+                logger.TimestampInfo("Playbook Finished");
             }
         }
 
