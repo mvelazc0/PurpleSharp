@@ -254,7 +254,7 @@ namespace PurpleSharp.Lib
         {
 
             NavigatorLayer layer = new NavigatorLayer();
-            layer.version = "2.2";
+            layer.version = "3.0";
             layer.name = "PurpleSharp Coverage";
             layer.domain = "mitre-enterprise";
             layer.description = "Layer of techniques supported by PurpleSharp";
@@ -280,7 +280,7 @@ namespace PurpleSharp.Lib
                 layertechniques.Add(tech);
             }
             layer.techniques = layertechniques;
-            File.WriteAllText("PurpleSharp.json", JsonConvert.SerializeObject(layer));
+            File.WriteAllText("PurpleSharp_navigator.json", JsonConvert.SerializeObject(layer));
         }
 
         public static NavigatorLayer ReadNavigatorLayer(string jsoninput)

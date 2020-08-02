@@ -195,7 +195,7 @@ namespace PurpleSharp
                         Console.WriteLine("[+] PurpleSharp supports "+ supported_techniques.Count() +" unique ATT&CK techniques.");
                         Console.WriteLine("[+] Generating an ATT&CK Navigator layer...");
                         Json.ExportAttackLayer(supported_techniques.Distinct().ToArray());
-                        Console.WriteLine("[!] Open PurpleSharp.json on https://mitre-attack.github.io/attack-navigator");
+                        Console.WriteLine("[!] Open PurpleSharp_Navigator.json on https://mitre-attack.github.io/attack-navigator");
                         return;
                     }
                     catch
