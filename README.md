@@ -19,10 +19,10 @@ PurpleSharp can be built with Visual Studio Community 2019 or 2020.
 
 ## Acknowledgments
 
-The community was a great source of ideas and feedback. Thank you all.
+The community is a great source of ideas and feedback. Thank you all.
 
 * [Olaf Hartong](https://twitter.com/olafhartong)
-* [Roberto Rodriguez](https://github.com/hunters-forge/ATTACK-Python-Client)
+* [Roberto Rodriguez](https://twitter.com/Cyb3rWard0g)
 * [Matt Graeber](https://twitter.com/mattifestation)
 * [Jonny Johnson](https://twitter.com/jsecurity101)
 * [Keith McCammon](https://twitter.com/kwm)
