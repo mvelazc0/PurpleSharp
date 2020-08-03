@@ -24,6 +24,11 @@ The attack telemetry produced by simulating techniques with PurpleSharp aids det
 
 PurpleSharp can be built with Visual Studio Community 2019 or 2020.
 
+## Documentation
+
+[https://purplesharp.readthedocs.io/](https://purplesharp.readthedocs.io/)
+
+
 ## Authors
 
 * **Mauricio Velazco** - [@mvelazco](https://twitter.com/mvelazco)
@@ -39,9 +44,3 @@ The community is a great source of ideas and feedback. Thank you all.
 * [Keith McCammon](https://twitter.com/kwm)
 * [Andrew Schwartz](https://www.trustedsec.com/team/andrew-schwartz/)
 
-
-
-
-## Documentation
-
-[https://purplesharp.readthedocs.io/](https://purplesharp.readthedocs.io/)
