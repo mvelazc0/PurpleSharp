@@ -9,11 +9,28 @@ Visit the Wiki to view the [Demos](https://github.com/mvelazc0/PurpleSharp/wiki/
 
 An updated version of PurpleSharp will be released on August 6th as part of BlackHat Arsenal 2020.
 
+## Quick Start Guide
+
+PurpleSharp can be built with Visual Studio Community 2019 or 2020.
 
 ## Authors
 
 * **Mauricio Velazco** - [@mvelazco](https://twitter.com/mvelazco)
 
-## Quick Start Guide
+## Acknowledgments
 
-[Work in Progress]
+The community was a great source of ideas and feedback. Thank you all.
+
+* [Olaf Hartong](https://twitter.com/olafhartong)
+* [Roberto Rodriguez](https://github.com/hunters-forge/ATTACK-Python-Client)
+* [Matt Graeber](https://twitter.com/mattifestation)
+* [Jonny Johnson](https://twitter.com/jsecurity101)
+* [Keith McCammon](https://twitter.com/kwm)
+* [Andrew Schwartz](https://www.trustedsec.com/team/andrew-schwartz/)
+
+
+
+
+## Documentation
+
+[https://purplesharp.readthedocs.io/](https://purplesharp.readthedocs.io/)
