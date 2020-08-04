@@ -44,3 +44,6 @@ The community is a great source of ideas and feedback. Thank you all.
 * [Keith McCammon](https://twitter.com/kwm)
 * [Andrew Schwartz](https://www.trustedsec.com/team/andrew-schwartz/)
 
+## License
+
+This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details
