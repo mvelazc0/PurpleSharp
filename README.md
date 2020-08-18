@@ -24,6 +24,8 @@ The attack telemetry produced by simulating techniques with PurpleSharp aids det
 
 PurpleSharp can be built with Visual Studio Community 2019 or 2020.
 
+.NET Framework 4.5 is required.
+
 ## Documentation
 
 [https://purplesharp.readthedocs.io/](https://purplesharp.readthedocs.io/)
