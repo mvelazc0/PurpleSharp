@@ -225,9 +225,7 @@ namespace PurpleSharp.Simulations
                 proc.StartInfo.UseShellExecute = false;
                 proc.Start();
                 logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1} started for the injection", proc.ProcessName, proc.Id));
-
                 DefenseEvasionHelper.ProcInjection_CreateRemoteThread(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
-                //DefenseEvasionHelper.ProcInjection_APC(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)

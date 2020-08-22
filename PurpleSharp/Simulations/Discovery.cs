@@ -160,7 +160,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 //ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
-                ExecutionHelper.StartProcess("", "net user /domain", logger);
+                ExecutionHelper.StartProcess("", "net user", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

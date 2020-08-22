@@ -38,7 +38,9 @@ namespace PurpleSharp.Simulations
         public static void ProcInjection_APC(byte[] shellcode, Process proc, Lib.Logger logger)
         {
             logger.TimestampInfo(String.Format("Calling OpenProcess on PID:{0}", proc.Id));
-            IntPtr procHandle = WinAPI.OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
+            IntPtr procHandle = WinAPI.OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
+
+            //IntPtr procHandle = WinAPI.OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, proc.Id);
             Int32 size = shellcode.Length;
             logger.TimestampInfo(String.Format("Calling VirtualAllocEx on PID:{0}", proc.Id));
             IntPtr spaceAddr = WinAPI.VirtualAllocEx(procHandle, new IntPtr(0), (uint)size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);

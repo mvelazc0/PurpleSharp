@@ -24,8 +24,9 @@ namespace PurpleSharp.Lib
             string technique, opsec, simpfath, simrpath, duser, user, simbinary, cleanup;
             technique = opsec = simpfath = simrpath = duser = user = simbinary = cleanup = "";
             Process parentprocess = null;
-            int pbsleep, tsleep;
+            int pbsleep, tsleep, variation;
             pbsleep = tsleep = 0;
+            variation = 1;
             System.Threading.Thread.Sleep(1500);
 
             try
@@ -117,6 +118,14 @@ namespace PurpleSharp.Lib
                             writer.WriteLine("ACK");
                             writer.Flush();
                         }
+                        else if (line.ToLower().StartsWith("variation:"))
+                        {
+                            variation = Int32.Parse(line.Replace("variation:", ""));
+                            //logger.TimestampInfo("Got params from client");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
                         else if (line.ToLower().StartsWith("pbsleep:"))
                         {
                             pbsleep = Int32.Parse(line.Replace("pbsleep:", ""));
@@ -179,7 +188,7 @@ namespace PurpleSharp.Lib
 
                                 System.Threading.Thread.Sleep(3000);
                                 logger.TimestampInfo("Sending payload to Scout Aggent through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
-                                RunNoAuthClient(simulator_np, "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:"+tsleep.ToString() + " cleanup:" + cleanup);
+                                RunNoAuthClient(simulator_np, "technique:" + technique +" variation:"+ variation.ToString() + " pbsleep:" + pbsleep.ToString() + " tsleep:"+tsleep.ToString() + " cleanup:" + cleanup);
                                 System.Threading.Thread.Sleep(2000);
                             }
                         }
@@ -203,7 +212,7 @@ namespace PurpleSharp.Lib
         }
         public static string[] RunSimulationService(string npipe, string log)
         {
-            string[] result = new string[4];
+            string[] result = new string[5];
             try
             {
                 //https://helperbyte.com/questions/171742/how-to-connect-to-a-named-pipe-without-administrator-rights
@@ -211,7 +220,7 @@ namespace PurpleSharp.Lib
                 ps.SetAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite, AccessControlType.Allow));
 
                 //logger.TimestampInfo("starting!");
-                string technique, pbsleep, tsleep, cleanup;
+                string technique, pbsleep, tsleep, cleanup, variation;
                 using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 4028, 4028, ps))
                 
                 {
@@ -225,16 +234,18 @@ namespace PurpleSharp.Lib
                     {
                         string[] options = line.Split(' ');
                         technique = options[0].Replace("technique:", "");
-                        pbsleep = options[1].Replace("pbsleep:", "");
-                        tsleep = options[2].Replace("tsleep:", "");
-                        cleanup = options[3].Replace("cleanup:", "");
+                        variation = options[1].Replace("variation:", "");
+                        pbsleep = options[2].Replace("pbsleep:", "");
+                        tsleep = options[3].Replace("tsleep:", "");
+                        cleanup = options[4].Replace("cleanup:", "");
                         writer.WriteLine("ACK");
                         writer.Flush();
 
                         result[0] = technique;
-                        result[1] = pbsleep;
-                        result[2] = tsleep;
-                        result[3] = cleanup;
+                        result[1] = variation;
+                        result[2] = pbsleep;
+                        result[3] = tsleep;
+                        result[4] = cleanup;
                         return result;
                     }
                     pipeServer.Disconnect();
