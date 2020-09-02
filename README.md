@@ -9,6 +9,7 @@ can be leveraged to measure and improve the efficacy of a detection engineering 
 PurpleSharp was first presented at [Derbycon IX](https://www.youtube.com/watch?v=7TVp4g4hkpg) on September 2019.
 
 An updated version was released on August 6th 2020 as part of [BlackHat Arsenal 2020](https://www.youtube.com/watch?v=yaeNwdElYaQ). 
+
 Visit the [Demos](https://purplesharp.readthedocs.io/en/latest/demos/demos.html) section to see PurpleSharp in action.
 
 ## Goals / Use Cases
