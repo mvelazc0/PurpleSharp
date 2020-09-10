@@ -184,6 +184,19 @@ public static class WinAPI
     public static extern IntPtr OpenThread(Structs.ThreadAccess dwDesiredAccess, bool bInheritHandle, int dwThreadId);
 
     [DllImport("kernel32.dll")]
+    public static extern uint SuspendThread(IntPtr hThread);
+
+    
+	[DllImport("kernel32.dll", SetLastError = true)]
+	public static extern bool SetThreadContext(IntPtr hThread, ref Structs.CONTEXT64 lpContext);
+
+    [DllImport("kernel32.dll")]
+    public static extern int ResumeThread(IntPtr hThread);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool GetThreadContext(IntPtr hThread, ref Structs.CONTEXT64 lpContext);
+
+    [DllImport("kernel32.dll")]
     public static extern IntPtr QueueUserAPC(IntPtr pfnAPC, IntPtr hThread, IntPtr dwData);
 
     [DllImport("advapi32.dll", SetLastError = true)]

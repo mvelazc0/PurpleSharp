@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PurpleSharp.Lib;
 using System.IO;
+using System.Threading;
 
 namespace PurpleSharp.Simulations
 {
@@ -225,6 +226,7 @@ namespace PurpleSharp.Simulations
                 proc.StartInfo.UseShellExecute = false;
                 proc.Start();
                 logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1} started for the injection", proc.ProcessName, proc.Id));
+                Thread.Sleep(1000);
                 DefenseEvasionHelper.ProcInjection_CreateRemoteThread(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
                 logger.SimulationFinished();
             }
@@ -249,8 +251,32 @@ namespace PurpleSharp.Simulations
                 proc.StartInfo.UseShellExecute = false;
                 proc.Start();
                 logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1} started for the injection", proc.ProcessName, proc.Id));
+                Thread.Sleep(1000);
                 DefenseEvasionHelper.ProcInjection_APC(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
                 logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
+        public static void ThreadHijack(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1055.003");
+            try 
+            {
+                Process proc = new Process();
+                proc.StartInfo.FileName = "C:\\Windows\\system32\\notepad.exe";
+                proc.StartInfo.UseShellExecute = false;
+                proc.Start();
+                logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1} started for the injection", proc.ProcessName, proc.Id));
+                Thread.Sleep(1000);
+                DefenseEvasionHelper.ProcInjection_ThreadHijack(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
+
             }
             catch (Exception ex)
             {
