@@ -40,7 +40,7 @@ PurpleSharp_ is an open source adversary simulation tool written in C# that exec
 Active Directory environments. The resulting telemetry can be leveraged to measure and improve the efficacy of a detection
 engineering program. PurpleSharp leverages the MITRE ATT&CK Framework and executes different techniques across the attack
 life cycle: execution, persistence, privilege escalation, credential access, lateral movement, etc. It currently supports
-`37 unique ATT&CK techniques`_.
+`38 unique ATT&CK techniques`_.
 
 .. _PurpleSharp: https://github.com/mvelazc0/PurpleSharp
 
