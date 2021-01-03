@@ -276,6 +276,29 @@ namespace PurpleSharp.Simulations
                 logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1} started for the injection", proc.ProcessName, proc.Id));
                 Thread.Sleep(1000);
                 DefenseEvasionHelper.ProcInjection_ThreadHijack(Convert.FromBase64String(Lib.Static.donut_ping), proc, logger);
+                logger.SimulationFinished();
+
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
+
+        public static void ParentPidSpoofing(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1134.004");
+            try
+            {
+                Process explorer = Process.GetProcessesByName("explorer").FirstOrDefault();
+                logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1} will be used as a parent for the new process", explorer.ProcessName, explorer.Id));
+                logger.TimestampInfo(String.Format("Spawning notepad.exe as a child process of {0}",explorer.Id));
+                Thread.Sleep(1000);
+                Launcher.SpoofParent(explorer.Id, "C:\\WINDOWS\\System32\\notepad.exe", "notepad.exe");
+                logger.SimulationFinished();
 
             }
             catch (Exception ex)

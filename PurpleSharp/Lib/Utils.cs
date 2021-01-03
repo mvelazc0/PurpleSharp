@@ -42,7 +42,6 @@ namespace PurpleSharp.Lib
         public static string GetPlaybookName(string results)
         {
             string Pbname = "";
-            string resu123 = "";
             string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < lines.Length; i++)
             {

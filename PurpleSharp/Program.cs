@@ -58,7 +58,7 @@ namespace PurpleSharp
             string[] execution = new string[] { "T1053.005", "T1059.003", "T1059.005", "T1059.007", "T1059.001", "T1569.002"};
             string[] persistence = new string[] { "T1053.005", "T1136.001", "T1543.003", "T1547.001", "T1546.003", "T1197" };
             string[] privelege_escalation = new string[] { "T1053.005", "T1543.003", "T1547.001", "T1546.003", "T1055.002", "T1055.004" };
-            string[] defense_evasion = new string[] { "T1218.010", "T1218.005", "T1218.003", "T1218.011", "T1070.001", "T1220", "T1055.002", "T1055.003", "T1055.004", "T1140", "T1197", "T1218.009", "T1218.004" };
+            string[] defense_evasion = new string[] { "T1218.010", "T1218.005", "T1218.003", "T1218.011", "T1070.001", "T1220", "T1055.002", "T1055.003", "T1055.004", "T1140", "T1197", "T1218.009", "T1218.004", "T1134.004" };
             string[] credential_access = new string[] { "T1110.003", "T1558.003", "T1003.001" };
             string[] discovery = new string[] { "T1135", "T1046", "T1087.001", "T1087.002", "T1007", "T1033", "T1049", "T1016", "T1083" };
             string[] lateral_movement = new string[] { "T1021", "T1021.006", "T1047" };
@@ -962,6 +962,12 @@ namespace PurpleSharp
                 case "T1055.004":
                     Simulations.DefenseEvasion.AsynchronousProcedureCall(log);
                     break;
+
+                case "T1134.004":
+                    Simulations.DefenseEvasion.ParentPidSpoofing(log);
+                    break;
+
+                    
 
                 //T1218.010 - Regsvr32
 
