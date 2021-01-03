@@ -38,5 +38,22 @@ namespace PurpleSharp.Lib
             string datetimeFormat = "MM/dd/yyyy HH:mm:ss";
             return System.DateTime.Now.ToString(datetimeFormat);
         }
+
+        public static string GetPlaybookName(string results)
+        {
+            string Pbname = "";
+            string resu123 = "";
+            string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].Contains("Running"))
+                {
+                    Pbname = lines[i].Substring(lines[i].LastIndexOf("Running ")+ 8).Trim();
+                    return Pbname;
+
+                }
+            }
+            return Pbname;
+        }
     }
 }

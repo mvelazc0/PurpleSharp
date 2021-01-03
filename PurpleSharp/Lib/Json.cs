@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Management.Automation.Language;
 
 namespace PurpleSharp.Lib
 {
@@ -13,6 +14,7 @@ namespace PurpleSharp.Lib
         public string username { get; set; }
         public string dc { get; set; }
         public int sleep { get; set; }
+        public string type { get; set; }
         public List<SimulationPlaybook> playbooks { get; set; }
     }
 

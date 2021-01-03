@@ -86,8 +86,11 @@ namespace PurpleSharp.Simulations
             {
                 var rand = new Random();
                 int usertype = rand.Next(1, 7);
+                usertype = 1;
                 if (usertype == 6) domain = ".";
-                int protocol = rand.Next(1, 3);
+                //int protocol = rand.Next(1, 3);
+                // Executing a remote authentication with Kerberos will not connect to the remote host, just the DC.
+                int protocol = 2;
 
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
 
