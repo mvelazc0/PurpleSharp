@@ -32,7 +32,7 @@ namespace PurpleSharp.Simulations
 
         public static void StartProcess(string binary, string cmdline, Lib.Logger logger)
         {
-            logger.TimestampInfo("Executing Command: " + cmdline);
+            
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
             bool retValue;
             Structs.PROCESS_INFORMATION pInfo = new Structs.PROCESS_INFORMATION();
@@ -41,7 +41,7 @@ namespace PurpleSharp.Simulations
             Structs.SECURITY_ATTRIBUTES tSec = new Structs.SECURITY_ATTRIBUTES();
             pSec.nLength = Marshal.SizeOf(pSec);
             tSec.nLength = Marshal.SizeOf(tSec);
-
+            logger.TimestampInfo("Using the Win32 API call CreateProcess to execute: " + cmdline);
             retValue = WinAPI.CreateProcess(null, cmdline, ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
 
             if (retValue)

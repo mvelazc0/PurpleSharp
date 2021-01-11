@@ -140,7 +140,6 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                //ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
                 ExecutionHelper.StartProcess("", "net user /domain", logger);
                 logger.SimulationFinished();
             }
@@ -256,5 +255,164 @@ namespace PurpleSharp.Simulations
                 logger.SimulationFailed(ex);
             }
         }
+
+        public static void DomainTrustDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1482");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("","nltest /domain_trusts", logger);
+                ExecutionHelper.StartProcess("", "nltest /all_trusts", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void PasswordPolicyDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1201");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("", "net accounts", logger);
+                ExecutionHelper.StartProcess("", "net accounts /domain", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void LocalGroups(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1069.001");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("", "net localgroup", logger);
+                ExecutionHelper.StartProcess("", "net localgroup \"Administrators\"", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void DomainGroups(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1069.002");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("", "net group /domain", logger);
+                ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void QueryRegistry(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1012");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("", "reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall", logger);
+                ExecutionHelper.StartProcess("", "reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\"", logger);
+                ExecutionHelper.StartProcess("", "reg query HKLM\\System\\Currentcontrolset\\Service", logger);
+
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void SecuritySoftwareDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1518.001");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("", "netsh advfirewall firewall show rule name=all", logger);
+                ExecutionHelper.StartProcess("", "wmic / Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName / Format:List", logger);
+                
+
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void SystemInformationDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1082");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("", "systeminfo", logger);
+                ExecutionHelper.StartProcess("", "net config workstation", logger);
+
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void SystemTimeDiscovery(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1124");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcess("", "w32tm /tz", logger);
+                ExecutionHelper.StartProcess("", "time /T", logger);
+
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+        
     }
 }

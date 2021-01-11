@@ -60,7 +60,7 @@ namespace PurpleSharp
             string[] privelege_escalation = new string[] { "T1053.005", "T1543.003", "T1547.001", "T1546.003", "T1055.002", "T1055.004" };
             string[] defense_evasion = new string[] { "T1218.010", "T1218.005", "T1218.003", "T1218.011", "T1070.001", "T1220", "T1055.002", "T1055.003", "T1055.004", "T1140", "T1197", "T1218.009", "T1218.004", "T1134.004" };
             string[] credential_access = new string[] { "T1110.003", "T1558.003", "T1003.001" };
-            string[] discovery = new string[] { "T1135", "T1046", "T1087.001", "T1087.002", "T1007", "T1033", "T1049", "T1016", "T1083" };
+            string[] discovery = new string[] { "T1135", "T1046", "T1087.001", "T1087.002", "T1007", "T1033", "T1049", "T1016", "T1083", "T1482", "T1201","T1069.001", "T1069.002", "T1012", "T1518.001", "T1082", "T1124" };
             string[] lateral_movement = new string[] { "T1021", "T1021.006", "T1047" };
 
             string[] supported_techniques = execution.Union(persistence).Union(privelege_escalation).Union(defense_evasion).Union(credential_access).Union(discovery).Union(lateral_movement).ToArray();
@@ -1033,6 +1033,38 @@ namespace PurpleSharp
 
                 case "T1049":
                     Simulations.Discovery.SystemNetworkConnectionsDiscovery(log);
+                    break;
+
+                case "T1482":
+                    Simulations.Discovery.DomainTrustDiscovery(log);
+                    break;
+
+                case "T1201":
+                    Simulations.Discovery.PasswordPolicyDiscovery(log);
+                    break;
+
+                case "T1069.001":
+                    Simulations.Discovery.LocalGroups(log);
+                    break;
+
+                case "T1069.002":
+                    Simulations.Discovery.DomainGroups(log);
+                    break;
+
+                case "T1012":
+                    Simulations.Discovery.QueryRegistry(log);
+                    break;
+
+                case "T1518.001":
+                    Simulations.Discovery.SecuritySoftwareDiscovery(log);
+                    break;
+
+                case "T1082":
+                    Simulations.Discovery.SystemInformationDiscovery(log);
+                    break;
+
+                case "T1124":
+                    Simulations.Discovery.SystemTimeDiscovery(log);
                     break;
 
                 ////  Lateral Movement //// 
