@@ -33,6 +33,7 @@ namespace PurpleSharp.Lib
     public class PlaybookTask
     {
         public string technique { get; set; }
+        public int variation { get; set; }
     }
 
 

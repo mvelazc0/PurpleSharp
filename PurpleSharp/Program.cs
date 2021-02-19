@@ -309,7 +309,7 @@ namespace PurpleSharp
                             {
                                 //techs.Add(task.technique);
                                 //Console.WriteLine(task.technique);
-                                ExecuteTechnique(task.technique, variation, 10, nhosts, tsleep, log, cleanup);
+                                ExecuteTechnique(task.technique, task.variation, 10, nhosts, tsleep, log, cleanup);
                                 if (playbook.pbsleep > 0 && task != lastTask) Thread.Sleep(1000 * playbook.pbsleep);
                             }
                             logger.TimestampInfo("Playbook Finished");
