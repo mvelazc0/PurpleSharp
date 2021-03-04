@@ -253,6 +253,12 @@ namespace PurpleSharp.Lib
 
         }
 
+        public static void WriteJsonPlaybookResults(SimulationPlaybookResult playbookResult, string outputfile)
+        {
+            File.WriteAllText(outputfile, JsonConvert.SerializeObject(playbookResult));
+
+        }
+
         public static void ExportAttackLayer(string[] techniques)
         {
 

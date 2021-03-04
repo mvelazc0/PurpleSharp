@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -298,9 +297,11 @@ namespace PurpleSharp
                             playbookResults.name = playbook.name;
                             playbookResults.host = playbook.host;
 
+
                             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
                             Lib.Logger logger = new Lib.Logger(currentPath + log);
                             logger.TimestampInfo("Running Playbook " + playbook.name);
+
                             //Console.WriteLine("[+] Starting Execution of {0}", playbook.name);
 
                             PlaybookTask lastTask = playbook.tasks.Last();
@@ -318,7 +319,9 @@ namespace PurpleSharp
 
                         SimulationPlaybookResult pbresults = Json.GetPlaybookResult(results);
                         pbresults.name = Utils.GetPlaybookName(results);
-                        File.WriteAllText(pb_file.Replace(".json", "") + "_results.json", JsonConvert.SerializeObject(pbresults));
+                        string output_file = pb_file.Replace(".json", "") + "_results.json";
+                        Json.WriteJsonPlaybookResults(pbresults, output_file);
+                        //File.WriteAllText(pb_file.Replace(".json", "") + "_results.json", JsonConvert.SerializeObject(pbresults));
 
                     }
 
