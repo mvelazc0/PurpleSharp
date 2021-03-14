@@ -232,6 +232,9 @@ namespace PurpleSharp
             }
             if (scout && !scout_action.Equals(""))
             {
+                string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+                Lib.Logger logger = new Lib.Logger(currentPath + log);
+
                 if (!rhost.Equals("") && !domain.Equals("") && !ruser.Equals(""))
                 {
                     if (rpwd == "")
@@ -249,7 +252,8 @@ namespace PurpleSharp
                     else if (!dc.Equals(""))
                     {
                         List<Computer> targets = new List<Computer>();
-                        targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
+                        //targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
+                        targets = Ldap.GetADComputers(10, logger, dc, ruser, rpwd);
                         if (targets.Count > 0)
                         {
                             Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
@@ -283,6 +287,8 @@ namespace PurpleSharp
             {
                 string json = File.ReadAllText(pb_file);
                 SimulationExercise engagement = Json.ReadSimulationPlaybook(json);
+                string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+                Lib.Logger logger = new Lib.Logger(currentPath + log);
 
                 if (engagement != null)
                 {
@@ -297,9 +303,6 @@ namespace PurpleSharp
                             playbookResults.name = playbook.name;
                             playbookResults.host = playbook.host;
 
-
-                            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-                            Lib.Logger logger = new Lib.Logger(currentPath + log);
                             logger.TimestampInfo("Running Playbook " + playbook.name);
 
                             //Console.WriteLine("[+] Starting Execution of {0}", playbook.name);
@@ -352,7 +355,8 @@ namespace PurpleSharp
                             string techs2 = String.Join(",", techs);
                             if (playbook.host.Equals("random"))
                             {
-                                List<Computer> targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
+                                //List<Computer> targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
+                                List<Computer> targets = Ldap.GetADComputers(10, logger, engagement.dc, engagement.username, pass);
                                 if (targets.Count > 0)
                                 {
                                     Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
@@ -400,6 +404,9 @@ namespace PurpleSharp
             }
             if (remote)
             {
+                string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+                Lib.Logger logger = new Lib.Logger(currentPath + log);
+
                 if (!rhost.Equals("") && !domain.Equals("") && !ruser.Equals("") && !techniques.Equals(""))
                 {
                     if (rpwd == "")
@@ -416,7 +423,8 @@ namespace PurpleSharp
                     else if (!dc.Equals(""))
                     {
                         List<Computer> targets = new List<Computer>();
-                        targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
+                        //targets = Ldap.GetADComputers(10, dc, ruser, rpwd);
+                        targets = Ldap.GetADComputers(10, logger, dc, ruser, rpwd);
                         if (targets.Count > 0)
                         {
                             Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
@@ -1098,7 +1106,7 @@ namespace PurpleSharp
                 // Other Techniques
 
                 case "privenum":
-                    Simulations.Discovery.PrivilegeEnumeration(nhosts, tsleep);
+                    Simulations.Discovery.PrivilegeEnumeration(nhosts, tsleep, log);
                     break;
 
                 default:

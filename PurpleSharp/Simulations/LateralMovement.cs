@@ -21,7 +21,7 @@ namespace PurpleSharp.Simulations
                 var rand = new Random();
                 int computertype = rand.Next(1, 6);
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
+                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 //Console.WriteLine("[*] Starting Service Based Lateral Movement attack from {0} as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
@@ -62,7 +62,7 @@ namespace PurpleSharp.Simulations
                 var rand = new Random();
                 int computertype = rand.Next(1, 6);
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
+                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 //Console.WriteLine("[*] Starting WinRM Based Lateral Movement attack from {0} running as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
@@ -102,7 +102,7 @@ namespace PurpleSharp.Simulations
                 int computertype = rand.Next(1, 6);
 
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
+                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", tsleep));
@@ -132,6 +132,7 @@ namespace PurpleSharp.Simulations
 
         static public void CreateSchTaskOnHosts(int nhost, int sleep, bool cleanup)
         {
+            /*
             var rand = new Random();
             int computertype = rand.Next(1, 6);
 
@@ -145,17 +146,17 @@ namespace PurpleSharp.Simulations
                 {
                     Computer temp = computer;
                     LateralMovementHelper.CreateRemoteScheduledTask(temp, "powershell.exe", cleanup);
-                    /*
+                    
                     tasklist.Add(Task.Factory.StartNew(() =>
                     {
                         LateralMovementHelper.CreateRemoteScheduledTask(computer, command, cleanup);
                     }));
                     if (sleep > 0) Thread.Sleep(sleep * 1000);
-                    */
+                    
                 }
             }
             //Task.WaitAll(tasklist.ToArray());
-
+            */
 
         }
 

@@ -48,8 +48,6 @@ namespace PurpleSharp.Simulations
             bool ret = WinAPI.LogonUser(username, domain, password, logontype, logonprovider, out handle);
             if (ret)
             {
-                //DateTime dtime = DateTime.Now;
-                //Console.WriteLine("{0}[{1}] Successfully  as {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), username, protocol);  
                 logger.TimestampInfo(String.Format("Successfully authenticated as {0} ({1}).", username, protocol));
                 //throw new ApplicationException(string.Format("Could not impersonate the elevated user.  LogonUser returned error code {0}.", errorCode));
 
@@ -57,8 +55,6 @@ namespace PurpleSharp.Simulations
             else
             {
                 var errorCode = Marshal.GetLastWin32Error();
-                //DateTime dtime = DateTime.Now;
-                //Console.WriteLine("{0}[{1}] Failed to authenticate as {2} ({3}). Error Code:{4}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), username, protocol, errorCode);
                 logger.TimestampInfo(String.Format("Tried to authenticate as {0} ({1}). Error Code:{2}", username, protocol, errorCode));
             }
             //_handle = new SafeTokenHandle(handle);

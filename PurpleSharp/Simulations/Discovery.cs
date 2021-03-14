@@ -22,7 +22,7 @@ namespace PurpleSharp.Simulations
                 var rand = new Random();
                 int computertype = rand.Next(1, 6);
 
-                List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhosts);
+                List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhosts, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targetcomputers.Count));
                 if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each enumeration attempt", tsleep));
                 foreach (Computer computer in targetcomputers)
@@ -47,14 +47,18 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void PrivilegeEnumeration(int nhost, int sleep)
+        public static void PrivilegeEnumeration(int nhost, int sleep, string log)
         {
-            
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T0XXX");
+            logger.TimestampInfo("Using the System.Management .NET API to execute this technique");
+
             List<Task> tasklist = new List<Task>();
             var rand = new Random();
             int computertype = rand.Next(1, 6);
 
-            List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhost);
+            List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhost, logger);
             Console.WriteLine("[*] Starting Find local administrator from {0} as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
             if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between enumeration", sleep);
             foreach (Computer computer in targetcomputers)
@@ -82,7 +86,7 @@ namespace PurpleSharp.Simulations
                 var rand = new Random();
                 int computertype = rand.Next(1, 6);
                 List<Task> tasklist = new List<Task>();
-                List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhost);
+                List<Computer> targetcomputers = Lib.Targets.GetHostTargets(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers for the scan", targetcomputers.Count));
                 if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", tsleep));
                 foreach (Computer computer in targetcomputers)

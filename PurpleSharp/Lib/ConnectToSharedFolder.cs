@@ -46,7 +46,6 @@ namespace PurpleSharp.Simulations
                 case ("0"):
                     dtime = DateTime.Now;
                     logger.TimestampInfo(String.Format("Successfully authenticated as {0} against {1} ({2})", userName, computer.ComputerName, protocol));
-                    Console.WriteLine("{0}[{1}] Successfully authenticated as {2} against {3} ({4})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), userName, computer.ComputerName, protocol);
                     break;
                 /*
                 case ("1323"):
@@ -68,10 +67,8 @@ namespace PurpleSharp.Simulations
                 */
 
                 default:
-                    //Console.WriteLine("Unknown Error Code on" + result.ToString());
                     dtime = DateTime.Now;
                     logger.TimestampInfo(String.Format("Failed to authenticate as {0} against {1} ({2}). Error Code:{3}", userName, computer.ComputerName, protocol, result.ToString()));
-                    Console.WriteLine("{0}[{1}] Failed to authenticate as {2} against {3} ({4}). Error Code:{5}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), userName, computer.ComputerName, protocol, result.ToString());
                     break;
             }
 

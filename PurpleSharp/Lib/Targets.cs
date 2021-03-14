@@ -47,25 +47,25 @@ namespace PurpleSharp.Lib
         }
 
 
-        public static List<Computer> GetDomainNeighborTargets(int count)
+        public static List<Computer> GetDomainNeighborTargets(int count, Lib.Logger logger)
         {
+
             List<Computer> targets = new List<Computer>();
             PrincipalContext context = new PrincipalContext(ContextType.Domain);
             string dc = context.ConnectedServer;
-            //logger.TimestampInfo("[*] Obtaining domain neighbor targets ...");
-            Console.WriteLine("[*] Obtaining domain neighbor targets ...");
-            targets = Ldap.GetADComputers(count, dc);
+            logger.TimestampInfo("Obtaining domain neighbor targets ...");
+            targets = Ldap.GetADComputers(count, logger, dc);
             //Console.WriteLine("[*] Finished");
             return targets;
 
 
         }
 
-        public static List<Computer> GetDomainRandomTargets(int count)
+        public static List<Computer> GetDomainRandomTargets(int count, Lib.Logger logger)
         {
             List<Computer> targets = new List<Computer>();
             Console.WriteLine("[*] Obtaining domain random targets ...");
-            targets = Ldap.GetADComputers(count);
+            targets = Ldap.GetADComputers(count, logger);
 
             return targets;
 
@@ -129,7 +129,7 @@ namespace PurpleSharp.Lib
             return users;
         }
 
-        public static List<User> GetUserTargets(int usertype, int nuser)
+        public static List<User> GetUserTargets(int usertype, int nuser, Lib.Logger logger)
         {
             List<User> targetusers = new List<User>();
             PrincipalContext context = new PrincipalContext(ContextType.Domain);
@@ -139,27 +139,27 @@ namespace PurpleSharp.Lib
             {
                 case 1:
 
-                    Console.WriteLine("[*] Targeting domain neighbor users");
-                    targetusers = Ldap.GetADUsers(nuser, dc, true);
+                    logger.TimestampInfo("Targeting domain neighbor users");
+                    targetusers = Ldap.GetADUsers(nuser, logger, dc, true);
                     break;
 
                 case 2:
-                    Console.WriteLine("[*] Targeting domain foreign users");
-                    targetusers = Ldap.GetADUsers(nuser, "", true);
+                    logger.TimestampInfo("Targeting domain foreign users");
+                    targetusers = Ldap.GetADUsers(nuser, logger, "", true);
                     break;
 
                 case 3:
-                    Console.WriteLine("[*] Targeting disabled users");
-                    targetusers = Ldap.GetADUsers(nuser, dc, false);
+                    logger.TimestampInfo("Targeting disabled users");
+                    targetusers = Ldap.GetADUsers(nuser, logger, dc, false);
                     break;
 
                 case 4:
-                    Console.WriteLine("[*] Targeting administrative accounts (adminCount=1) ");
+                    logger.TimestampInfo("Targeting administrative accounts (adminCount=1) ");
                     targetusers = Ldap.GetADAdmins(nuser);
                     break;
 
                 case 5:
-                    Console.WriteLine("[*] Targeting domain admins");
+                    logger.TimestampInfo("Targeting domain admins");
                     targetusers = Ldap.GetDomainAdmins();
                     break;
                
@@ -174,7 +174,7 @@ namespace PurpleSharp.Lib
             return targetusers;
         }
 
-        public static List<Computer> GetHostTargets(int servertype, int nhosts)
+        public static List<Computer> GetHostTargets(int servertype, int nhosts, Lib.Logger logger)
         {
             List<Computer> targethosts = new List<Computer>();
             /*
@@ -200,7 +200,7 @@ namespace PurpleSharp.Lib
                     return targethosts; 
             }
             */
-            targethosts = GetDomainNeighborTargets(nhosts);
+            targethosts = GetDomainNeighborTargets(nhosts, logger);
             return targethosts;
 
         }

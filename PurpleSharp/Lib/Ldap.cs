@@ -25,7 +25,7 @@ namespace PurpleSharp
 
     public class Ldap
     {
-        public static List<User> GetADUsers(int count, string dc = "", bool Enabled=true)
+        public static List<User> GetADUsers(int count, Lib.Logger logger, string dc = "", bool Enabled=true)
         {
             try
             {
@@ -41,14 +41,14 @@ namespace PurpleSharp
                     List<Computer> Dcs = GetDcs();
                     Random random = new Random();
                     int index = random.Next(Dcs.Count);
-                    Console.WriteLine("[*] Randomly Picked DC for LDAP queries {0}", Dcs[index].ComputerName);
+                    logger.TimestampInfo(String.Format("Randomly Picked DC for LDAP queries {0}", Dcs[index].ComputerName));
                     DirectoryEntry searchRoot = new DirectoryEntry("LDAP://" + Dcs[index].Fqdn);
                     search = new DirectorySearcher(searchRoot);
 
                 }
                 else
                 {
-                    Console.WriteLine("[*] Using LogonServer {0} for LDAP queries", dc);
+                    logger.TimestampInfo(String.Format("Using LogonServer {0} for LDAP queries", dc));
                     DirectoryEntry searchRoot = new DirectoryEntry("LDAP://" + dc);
                     search = new DirectorySearcher(searchRoot);
 
@@ -69,8 +69,8 @@ namespace PurpleSharp
                 search.SizeLimit = count * 5;
                 SearchResult result;
 
-                if (Enabled) Console.WriteLine("[*] Querying for active domain users with badPwdCount <= 3..");
-                else Console.WriteLine("[*] Querying for disabled domain users ..");
+                if (Enabled) logger.TimestampInfo("Querying for active domain users with badPwdCount <= 3..");
+                else logger.TimestampInfo(" Querying for disabled domain users ..");
 
                 SearchResultCollection resultCol = search.FindAll();
                 
@@ -156,7 +156,7 @@ namespace PurpleSharp
             }
             return lstDas;
         }
-        public static List<Computer> GetADComputers(int count, string dc = "", string username="", string password="")
+        public static List<Computer> GetADComputers(int count, Lib.Logger logger, string dc = "", string username="", string password="")
         {
 
             DateTime dt = DateTime.Now.AddDays(-1);
@@ -168,7 +168,7 @@ namespace PurpleSharp
                 List<Computer> Dcs = GetDcs();
                 Random random = new Random();
                 int index = random.Next(Dcs.Count);
-                Console.WriteLine("[*] Randomly Picked DC for LDAP queries {0}", Dcs[index].ComputerName);
+                logger.TimestampInfo(String.Format("Randomly Picked DC for LDAP queries {0}", Dcs[index].ComputerName));
                 DirectoryEntry searchRoot = new DirectoryEntry();
                 if (!username.Equals("") && !password.Equals("")) searchRoot = new DirectoryEntry("LDAP://" + Dcs[index].Fqdn, username, password);
                 else searchRoot = new DirectoryEntry("LDAP://" + Dcs[index].Fqdn);
@@ -177,7 +177,7 @@ namespace PurpleSharp
             }
             else
             {
-                Console.WriteLine("[*] Using {0} for LDAP queries", dc);
+                logger.TimestampInfo(String.Format("Using {0} for LDAP queries", dc));
                 DirectoryEntry searchRoot = new DirectoryEntry();
                 if (!username.Equals("") && !password.Equals("")) searchRoot = new DirectoryEntry("LDAP://" + dc, username, password);
                 else searchRoot = new DirectoryEntry("LDAP://" + dc);

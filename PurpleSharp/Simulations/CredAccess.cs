@@ -25,7 +25,7 @@ namespace PurpleSharp.Simulations
                 var rand = new Random();
                 //int usertype = rand.Next(1, 7);
                 int usertype = 1;
-                List<User> usertargets = Lib.Targets.GetUserTargets(usertype, nuser);
+                List<User> usertargets = Lib.Targets.GetUserTargets(usertype, nuser, logger) ;
 
                 //int protocol = rand.Next(1, 3);
                 int protocol = 2;
@@ -95,9 +95,9 @@ namespace PurpleSharp.Simulations
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
 
                 int computertype = rand.Next(1, 5);
-                targets = Lib.Targets.GetHostTargets(computertype, nhost);
+                targets = Lib.Targets.GetHostTargets(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targets.Count));
-                targetusers = Lib.Targets.GetUserTargets(usertype, nuser);
+                targetusers = Lib.Targets.GetUserTargets(usertype, nuser, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target user accounts", targetusers.Count));
                 
                 switch (protocol)
