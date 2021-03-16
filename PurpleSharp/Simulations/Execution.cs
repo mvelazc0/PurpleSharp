@@ -71,7 +71,7 @@ namespace PurpleSharp.Simulations
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
-            logger.SimulationHeader("T1035");
+            logger.SimulationHeader("T1569.002");
             try
             {
                 ExecutionHelper.StartProcess("", "net start UpdaterService", logger);

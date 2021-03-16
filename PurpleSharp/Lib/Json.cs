@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Management.Automation.Language;
 
 namespace PurpleSharp.Lib
 {
@@ -33,7 +31,7 @@ namespace PurpleSharp.Lib
     public class PlaybookTask
     {
         public string technique { get; set; }
-        public int variation { get; set; }
+        public int variation { get; set; } = 1;
     }
 
 
@@ -131,6 +129,7 @@ namespace PurpleSharp.Lib
             }
         }
 
+        /*
         public static PlaybookTaskResult GetTaskResult(string results)
         {
 
@@ -181,6 +180,156 @@ namespace PurpleSharp.Lib
             return taskresult;
             //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
         }
+        */
+
+        public static SimulationExerciseResult GetSimulationExerciseResult(string results)
+        {
+            SimulationExerciseResult simulationresult = new SimulationExerciseResult();
+            simulationresult.playbookresults = new List<SimulationPlaybookResult>();
+            string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string strip = "";
+
+                if (lines[i].Contains("Running Playbook"))
+                {
+                    SimulationPlaybookResult playbookresult = new SimulationPlaybookResult();
+                    List<PlaybookTaskResult> taskresults = new List<PlaybookTaskResult>();
+
+                    PlaybookTaskResult taskresult = new PlaybookTaskResult();
+                    List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
+
+                    strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("Running Playbook", "").Trim();
+                    playbookresult.name = strip;
+                    bool finished = false;
+                    int skipped = 0;
+
+                    for (int k = i + 1; finished == false; k++)
+                    {
+                        if (lines[k].Contains("Starting"))
+                        {
+                            taskresult.timestamp = lines[i].Substring(0, lines[i].IndexOf('[')).Trim();
+                            strip = lines[k].Substring(lines[k].LastIndexOf("]") + 1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
+                            taskresult.technique = strip.Split(' ')[0];
+                            playbookresult.host = strip.Split(' ')[1];
+                        }
+                        else if (lines[k].Contains("Simulator"))
+                        {
+                            strip = lines[k].Substring(lines[k].LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
+                            playbookresult.simprocess = strip.Split('|')[0].TrimEnd();
+                            playbookresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
+                            playbookresult.user = strip.Split('|')[2];
+                        }
+                        else if (lines[k].Contains("Simulation Finished"))
+                        {
+                            //finished = true;
+                            taskresult.success = true;
+                            taskresult.debugmsgs = debugmsgs;
+                            taskresults.Add(taskresult);
+                            //playbookresult.taskresults = taskresults;
+
+                            taskresult = new PlaybookTaskResult();
+                            debugmsgs = new List<TaskDebugMsg>();
+                        }
+                        else if (lines[k].Contains("Simulation Failed"))
+                        {
+                            //finished = true;
+                            taskresult.success = false;
+                            taskresult.debugmsgs = debugmsgs;
+                            taskresults.Add(taskresult);
+                            //playbookresult.taskresults = taskresults;
+
+                            taskresult = new PlaybookTaskResult();
+                            debugmsgs = new List<TaskDebugMsg>();
+                        }
+                        else if (lines[k].Contains("Playbook Finished")) 
+                        {
+                            finished = true;
+                        }
+                        else
+                        {
+                            TaskDebugMsg debugmsg = new TaskDebugMsg();
+                            debugmsg.msg = lines[k];
+                            debugmsgs.Add(debugmsg);
+                        }
+                        skipped += 1;
+                    }
+                    i += skipped;
+                    playbookresult.taskresults = taskresults;
+                    simulationresult.playbookresults.Add(playbookresult);
+                }
+
+            }
+            return simulationresult;
+        }
+
+        /*
+        public static SimulationExerciseResult GetSimulationExerciseResultOld(string results)
+        {
+            SimulationExerciseResult simulationresult = new SimulationExerciseResult();
+            simulationresult.playbookresults = new List<SimulationPlaybookResult>();
+            string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string strip = "";
+                SimulationPlaybookResult playbookresult = new SimulationPlaybookResult();
+                List<PlaybookTaskResult> taskresults = new List<PlaybookTaskResult>();
+
+
+                if (lines[i].Contains("Running Playbook"))
+                {
+                    strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("Running Playbook", "").Trim();
+                    playbookresult.name = strip;
+
+                }
+                else if (lines[i].Contains("Starting"))
+                {
+                    PlaybookTaskResult taskresult = new PlaybookTaskResult();
+                    List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
+
+                    taskresult.timestamp = lines[i].Substring(0, lines[i].IndexOf('[')).Trim();
+                    strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
+                    taskresult.technique = strip.Split(' ')[0];
+                    playbookresult.host = strip.Split(' ')[1];
+                    bool finished = false;
+                    int skipped = 0;
+                    for (int k = i + 1; finished == false; k++)
+                    {
+                        if (lines[k].Contains("Simulator"))
+                        {
+                            strip = lines[k].Substring(lines[k].LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
+                            playbookresult.simprocess = strip.Split('|')[0].TrimEnd();
+                            playbookresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
+                            playbookresult.user = strip.Split('|')[2];
+                        }
+                        else if (lines[k].Contains("Simulation Finished"))
+                        {
+                            taskresult.success = true;
+                            finished = true;
+                        }
+                        else if (lines[k].Contains("Simulation Failed"))
+                        {
+                            taskresult.success = false;
+                            finished = true;
+                        }
+                        else
+                        {
+                            TaskDebugMsg debugmsg = new TaskDebugMsg();
+                            debugmsg.msg = lines[k];
+                            debugmsgs.Add(debugmsg);
+                        }
+                        skipped += 1;
+                    }
+                    taskresult.debugmsgs = debugmsgs;
+                    taskresults.Add(taskresult);
+                    playbookresult.taskresults = taskresults;
+                    i += skipped;
+                    simulationresult.playbookresults.Add(playbookresult);
+                }
+            }
+            return simulationresult;
+        }
+        */
 
         public static SimulationPlaybookResult GetPlaybookResult(string results)
         {
@@ -247,7 +396,7 @@ namespace PurpleSharp.Lib
             //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
             
         }
-        public static void WriteJsonPlaybookResults(SimulationExerciseResult engagementResult, string outputfile)
+        public static void WriteJsonSimulationResults(SimulationExerciseResult engagementResult, string outputfile)
         {
             File.WriteAllText(outputfile, JsonConvert.SerializeObject(engagementResult));
 

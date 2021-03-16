@@ -189,6 +189,7 @@ namespace PurpleSharp
 
             //// Handling  User Parameters ////
 
+            //ATT&CK Navigator options
             if (navigator)
             {
 
@@ -230,6 +231,8 @@ namespace PurpleSharp
                 }
 
             }
+
+            //Scout: remote enumeration options
             if (scout && !scout_action.Equals(""))
             {
                 string currentPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -283,6 +286,8 @@ namespace PurpleSharp
                     return;
                 }
             }
+
+            //JSON playbook handling
             if (!pb_file.Equals(""))
             {
                 string json = File.ReadAllText(pb_file);
@@ -302,29 +307,19 @@ namespace PurpleSharp
                             playbookResults.taskresults = new List<PlaybookTaskResult>();
                             playbookResults.name = playbook.name;
                             playbookResults.host = playbook.host;
-
                             logger.TimestampInfo("Running Playbook " + playbook.name);
-
-                            //Console.WriteLine("[+] Starting Execution of {0}", playbook.name);
-
                             PlaybookTask lastTask = playbook.tasks.Last();
-                            //List<string> techs = new List<string>();
                             foreach (PlaybookTask task in playbook.tasks)
                             {
-                                //techs.Add(task.technique);
-                                //Console.WriteLine(task.technique);
                                 ExecuteTechnique(task.technique, task.variation, 10, nhosts, tsleep, log, cleanup);
                                 if (playbook.pbsleep > 0 && task != lastTask) Thread.Sleep(1000 * playbook.pbsleep);
                             }
                             logger.TimestampInfo("Playbook Finished");
-                            results = System.IO.File.ReadAllText(log);
                         }
-
-                        SimulationPlaybookResult pbresults = Json.GetPlaybookResult(results);
-                        pbresults.name = Utils.GetPlaybookName(results);
+                        results = System.IO.File.ReadAllText(log);
                         string output_file = pb_file.Replace(".json", "") + "_results.json";
-                        Json.WriteJsonPlaybookResults(pbresults, output_file);
-                        //File.WriteAllText(pb_file.Replace(".json", "") + "_results.json", JsonConvert.SerializeObject(pbresults));
+                        SimulationExerciseResult simulationresults = Json.GetSimulationExerciseResult(results);
+                        Json.WriteJsonSimulationResults(simulationresults, output_file);
 
                     }
 
@@ -355,7 +350,6 @@ namespace PurpleSharp
                             string techs2 = String.Join(",", techs);
                             if (playbook.host.Equals("random"))
                             {
-                                //List<Computer> targets = Ldap.GetADComputers(10, engagement.dc, engagement.username, pass);
                                 List<Computer> targets = Ldap.GetADComputers(10, logger, engagement.dc, engagement.username, pass);
                                 if (targets.Count > 0)
                                 {
@@ -387,7 +381,7 @@ namespace PurpleSharp
 
                         Console.WriteLine("Writting JSON results...");
                         string output_file = pb_file.Replace(".json", "") + "_results.json";
-                        Json.WriteJsonPlaybookResults(engagementResults, output_file);
+                        Json.WriteJsonSimulationResults(engagementResults, output_file);
                         Console.WriteLine("DONE. Open " + output_file);
                         Console.WriteLine();
                         return;
@@ -402,6 +396,8 @@ namespace PurpleSharp
                 }
                 
             }
+
+            //Remote simulations with command line parameters
             if (remote)
             {
                 string currentPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -455,7 +451,8 @@ namespace PurpleSharp
                     return;
                 }
             }
-            // running simulations locally
+            
+            //Local simulations with command line parameters
             else if (!techniques.Equals(""))
             {
                 ExecuteTechniques(techniques, variation, nusers, nhosts, pbsleep, tsleep, log, cleanup);
