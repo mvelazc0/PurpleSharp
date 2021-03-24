@@ -328,3 +328,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+/PurpleSharp/FodyWeavers.xml
+/PurpleSharp/FodyWeavers.xsd
