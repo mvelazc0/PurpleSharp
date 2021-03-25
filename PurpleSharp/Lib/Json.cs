@@ -66,7 +66,7 @@ namespace PurpleSharp.Lib
         public string msg { get; set; }
     }
 
-    //Mitre ATT&CK 
+    // ATT&CK Classes
 
     public class NavigatorLayer
     {
@@ -113,7 +113,65 @@ namespace PurpleSharp.Lib
     }
 
 
-    class Json
+    // Named Pipe Comms Classes
+
+    public class ReconResponse
+    {
+        public string user;
+
+        public string process;
+        
+        public string process_id;
+
+        public string process_integrity;
+        public ReconResponse(string u, string proc, string proc_id, string proc_int)
+        {
+            user = u;
+            process = proc;
+            process_id = proc_id;
+            process_integrity = proc_int;
+        }
+    }
+
+    public class SimulationRequest
+    {
+        public string recon_type;
+
+        public string simulator_rpath;
+
+        public string techniques;
+
+        public string variation;
+
+        public string opsec;
+
+        public string playbook_sleep;
+
+        public string task_sleep;
+
+        public string cleanup;
+
+        public SimulationRequest(string recon, string simrpath, string techs, string var, string ops, string pbsleep, string tsleep, string clnup)
+        {
+            recon_type = recon;
+            simulator_rpath = simrpath;
+            techniques = techs;
+            variation = var;
+            opsec = ops;
+            playbook_sleep = pbsleep;
+            task_sleep = tsleep;
+            cleanup = clnup;
+      
+        }
+    }
+    public class SimulationResponse
+    {
+        public string status;
+
+        public ReconResponse recon_response;
+    }
+
+        class Json
     {
         public static SimulationExercise ReadSimulationPlaybook(string jsoninput)
         {

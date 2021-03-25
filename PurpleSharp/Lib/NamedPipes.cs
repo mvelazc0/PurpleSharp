@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Security.Principal;
 using System.Security.AccessControl;
+using Newtonsoft.Json;
+using System.Threading;
 
 namespace PurpleSharp.Lib
 {
@@ -187,7 +189,7 @@ namespace PurpleSharp.Lib
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
                                 System.Threading.Thread.Sleep(3000);
-                                logger.TimestampInfo("Sending payload to Scout Aggent through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
+                                logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
                                 RunNoAuthClient(simulator_np, "technique:" + technique +" variation:"+ variation.ToString() + " pbsleep:" + pbsleep.ToString() + " tsleep:"+tsleep.ToString() + " cleanup:" + cleanup);
                                 System.Threading.Thread.Sleep(2000);
                             }
@@ -210,6 +212,285 @@ namespace PurpleSharp.Lib
                 logger.TimestampInfo(ex.Message.ToString());
             }
         }
+
+        public static void RunScoutServiceSerialized(string scout_np, string simulator_np, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            bool running = true;
+            bool privileged = false;
+
+            string technique, opsec, simpfath, simrpath, duser, user, simbinary, cleanup;
+            technique = opsec = simpfath = simrpath = duser = user = simbinary = cleanup = "";
+            Process parentprocess = null;
+            int pbsleep, tsleep, variation;
+            pbsleep = tsleep = 0;
+            variation = 1;
+            System.Threading.Thread.Sleep(1500);
+
+            try
+            {
+                using (var pipeServer = new NamedPipeServerStream(scout_np, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
+                {
+                    logger.TimestampInfo("Starting scout namedpipe service with PID:" + Process.GetCurrentProcess().Id);
+                    while (running)
+                    {
+                        var reader = new StreamReader(pipeServer);
+                        //var writer = new StreamWriter(pipeServer);
+                        var writer2 = new BinaryWriter(pipeServer);
+
+                        logger.TimestampInfo("Waiting for client connection...");
+                        pipeServer.WaitForConnection();
+                        logger.TimestampInfo("Client connected!");
+
+                        var line = reader.ReadLine();
+                        logger.TimestampInfo("Got some data back");
+
+                        logger.TimestampInfo("Received from client: " + line);
+
+                        SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
+
+                        logger.TimestampInfo("Received Simulation Request object");
+                        logger.TimestampInfo("Simrpath "+ sim_request.simulator_rpath);
+
+                        logger.TimestampInfo("1");
+                        writer2.Write("SYN/ACK");
+                        writer2.Flush();
+                        pipeServer.Disconnect();
+                        logger.TimestampInfo("2");
+                        logger.TimestampInfo("3");
+                        pipeServer.Disconnect();
+                        logger.TimestampInfo("4");
+
+                        /*
+                        if (line.ToLower().Equals("syn"))
+                        {
+                            //logger.TimestampInfo("sending back to client: " + "SYN/ACK");
+                            writer.WriteLine("SYN/ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("auditpol"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetAuditPolicy())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("wef"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetWefSettings())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("pws"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetPwsLoggingSettings())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("ps"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetProcs())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("svcs"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetServices())));
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().Equals("cmdline"))
+                        {
+                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetCmdlineAudittingSettings())));
+                            writer.Flush();
+                        }
+
+                        else if (line.ToLower().StartsWith("recon:"))
+                        {
+                            ReconResponse recon_response;
+                            byte[] bytes_recon_response;
+
+                            //string payload = "";
+                            if (line.Replace("recon:", "").Equals("privileged")) privileged = true;
+                            parentprocess = Recon.GetHostProcess(privileged);
+                            if (parentprocess != null && Recon.GetExplorer() != null)
+                            {
+                                duser = Recon.GetProcessOwnerWmi(Recon.GetExplorer());
+                                recon_response = new ReconResponse(duser, parentprocess.ProcessName, parentprocess.Id.ToString(), privileged.ToString());
+                                user = duser.Split('\\')[1];
+                                logger.TimestampInfo(String.Format("Recon identified {0} logged in. Process to Spoof: {1} PID: {2}", duser, parentprocess.ProcessName, parentprocess.Id));
+                                //payload = String.Format("{0},{1},{2},{3}", duser, parentprocess.ProcessName, parentprocess.Id, privileged.ToString());
+
+                            }
+                            else
+                            {
+                                //payload = ",,,";
+                                recon_response = new ReconResponse("", "", "", "");
+                                logger.TimestampInfo("Recon did not identify any logged users");
+                            }
+                            bytes_recon_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(recon_response));
+                            writer2.Write(bytes_recon_response);
+                            //writer.WriteLine(str_recon_response);
+                            //writer.WriteLine(payload);
+                            writer2.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("sc:"))
+                        {
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("technique:"))
+                        {
+                            technique = line.Replace("technique:", "");
+                            //logger.TimestampInfo("Got params from client");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("variation:"))
+                        {
+                            variation = Int32.Parse(line.Replace("variation:", ""));
+                            //logger.TimestampInfo("Got params from client");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("pbsleep:"))
+                        {
+                            pbsleep = Int32.Parse(line.Replace("pbsleep:", ""));
+                            //logger.TimestampInfo("Got params from client");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("tsleep:"))
+                        {
+                            tsleep = Int32.Parse(line.Replace("tsleep:", ""));
+                            //logger.TimestampInfo("Got params from client");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("opsec:"))
+                        {
+                            opsec = line.Replace("opsec:", "");
+                            //logger.TimestampInfo("Got opsec technique from client");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("cleanup:"))
+                        {
+                            cleanup = line.Replace("cleanup:", "");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.ToLower().StartsWith("simrpath:"))
+                        {
+                            simrpath = line.Replace("simrpath:", "");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            //simpath = "C:\\Users\\" + loggeduser + "\\Downloads\\" + simbin;
+                            simpfath = "C:\\Users\\" + user + "\\" + simrpath;
+                            int index = simrpath.LastIndexOf(@"\");
+                            simbinary = simrpath.Substring(index + 1);
+
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+                        }
+                        else if (line.Equals("act"))
+                        {
+                            logger.TimestampInfo("Received act!");
+                            //logger.TimestampInfo("sending back to client: " + "ACK");
+                            writer.WriteLine("ACK");
+                            writer.Flush();
+
+                            if (opsec.Equals("ppid"))
+                            {
+                                logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
+                                logger.TimestampInfo("Spoofing " + parentprocess.ProcessName + " PID: " + parentprocess.Id.ToString());
+                                logger.TimestampInfo("Executing: " + simpfath + " /n");
+                                //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
+                                //Launcher.SpoofParent(parentprocess.Id, simpfath, simrpath + " /s");
+
+                                Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /n");
+                                //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
+
+                                System.Threading.Thread.Sleep(3000);
+                                logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
+                                RunNoAuthClient(simulator_np, "technique:" + technique + " variation:" + variation.ToString() + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
+                                System.Threading.Thread.Sleep(2000);
+                            }
+                        }
+                        else if (line.ToLower().Equals("quit"))
+                        {
+                            logger.TimestampInfo("Received quit! Exitting namedpipe");
+                            //logger.TimestampInfo("sending back to client: " + "quit");
+                            writer.WriteLine("quit");
+                            writer.Flush();
+                            running = false;
+                        }
+                        */
+                        pipeServer.Disconnect();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.TimestampInfo(ex.ToString());
+                logger.TimestampInfo(ex.Message.ToString());
+            }
+        }
+
+        public static void RunScoutServiceSerialized2(string scout_np, string simulator_np, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            bool running = true;
+            bool privileged = false;
+
+            string technique, opsec, simpfath, simrpath, duser, user, simbinary, cleanup;
+            technique = opsec = simpfath = simrpath = duser = user = simbinary = cleanup = "";
+            Process parentprocess = null;
+            int pbsleep, tsleep, variation;
+            pbsleep = tsleep = 0;
+            variation = 1;
+            System.Threading.Thread.Sleep(1500);
+
+            try
+            {
+                using (var pipeServer = new NamedPipeServerStream(scout_np, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
+                {
+                    logger.TimestampInfo("Waiting for client connection...");
+                    pipeServer.WaitForConnection();
+                    logger.TimestampInfo("Client connected.");
+                    var messageBytes = ReadMessage(pipeServer);
+                    var line = Encoding.UTF8.GetString(messageBytes);
+                    logger.TimestampInfo(String.Format("Received: {0}", line));
+
+                    var response = Encoding.UTF8.GetBytes("SYN/ACK");
+                    pipeServer.Write(response, 0, response.Length);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.TimestampInfo(ex.ToString());
+                logger.TimestampInfo(ex.Message.ToString());
+            }
+        }
+
+        private static byte[] ReadMessage(PipeStream pipe)
+        {
+            byte[] buffer = new byte[1024];
+            using (var ms = new MemoryStream())
+            {
+                do
+                {
+                    var readBytes = pipe.Read(buffer, 0, buffer.Length);
+                    ms.Write(buffer, 0, readBytes);
+                }
+                while (!pipe.IsMessageComplete);
+
+                return ms.ToArray();
+            }
+        }
+
+
         public static string[] RunSimulationService(string npipe, string log)
         {
             string[] result = new string[5];
@@ -272,9 +553,42 @@ namespace PurpleSharp.Lib
                     var reader = new StreamReader(pipeClient);
                     var writer = new StreamWriter(pipeClient);
                     writer.WriteLine(request);
-                    writer.Flush();
+                    writer.Flush();                                        
                     var result = reader.ReadLine();
                     return (result.ToString());
+                    
+
+                }
+            }
+        }
+
+        public static string RunClientSerialized(string rhost, string domain, string ruser, string rpwd, string npipe, byte[] serialized_object)
+        {
+            using (new Impersonation(domain, ruser, rpwd))
+            {
+                using (var pipeClient = new NamedPipeClientStream(rhost, npipe, PipeDirection.InOut))
+                {
+                    pipeClient.Connect(100000);
+                    pipeClient.ReadMode = PipeTransmissionMode.Message;
+
+                    var reader = new StreamReader(pipeClient);
+                    //var writer = new StreamWriter(pipeClient);
+                    var writer2 = new BinaryWriter(pipeClient);
+
+                    writer2.Write(serialized_object);
+                    Console.WriteLine("data has been sent");
+                    writer2.Flush();
+                    //writer.WriteLine(request);
+                    //writer.Flush();
+
+                    Console.WriteLine("waiting for response");
+                    var result = reader.ReadLine();
+                    Console.WriteLine("Got data back");
+                    Console.WriteLine(result);
+                    
+                    return (result.ToString());
+
+
                 }
             }
         }
