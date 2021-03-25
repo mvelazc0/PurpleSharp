@@ -169,6 +169,13 @@ namespace PurpleSharp.Lib
         public string status;
 
         public ReconResponse recon_response;
+
+        public SimulationResponse (string stat, ReconResponse recon_resp)
+        {
+            status = stat;
+            recon_response = recon_resp;
+
+        }
     }
 
         class Json

@@ -236,7 +236,7 @@ namespace PurpleSharp.Lib
                     while (running)
                     {
                         var reader = new StreamReader(pipeServer);
-                        //var writer = new StreamWriter(pipeServer);
+                        var writer = new StreamWriter(pipeServer);
                         var writer2 = new BinaryWriter(pipeServer);
 
                         logger.TimestampInfo("Waiting for client connection...");
@@ -248,21 +248,7 @@ namespace PurpleSharp.Lib
 
                         logger.TimestampInfo("Received from client: " + line);
 
-                        SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
-
-                        logger.TimestampInfo("Received Simulation Request object");
-                        logger.TimestampInfo("Simrpath "+ sim_request.simulator_rpath);
-
-                        logger.TimestampInfo("1");
-                        writer2.Write("SYN/ACK");
-                        writer2.Flush();
-                        pipeServer.Disconnect();
-                        logger.TimestampInfo("2");
-                        logger.TimestampInfo("3");
-                        pipeServer.Disconnect();
-                        logger.TimestampInfo("4");
-
-                        /*
+                        
                         if (line.ToLower().Equals("syn"))
                         {
                             //logger.TimestampInfo("sending back to client: " + "SYN/ACK");
@@ -407,10 +393,12 @@ namespace PurpleSharp.Lib
                                 //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simrpath + " /s");
 
+                                if (!File.Exists(simpfath)) Thread.Sleep(5000);
+
                                 Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /n");
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
-                                System.Threading.Thread.Sleep(3000);
+                                Thread.Sleep(3000);
                                 logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + technique + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
                                 RunNoAuthClient(simulator_np, "technique:" + technique + " variation:" + variation.ToString() + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
                                 System.Threading.Thread.Sleep(2000);
@@ -424,7 +412,7 @@ namespace PurpleSharp.Lib
                             writer.Flush();
                             running = false;
                         }
-                        */
+                        
                         pipeServer.Disconnect();
                     }
                 }
@@ -443,8 +431,8 @@ namespace PurpleSharp.Lib
             bool running = true;
             bool privileged = false;
 
-            string technique, opsec, simpfath, simrpath, duser, user, simbinary, cleanup;
-            technique = opsec = simpfath = simrpath = duser = user = simbinary = cleanup = "";
+            string technique, opsec, simpfath, duser, user, simbinary, cleanup;
+            technique = opsec = simpfath =  duser = user = simbinary = cleanup = "";
             Process parentprocess = null;
             int pbsleep, tsleep, variation;
             pbsleep = tsleep = 0;
@@ -460,10 +448,82 @@ namespace PurpleSharp.Lib
                     logger.TimestampInfo("Client connected.");
                     var messageBytes = ReadMessage(pipeServer);
                     var line = Encoding.UTF8.GetString(messageBytes);
-                    logger.TimestampInfo(String.Format("Received: {0}", line));
+                    SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
 
-                    var response = Encoding.UTF8.GetBytes("SYN/ACK");
-                    pipeServer.Write(response, 0, response.Length);
+
+                    logger.TimestampInfo(String.Format("Received: {0}", line));
+                    logger.TimestampInfo(String.Format("Simulation techniques received {0}", sim_request.techniques));
+
+                    //var response = Encoding.UTF8.GetBytes("SYN/ACK");
+                    //pipeServer.Write(response, 0, response.Length);
+                    
+                    ReconResponse recon_response;
+                    byte[] bytes_recon_response;
+
+                    
+
+                    //string payload = "";
+                    if (sim_request.recon_type.Equals("privileged")) privileged = true;
+                    parentprocess = Recon.GetHostProcess(privileged);
+                    if (parentprocess != null && Recon.GetExplorer() != null)
+                    {
+                        duser = Recon.GetProcessOwnerWmi(Recon.GetExplorer());
+                        recon_response = new ReconResponse(duser, parentprocess.ProcessName, parentprocess.Id.ToString(), privileged.ToString());
+                        user = duser.Split('\\')[1];
+                        logger.TimestampInfo(String.Format("Recon identified {0} logged in. Process to Spoof: {1} PID: {2}", duser, parentprocess.ProcessName, parentprocess.Id));
+                        //payload = String.Format("{0},{1},{2},{3}", duser, parentprocess.ProcessName, parentprocess.Id, privileged.ToString());
+
+                    }
+                    else
+                    {
+                        //payload = ",,,";
+                        recon_response = new ReconResponse("", "", "", "");
+                        logger.TimestampInfo("Recon did not identify any logged users");
+                    }
+
+                    SimulationResponse sim_response = new SimulationResponse("SYN/ACK", recon_response);
+                    byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
+                    pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
+                    logger.TimestampInfo(String.Format("Sent SimulationResponse object"));
+
+                  
+                    
+
+                    if (sim_request.opsec.Equals("ppid"))
+                    {
+
+                        simpfath = "C:\\Users\\" + user + "\\" + sim_request.simulator_rpath;
+                        int index = sim_request.simulator_rpath.LastIndexOf(@"\");
+                        simbinary = sim_request.simulator_rpath.Substring(index + 1);
+
+                        logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
+                        logger.TimestampInfo("Spoofing " + parentprocess.ProcessName + " PID: " + parentprocess.Id.ToString());
+                        logger.TimestampInfo("Executing: " + simpfath + " /n");
+                        //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
+                        //Launcher.SpoofParent(parentprocess.Id, simpfath, simrpath + " /s");
+
+                        Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /n");
+                        //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
+
+                        System.Threading.Thread.Sleep(3000);
+                        logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + sim_request.techniques + " pbsleep:" + sim_request.playbook_sleep + " tsleep:" + sim_request.task_sleep + " cleanup:" + sim_request.cleanup);
+                        RunNoAuthClient(simulator_np, "technique:" + technique + " variation:" + variation.ToString() + " pbsleep:" + pbsleep.ToString() + " tsleep:" + tsleep.ToString() + " cleanup:" + cleanup);
+                        System.Threading.Thread.Sleep(2000);
+                    }
+                    
+
+
+
+
+
+
+
+                    //bytes_recon_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(recon_response));
+                    //writer2.Write(bytes_recon_response);
+                    //writer.WriteLine(str_recon_response);
+                    //writer.WriteLine(payload);
+                    //writer2.Flush();
+
 
                 }
             }
@@ -576,17 +636,23 @@ namespace PurpleSharp.Lib
                     var writer2 = new BinaryWriter(pipeClient);
 
                     writer2.Write(serialized_object);
-                    Console.WriteLine("data has been sent");
-                    writer2.Flush();
+                    //Console.WriteLine("data has been sent");
+                    //writer2.Flush();
                     //writer.WriteLine(request);
                     //writer.Flush();
 
-                    Console.WriteLine("waiting for response");
-                    var result = reader.ReadLine();
-                    Console.WriteLine("Got data back");
-                    Console.WriteLine(result);
-                    
-                    return (result.ToString());
+                    //Console.WriteLine("waiting for response");
+                    var restul1 = reader.ReadLine();
+                    //Console.WriteLine("Got data back");
+                    //Console.WriteLine(restul1);
+
+                    /*
+                    Console.WriteLine("waiting for response again");
+                    var restul2 = reader.ReadLine();
+                    Console.WriteLine("Got more data back");
+                    Console.WriteLine(restul2);
+                    */
+                    return (restul1.ToString());
 
 
                 }
