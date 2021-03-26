@@ -135,6 +135,19 @@ namespace PurpleSharp.Lib
 
     public class SimulationRequest
     {
+        public string header;
+
+        public SimulationRequestPayload sim_request_payload;
+
+        public SimulationRequest(string type, SimulationRequestPayload sr = null)
+        {
+            header = type;
+            sim_request_payload = sr;
+        }
+    }
+
+    public class SimulationRequestPayload 
+    {
         public string recon_type;
 
         public string simulator_rpath;
@@ -151,7 +164,7 @@ namespace PurpleSharp.Lib
 
         public string cleanup;
 
-        public SimulationRequest(string recon, string simrpath, string techs, string var, string ops, string pbsleep, string tsleep, string clnup)
+        public SimulationRequestPayload(string recon, string simrpath, string techs, string var, string ops, string pbsleep, string tsleep, string clnup)
         {
             recon_type = recon;
             simulator_rpath = simrpath;
@@ -161,18 +174,18 @@ namespace PurpleSharp.Lib
             playbook_sleep = pbsleep;
             task_sleep = tsleep;
             cleanup = clnup;
-      
         }
+
     }
     public class SimulationResponse
     {
-        public string status;
+        public string header;
 
         public ReconResponse recon_response;
 
-        public SimulationResponse (string stat, ReconResponse recon_resp)
+        public SimulationResponse (string stat, ReconResponse recon_resp=null)
         {
-            status = stat;
+            header = stat;
             recon_response = recon_resp;
 
         }

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using PurpleSharp.Lib;
 using Newtonsoft.Json;
-
+using System.Threading.Tasks;
 
 namespace PurpleSharp
 {
@@ -179,7 +179,7 @@ namespace PurpleSharp
             if (scoutservice)
             {
                 //NamedPipes.RunScoutService(scout_np, simulator_np, log);
-                NamedPipes.RunScoutServiceSerialized2(scout_np, simulator_np, log);
+                NamedPipes.RunScoutServiceSerialized(scout_np, simulator_np, log);
                 return;
             }
             if (simservice)
@@ -399,10 +399,8 @@ namespace PurpleSharp
                     Console.WriteLine("[!] Could not parse JSON input.");
                     Console.WriteLine("[*] Exiting");
                     return;
-                }
-                
+                }   
             }
-            
 
             //Remote simulations with command line parameters
             if (remote)
@@ -757,30 +755,23 @@ namespace PurpleSharp
                 RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
                 Console.WriteLine("[+] Connecting to the Scout ...");
 
-                SimulationRequest sim_request = new SimulationRequest("regular", simrpath, techniques, variation.ToString(), "ppid", pbsleep.ToString(), tsleep.ToString(), cleanup.ToString());
-
-                //result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "SYN");
-
+                SimulationRequestPayload sim_req_payload = new SimulationRequestPayload("regular", simrpath, techniques, variation.ToString(), "ppid", pbsleep.ToString(), tsleep.ToString(), cleanup.ToString());
+                if (privileged_techniques.Contains(techniques.ToUpper())) sim_req_payload.recon_type = "privileged";
+                SimulationRequest sim_request = new SimulationRequest("SYN", sim_req_payload);
                 byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request));
                 result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, bytes_sim_rqeuest);
 
                 SimulationResponse sim_response = JsonConvert.DeserializeObject<SimulationResponse>(result);
 
-                if (sim_response.status.Equals("SYN/ACK"))
+                if (sim_response.header.Equals("SYN/ACK"))
                 {
                     Console.WriteLine("[+] OK");
-
-                    /*
-                    if (privileged_techniques.Contains(techniques.ToUpper())) result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:privileged");
-                    else result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:regular");
-                    */
                     string duser = sim_response.recon_response.user;
-
-
                     if (duser == "")
                     {
                         Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
+                        sim_request = new SimulationRequest("FIN");
+                        result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
                         Thread.Sleep(1000);
                         RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
                         RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
@@ -801,8 +792,8 @@ namespace PurpleSharp
                         RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
                         Console.WriteLine("[+] Triggering simulation using PPID Spoofing | Process: {0}.exe | PID: {1} | High Integrity: {2}", sim_response.recon_response.process, sim_response.recon_response.process_id, sim_response.recon_response.process_integrity);
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "act");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
+                        sim_request = new SimulationRequest("ACT");
+                        result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
 
                         if (verbose)
                         {
@@ -1047,25 +1038,23 @@ namespace PurpleSharp
                 RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
                 //Console.WriteLine("[+] Connecting to namedpipe service ...");
 
-                result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "SYN");
-                if (result.Equals("SYN/ACK"))
+                SimulationRequestPayload sim_req_payload = new SimulationRequestPayload("regular", simrpath, techniques, "1", "ppid", pbsleep.ToString(), tsleep.ToString(), "True");
+                if (privileged_techniques.Contains(techniques.ToUpper())) sim_req_payload.recon_type = "privileged";
+                SimulationRequest sim_request = new SimulationRequest("SYN", sim_req_payload);
+                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request));
+                result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, bytes_sim_rqeuest);
+                SimulationResponse sim_response = JsonConvert.DeserializeObject<SimulationResponse>(result);
+
+                if (sim_response.header.Equals("SYN/ACK"))
                 {
                     //Console.WriteLine("[+] OK");
-
-                    if (privileged_techniques.Contains(techniques.ToUpper())) result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:privileged");
-                    else result = NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "recon:regular");
-
-                    ReconResponse recon_response = JsonConvert.DeserializeObject<ReconResponse>(result);
-                    string duser = recon_response.user;
-
-                    //string[] payload = result.Split(',');
-                    //string duser = payload[0];
-
-
+                    string duser = sim_response.recon_response.user;
                     if (duser == "")
                     {
+
                         Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
+                        sim_request = new SimulationRequest("FIN");
+                        result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
                         Thread.Sleep(1000);
                         RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
                         RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
@@ -1075,14 +1064,6 @@ namespace PurpleSharp
                     else
                     {
                         string user = duser.Split('\\')[1];
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "simrpath:" + simrpath);
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "technique:" + techniques);
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "opsec:" + "ppid");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "pbsleep:" + pbsleep.ToString());
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "tsleep:" + tsleep.ToString());
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "cleanup:True");
-
-
                         string simfpath = "C:\\Users\\" + user + "\\" + simrpath;
                         int index2 = simrpath.LastIndexOf(@"\");
                         string simrfolder = simrpath.Substring(0, index2 + 1);
@@ -1092,9 +1073,9 @@ namespace PurpleSharp
                         //Console.WriteLine("[+] Uploading Simulator to " + simfpath);
                         RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
-                        //Console.WriteLine("[+] Triggering simulation...");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "act");
-                        NamedPipes.RunClient(rhost, domain, ruser, rpwd, scout_np, "quit");
+                        //Console.WriteLine("[+] Triggering simulation using PPID Spoofing | Process: {0}.exe | PID: {1} | High Integrity: {2}", sim_response.recon_response.process, sim_response.recon_response.process_id, sim_response.recon_response.process_integrity);
+                        sim_request = new SimulationRequest("ACT");
+                        result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
 
                         System.Threading.Thread.Sleep(5000);
                         bool finished = false;
