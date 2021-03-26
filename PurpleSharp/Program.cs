@@ -184,7 +184,10 @@ namespace PurpleSharp
             }
             if (simservice)
             {
-                string[] options = NamedPipes.RunSimulationService(simulator_np, log);
+                //string[] options = NamedPipes.RunSimulationServiceSerialized(simulator_np, log);
+                //ExecuteTechniques(options[0], Int32.Parse(options[1]), nusers, nhosts, Int32.Parse(options[2]), Int32.Parse(options[3]), log, bool.Parse(options[4]));
+
+                string[] options = NamedPipes.RunSimulationServiceSerialized(simulator_np, log);
                 ExecuteTechniques(options[0], Int32.Parse(options[1]), nusers, nhosts, Int32.Parse(options[2]), Int32.Parse(options[3]), log, bool.Parse(options[4]));
                 return;
             }

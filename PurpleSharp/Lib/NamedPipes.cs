@@ -294,10 +294,18 @@ namespace PurpleSharp.Lib
                                 Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /n");
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
+                                logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + s_payload.techniques + " pbsleep:" + s_payload.playbook_sleep + " tsleep:" + s_payload.task_sleep + " cleanup:" + s_payload.cleanup);
+
+                                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SimulationRequest("ACK", s_payload)));
+                                string result = NamedPipes.RunNoAuthClientSerialized(simulator_np, bytes_sim_rqeuest);
+
+                                logger.TimestampInfo("Received back from Simulator " + result);
+                                /*
                                 System.Threading.Thread.Sleep(3000);
                                 logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + s_payload.techniques + " pbsleep:" + s_payload.playbook_sleep + " tsleep:" + s_payload.task_sleep + " cleanup:" + s_payload.cleanup);
                                 RunNoAuthClient(simulator_np, "technique:" + s_payload.techniques + " variation:" + s_payload.variation.ToString() + " pbsleep:" + s_payload.playbook_sleep.ToString() + " tsleep:" + s_payload.task_sleep.ToString() + " cleanup:" + s_payload.cleanup);
                                 System.Threading.Thread.Sleep(2000);
+                                */
                             }
 
                             sim_response = new SimulationResponse("ACK");
@@ -393,6 +401,53 @@ namespace PurpleSharp.Lib
 
         }
 
+        public static string[] RunSimulationServiceSerialized(string npipe, string log)
+        {
+            string[] result = new string[5];
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            try
+            {
+                //https://helperbyte.com/questions/171742/how-to-connect-to-a-named-pipe-without-administrator-rights
+                PipeSecurity ps = new PipeSecurity();
+                ps.SetAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite, AccessControlType.Allow));
+
+                logger.TimestampInfo("starting Simulator!");
+                string technique, pbsleep, tsleep, cleanup, variation;
+                using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 4028, 4028, ps))
+
+                {
+                    SimulationResponse sim_response;
+                    logger.TimestampInfo("Waiting for client connection...");
+                    pipeServer.WaitForConnection();
+                    logger.TimestampInfo("Client connected.");
+                    var messageBytes = ReadMessage(pipeServer);
+                    var line = Encoding.UTF8.GetString(messageBytes);
+                    logger.TimestampInfo("Received from client: " + line);
+                    SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
+
+                    result[0] = sim_request.sim_request_payload.techniques;
+                    result[1] = sim_request.sim_request_payload.variation;
+                    result[2] = sim_request.sim_request_payload.playbook_sleep;
+                    result[3] = sim_request.sim_request_payload.task_sleep;
+                    result[4] = sim_request.sim_request_payload.cleanup;
+
+                    sim_response = new SimulationResponse("ACK");
+                    byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
+                    pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
+
+
+                    pipeServer.Disconnect();
+                    return result;
+                }
+            }
+            catch
+            {
+                return result;
+            }
+
+        }
+
         //Based on https://github.com/malcomvetter/NamedPipes
         public static string RunClient(string rhost, string domain, string ruser, string rpwd, string npipe, string request)
         {
@@ -427,27 +482,9 @@ namespace PurpleSharp.Lib
                     var reader = new StreamReader(pipeClient);
                     //var writer = new StreamWriter(pipeClient);
                     var writer2 = new BinaryWriter(pipeClient);
-
                     writer2.Write(serialized_object);
-                    //Console.WriteLine("data has been sent");
-                    //writer2.Flush();
-                    //writer.WriteLine(request);
-                    //writer.Flush();
-
-                    //Console.WriteLine("waiting for response");
                     var restul1 = reader.ReadLine();
-                    //Console.WriteLine("Got data back");
-                    //Console.WriteLine(restul1);
-
-                    /*
-                    Console.WriteLine("waiting for response again");
-                    var restul2 = reader.ReadLine();
-                    Console.WriteLine("Got more data back");
-                    Console.WriteLine(restul2);
-                    */
                     return (restul1.ToString());
-
-
                 }
             }
         }
@@ -465,8 +502,25 @@ namespace PurpleSharp.Lib
                 writer.Flush();
                 var result = reader.ReadLine();
                 return (result.ToString());
+            } 
+        }
+
+        public static string RunNoAuthClientSerialized(string npipe, byte[] serialized_object)
+        {
+            using (var pipeClient = new NamedPipeClientStream(".", npipe, PipeDirection.InOut))
+            {
+                pipeClient.Connect(10000);
+                pipeClient.ReadMode = PipeTransmissionMode.Message;
+
+                var reader = new StreamReader(pipeClient);
+                var writer2 = new BinaryWriter(pipeClient);
+                writer2.Write(serialized_object);
+                //var writer = new StreamWriter(pipeClient);
+                //writer.WriteLine(request);
+                //writer.Flush();
+                var result = reader.ReadLine();
+                return (result.ToString());
             }
-            
         }
     }
 }
