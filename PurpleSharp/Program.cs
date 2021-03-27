@@ -179,7 +179,7 @@ namespace PurpleSharp
             if (scoutservice)
             {
                 //NamedPipes.RunScoutService(scout_np, simulator_np, log);
-                NamedPipes.RunScoutServiceSerialized(scout_np, simulator_np, log);
+                NamedPipes.RunScoutServiceSerialized2(scout_np, simulator_np, log);
                 return;
             }
             if (simservice)
@@ -187,14 +187,17 @@ namespace PurpleSharp
                 //string[] options = NamedPipes.RunSimulationServiceSerialized(simulator_np, log);
                 //ExecuteTechniques(options[0], Int32.Parse(options[1]), nusers, nhosts, Int32.Parse(options[2]), Int32.Parse(options[3]), log, bool.Parse(options[4]));
 
-                string[] options = NamedPipes.RunSimulationServiceSerialized(simulator_np, log);
-                ExecuteTechniques(options[0], Int32.Parse(options[1]), nusers, nhosts, Int32.Parse(options[2]), Int32.Parse(options[3]), log, bool.Parse(options[4]));
+                //SimulationRequestPayload sim_payload = NamedPipes.RunSimulationServiceSerialized(simulator_np, log);
+                //ExecuteTechniques(sim_payload.techniques, Int32.Parse(sim_payload.variation), nusers, nhosts, Int32.Parse(sim_payload.playbook_sleep), Int32.Parse(sim_payload.task_sleep), log, bool.Parse(sim_payload.cleanup));
+
+                SimulationPlaybook playbook = NamedPipes.RunSimulationServiceSerialized(simulator_np, log);
+                ExecuteTechniques2(playbook, log);
                 return;
             }
 
             //// Handling  User Parameters ////
 
-            //ATT&CK Navigator options
+            //ATT&CK Navigator optionsE
             if (navigator)
             {
 
@@ -311,13 +314,13 @@ namespace PurpleSharp
                             SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
                             playbookResults.taskresults = new List<PlaybookTaskResult>();
                             playbookResults.name = playbook.name;
-                            playbookResults.host = playbook.host;
+                            playbookResults.host = playbook.remote_host;
                             logger.TimestampInfo("Running Playbook " + playbook.name);
                             PlaybookTask lastTask = playbook.tasks.Last();
                             foreach (PlaybookTask task in playbook.tasks)
                             {
                                 ExecuteTechnique(task.technique, task.variation, 10, nhosts, tsleep, log, cleanup);
-                                if (playbook.pbsleep > 0 && task != lastTask) Thread.Sleep(1000 * playbook.pbsleep);
+                                if (playbook.playbook_sleep > 0 && task != lastTask) Thread.Sleep(1000 * playbook.playbook_sleep);
                             }
                             logger.TimestampInfo("Playbook Finished");
                         }
@@ -343,7 +346,7 @@ namespace PurpleSharp
                             SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
                             playbookResults.taskresults = new List<PlaybookTaskResult>();
                             playbookResults.name = playbook.name;
-                            playbookResults.host = playbook.host;
+                            playbookResults.host = playbook.remote_host;
                             Console.WriteLine("[+] Running Playbook {0}", playbook.name);
 
                             PlaybookTask lastTask = playbook.tasks.Last();
@@ -353,7 +356,7 @@ namespace PurpleSharp
                                 techs.Add(task.technique);
                             }
                             string techs2 = String.Join(",", techs);
-                            if (playbook.host.Equals("random"))
+                            if (playbook.remote_host.Equals("random"))
                             {
                                 List<Computer> targets = Ldap.GetADComputers(10, logger, engagement.dc, engagement.username, pass);
                                 if (targets.Count > 0)
@@ -364,7 +367,8 @@ namespace PurpleSharp
                                     Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
                                     Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, targets[index].Fqdn);
                                     //playbookResults = ExecuteRemoteTechniquesJson(targets[index].Fqdn, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, scout_np, playbook.simrpath, log, true, false);
-                                    playbookResults = ExecuteRemoteTechniquesJsonSerialized(targets[index].Fqdn, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, scout_np, playbook.simrpath, log, true, false);
+                                    //playbookResults = ExecuteRemoteTechniquesJsonSerialized(targets[index].Fqdn, engagement.domain, engagement.username, pass, techs2, playbook.playbook_sleep, playbook.tsleep, playbook.scout_full_path, scout_np, playbook.simulator_relative_path, log, true, false);
+                                    playbookResults = ExecuteRemoteTechniquesJsonSerialized2(playbook.remote_host, engagement.domain, engagement.username, pass, scout_np, playbook, log, false);
                                     if (playbookResults == null) continue;
                                     playbookResults.name = playbook.name;
                                 }
@@ -373,9 +377,9 @@ namespace PurpleSharp
                             }
                             else
                             {
-                                Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, playbook.host);
+                                Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, playbook.remote_host);
                                 //playbookResults = ExecuteRemoteTechniquesJson(playbook.host, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, scout_np, playbook.simrpath, log, true, false);
-                                playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.host, engagement.domain, engagement.username, pass, techs2, playbook.pbsleep, playbook.tsleep, playbook.scoutfpath, scout_np, playbook.simrpath, log, true, false);
+                                playbookResults = ExecuteRemoteTechniquesJsonSerialized2(playbook.remote_host, engagement.domain, engagement.username, pass,scout_np, playbook, log, false);
                                 if (playbookResults == null) continue;
                                 playbookResults.name = playbook.name;
                             }
@@ -758,11 +762,42 @@ namespace PurpleSharp
                 RemoteLauncher.wmiexec(rhost, scoutfpath, args, domain, ruser, rpwd);
                 Console.WriteLine("[+] Connecting to the Scout ...");
 
+
+
+                SimulationPlaybook playbook = new SimulationPlaybook();
+                List<PlaybookTask> tasks = new List<PlaybookTask>();
+
+                if (techniques.Contains(","))
+                {
+                    string[] techs = techniques.Split(',');
+                    for (int i = 0; i < techs.Length; i++)
+                    {
+                        tasks.Add(new PlaybookTask(techs[i]));
+
+                    }
+                }
+                else
+                {
+                    tasks.Add(new PlaybookTask(techniques));
+                    
+                }
+                playbook.tasks = tasks;
+                playbook.simulator_relative_path = simrpath;
+                playbook.playbook_sleep = pbsleep;
+
+                SimulationRequest2 sim_request = new SimulationRequest2("SYN", "regular", playbook);
+                if (privileged_techniques.Contains(techniques.ToUpper())) sim_request.recon_type = "privileged";
+                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request));
+                result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, bytes_sim_rqeuest);
+
+
+                /*
                 SimulationRequestPayload sim_req_payload = new SimulationRequestPayload("regular", simrpath, techniques, variation.ToString(), "ppid", pbsleep.ToString(), tsleep.ToString(), cleanup.ToString());
                 if (privileged_techniques.Contains(techniques.ToUpper())) sim_req_payload.recon_type = "privileged";
                 SimulationRequest sim_request = new SimulationRequest("SYN", sim_req_payload);
                 byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request));
                 result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, bytes_sim_rqeuest);
+                */
 
                 SimulationResponse sim_response = JsonConvert.DeserializeObject<SimulationResponse>(result);
 
@@ -773,7 +808,7 @@ namespace PurpleSharp
                     if (duser == "")
                     {
                         Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
-                        sim_request = new SimulationRequest("FIN");
+                        sim_request = new SimulationRequest2("FIN");
                         result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
                         Thread.Sleep(1000);
                         RemoteLauncher.delete(scoutfpath, rhost, ruser, rpwd, domain);
@@ -795,7 +830,7 @@ namespace PurpleSharp
                         RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
 
                         Console.WriteLine("[+] Triggering simulation using PPID Spoofing | Process: {0}.exe | PID: {1} | High Integrity: {2}", sim_response.recon_response.process, sim_response.recon_response.process_id, sim_response.recon_response.process_integrity);
-                        sim_request = new SimulationRequest("ACT");
+                        sim_request = new SimulationRequest2("ACT");
                         result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
 
                         if (verbose)
@@ -1140,6 +1175,130 @@ namespace PurpleSharp
                 return Json.GetPlaybookResult(results);
             }
         }
+
+        public static SimulationPlaybookResult ExecuteRemoteTechniquesJsonSerialized2(string rhost, string domain, string ruser, string rpwd, string scout_np, SimulationPlaybook playbook, string log, bool verbose)
+        {
+            // techniques that need to be executed from a high integrity process
+            string[] privileged_techniques = new string[] { "T1003.001", "T1136.001", "T1070.001", "T1543.003", "T1546.003" };
+
+            string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            int index = playbook.scout_full_path.LastIndexOf(@"\");
+            string scoutFolder = playbook.scout_full_path.Substring(0, index + 1);
+            Thread.Sleep(3000);
+
+            if (playbook.opsec.Equals("ppid"))
+            {
+                string result = "";
+                string args = "/o";
+
+                //Console.WriteLine("[+] Uploading Scout to {0} on {1}", scoutfpath, rhost);
+                RemoteLauncher.upload(uploadPath, playbook.scout_full_path, rhost, ruser, rpwd, domain);
+
+                //Console.WriteLine("[+] Executing the Scout via WMI ...");
+                RemoteLauncher.wmiexec(rhost, playbook.scout_full_path, args, domain, ruser, rpwd);
+                //Console.WriteLine("[+] Connecting to namedpipe service ...");
+
+                SimulationRequest2 sim_request = new SimulationRequest2("SYN", "regular", playbook);
+                //if (privileged_techniques.Contains(techniques.ToUpper())) sim_request.recon_type = "privileged";
+                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request));
+                result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, bytes_sim_rqeuest);
+                SimulationResponse sim_response = JsonConvert.DeserializeObject<SimulationResponse>(result);
+
+
+
+                if (sim_response.header.Equals("SYN/ACK"))
+                {
+                    //Console.WriteLine("[+] OK");
+                    string duser = sim_response.recon_response.user;
+                    if (duser == "")
+                    {
+
+                        Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + rhost + "?");
+                        sim_request = new SimulationRequest2("FIN");
+                        result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
+                        Thread.Sleep(1000);
+                        RemoteLauncher.delete(playbook.scout_full_path, rhost, ruser, rpwd, domain);
+                        RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+                        //Console.WriteLine("[!] Exitting.");
+                        return null;
+                    }
+                    else
+                    {
+                        string user = duser.Split('\\')[1];
+                        string simfpath = "C:\\Users\\" + user + "\\" + playbook.simulator_relative_path;
+                        int index2 = playbook.simulator_relative_path.LastIndexOf(@"\");
+                        string simrfolder = playbook.simulator_relative_path.Substring(0, index2 + 1);
+
+                        string simfolder = "C:\\Users\\" + user + "\\" + simrfolder;
+
+                        //Console.WriteLine("[+] Uploading Simulator to " + simfpath);
+                        RemoteLauncher.upload(uploadPath, simfpath, rhost, ruser, rpwd, domain);
+
+                        //Console.WriteLine("[+] Triggering simulation using PPID Spoofing | Process: {0}.exe | PID: {1} | High Integrity: {2}", sim_response.recon_response.process, sim_response.recon_response.process_id, sim_response.recon_response.process_integrity);
+                        sim_request = new SimulationRequest2("ACT");
+                        result = NamedPipes.RunClientSerialized(rhost, domain, ruser, rpwd, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
+
+                        System.Threading.Thread.Sleep(5000);
+                        bool finished = false;
+                        int counter = 1;
+                        string results = RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
+                        while (finished == false)
+                        {
+                            if (results.Split('\n').Last().Contains("Playbook Finished"))
+                            {
+                                Console.WriteLine("[+] Results:");
+                                Console.WriteLine();
+                                Console.WriteLine(results);
+                                Console.WriteLine();
+                                RemoteLauncher.delete(playbook.scout_full_path, rhost, ruser, rpwd, domain);
+                                RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+                                RemoteLauncher.delete(simfpath, rhost, ruser, rpwd, domain);
+                                RemoteLauncher.delete(simfolder + log, rhost, ruser, rpwd, domain);
+                                finished = true;
+                            }
+                            else
+                            {
+                                Console.WriteLine("[+] Not finished. Waiting an extra {0} seconds", counter * 10);
+                                Thread.Sleep(counter * 10 * 1000);
+                                results = RemoteLauncher.readFile(rhost, simfolder + log, ruser, rpwd, domain);
+                            }
+                            counter += 1;
+                        }
+                        return Json.GetPlaybookResult(results);
+
+                    }
+                }
+                else
+                {
+                    //Console.WriteLine("[!] Could not connect to namedpipe service");
+                    return null;
+                }
+            }
+            else
+            {
+                //Console.WriteLine("[+] Uploading PurpleSharp to {0} on {1}", scoutfpath, rhost);
+                RemoteLauncher.upload(uploadPath, playbook.scout_full_path, rhost, ruser, rpwd, domain);
+
+                string cmdline = "/t ";// + techniques;
+                //Console.WriteLine("[+] Executing PurpleSharp via WMI ...");
+                RemoteLauncher.wmiexec(rhost, playbook.scout_full_path, cmdline, domain, ruser, rpwd);
+                Thread.Sleep(3000);
+                Console.WriteLine("[+] Obtaining results...");
+                string results = RemoteLauncher.readFile(rhost, scoutFolder + log, ruser, rpwd, domain);
+                Console.WriteLine("[+] Results:");
+                Console.WriteLine();
+                Console.WriteLine(results);
+                //Console.WriteLine("[+] Cleaning up...");
+                //Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
+                RemoteLauncher.delete(playbook.scout_full_path, rhost, ruser, rpwd, domain);
+                //
+                //Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
+                RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+
+                return Json.GetPlaybookResult(results);
+            }
+        }
+
         public static void ExecuteTechnique(string technique, int variation, int nuser, int nhosts, int tsleep, string log, bool cleanup)
         {
             var rand = new Random();
@@ -1404,6 +1563,271 @@ namespace PurpleSharp
 
             }
         }
+
+        public static void ExecuteTechnique2(PlaybookTask task, string log)
+        {
+            var rand = new Random();
+
+            switch (task.technique)
+            {
+                //// Initial Access ////
+
+                //// Execution ////
+
+                case "T1059.001":
+                    if (task.variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
+                    else Simulations.Execution.ExecutePowershellNET(log);
+                    break;
+
+                case "T1059.003":
+                    Simulations.Execution.WindowsCommandShell(log);
+                    break;
+
+
+                case "T1059.005":
+                    Simulations.Execution.VisualBasic(log);
+                    break;
+
+                case "T1059.007":
+                    Simulations.Execution.JScript(log);
+                    break;
+
+                case "T1569.002":
+                    Simulations.Execution.ServiceExecution(log);
+                    break;
+
+
+                //T1021.006 - Windows Remote Management
+
+                //// Persistence ////
+
+                //T1053.005 - Scheduled Task
+
+                case "T1053.005":
+                    Simulations.Persistence.CreateScheduledTaskCmd(log, task.cleanup);
+                    break;
+
+                case "T1136.001":
+                    if (task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, task.cleanup);
+                    else Simulations.Persistence.CreateLocalAccountCmd(log, task.cleanup);
+                    break;
+
+                case "T1543.003":
+                    if (task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(log, task.cleanup);
+                    else Simulations.Persistence.CreateWindowsServiceCmd(log, task.cleanup);
+                    break;
+
+                case "T1547.001":
+                    if (task.variation == 1) Simulations.Persistence.CreateRegistryRunKeyNET(log, task.cleanup);
+                    else Simulations.Persistence.CreateRegistryRunKeyCmd(log, task.cleanup);
+                    break;
+
+                case "T1546.003":
+                    Simulations.Persistence.WMIEventSubscription(log, task.cleanup);
+                    break;
+
+                //// Privilege Escalation  ////
+
+                //T1543.003 - New Service
+
+                //T1053.005 - Scheduled Task
+
+                //// Defense Evasion ////
+
+                case "T1218.010":
+                    Simulations.DefenseEvasion.Regsvr32(log);
+                    break;
+
+                case "T1218.009":
+                    Simulations.DefenseEvasion.RegsvcsRegasm(log);
+                    break;
+
+                case "T1218.004":
+                    Simulations.DefenseEvasion.InstallUtil(log);
+                    break;
+
+                case "T1140":
+                    Simulations.DefenseEvasion.DeobfuscateDecode(log);
+                    break;
+
+                case "T1218.005":
+                    Simulations.DefenseEvasion.Mshta(log);
+                    break;
+
+                case "T1218.003":
+                    Simulations.DefenseEvasion.Csmtp(log);
+                    break;
+
+                case "T1197":
+                    Simulations.DefenseEvasion.BitsJobs(log);
+                    break;
+
+                case "T1218.011":
+                    Simulations.DefenseEvasion.Rundll32(log);
+                    break;
+
+                case "T1070.001":
+                    if (task.variation == 1) Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
+                    else Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+
+                    break;
+
+                case "T1220":
+                    Simulations.DefenseEvasion.XlScriptProcessing(log);
+                    break;
+
+                case "T1055.002":
+                    Simulations.DefenseEvasion.PortableExecutableInjection(log);
+                    break;
+
+                case "T1055.003":
+                    Simulations.DefenseEvasion.ThreadHijack(log);
+                    break;
+
+                case "T1055.004":
+                    Simulations.DefenseEvasion.AsynchronousProcedureCall(log);
+                    break;
+
+                case "T1134.004":
+                    Simulations.DefenseEvasion.ParentPidSpoofing(log);
+                    break;
+
+
+
+                //T1218.010 - Regsvr32
+
+
+                ////  Credential Access //// 
+
+                //T1110.003 - Brute Force
+                case "T1110.003":
+                    string password = "Summer2020";
+                    if (task.variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(task.target_users, task.task_sleep, password, log);
+                    else Simulations.CredAccess.RemotePasswordSpray(task.target_hosts, task.target_users, task.task_sleep, password, log);
+
+                    break;
+
+                //T1558.003 - Kerberoasting
+                case "T1558.003":
+                    Simulations.CredAccess.Kerberoasting(log, task.task_sleep);
+                    break;
+
+                //T1003.001 - LSASS Memory
+                case "T1003.001":
+                    Simulations.CredAccess.LsassMemoryDump(log);
+                    break;
+
+                ////  Discovery //// 
+
+                //T1016 System Network Configuration Discovery
+                case "T1016":
+                    Simulations.Discovery.SystemNetworkConfigurationDiscovery(log);
+                    break;
+
+                //T1083 File and Directory Discovery
+                case "T1083":
+                    Simulations.Discovery.FileAndDirectoryDiscovery(log);
+                    break;
+
+                //T1135 - Network Share Discovery
+                case "T1135":
+                    Simulations.Discovery.EnumerateShares(task.target_hosts, task.task_sleep, log);
+                    break;
+
+                //T1046 - Network Service Scanning
+                case "T1046":
+                    Simulations.Discovery.NetworkServiceDiscovery(task.target_hosts, task.task_sleep, log);
+                    break;
+
+                case "T1087.001":
+                    Simulations.Discovery.LocalAccountDiscoveryCmd(log);
+                    break;
+
+                case "T1087.002":
+                    if (task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryLdap(log);
+                    else Simulations.Discovery.DomainAccountDiscoveryCmd(log);
+                    break;
+
+                case "T1007":
+                    Simulations.Discovery.SystemServiceDiscovery(log);
+                    break;
+
+                case "T1033":
+                    Simulations.Discovery.SystemUserDiscovery(log);
+                    break;
+
+                case "T1049":
+                    Simulations.Discovery.SystemNetworkConnectionsDiscovery(log);
+                    break;
+
+                case "T1482":
+                    Simulations.Discovery.DomainTrustDiscovery(log);
+                    break;
+
+                case "T1201":
+                    Simulations.Discovery.PasswordPolicyDiscovery(log);
+                    break;
+
+                case "T1069.001":
+                    Simulations.Discovery.LocalGroups(log);
+                    break;
+
+                case "T1069.002":
+                    Simulations.Discovery.DomainGroups(log);
+                    break;
+
+                case "T1012":
+                    Simulations.Discovery.QueryRegistry(log);
+                    break;
+
+                case "T1518.001":
+                    Simulations.Discovery.SecuritySoftwareDiscovery(log);
+                    break;
+
+                case "T1082":
+                    Simulations.Discovery.SystemInformationDiscovery(log);
+                    break;
+
+                case "T1124":
+                    Simulations.Discovery.SystemTimeDiscovery(log);
+                    break;
+
+                ////  Lateral Movement //// 
+
+                //T1021.006 - Windows Remote Management
+                case "T1021.006":
+                    Simulations.LateralMovement.WinRmCodeExec(task.target_hosts, task.task_sleep, log);
+                    break;
+
+                //T1021 - Remote Service
+                case "T1021":
+                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(task.target_hosts, task.task_sleep, task.cleanup, log);
+                    break;
+
+                //T1047 - Windows Management Instrumentation
+                case "T1047":
+                    Simulations.LateralMovement.ExecuteWmiOnHosts(task.target_hosts, task.task_sleep, log);
+                    break;
+
+                // Collection
+
+                // Command and Control
+
+                // Exfiltration
+
+                // Impact
+
+                // Other Techniques
+
+                case "privenum":
+                    Simulations.Discovery.PrivilegeEnumeration(task.target_hosts, task.task_sleep, log);
+                    break;
+
+                default:
+                    break;
+
+            }
+        }
         public static void ExecuteTechniques(string technique, int variation, int nuser, int nhosts, int pbsleep, int tsleep, string log, bool cleanup)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -1422,6 +1846,18 @@ namespace PurpleSharp
             else 
             {
                 ExecuteTechnique(technique, variation, nuser, nhosts, tsleep, log, cleanup);
+                logger.TimestampInfo("Playbook Finished");
+            }
+        }
+
+        public static void ExecuteTechniques2(SimulationPlaybook playbook, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            foreach (PlaybookTask task in playbook.tasks)
+            {
+                ExecuteTechnique2(task, log);
+                if (playbook.playbook_sleep > 0 ) Thread.Sleep(1000 * playbook.playbook_sleep);
                 logger.TimestampInfo("Playbook Finished");
             }
         }

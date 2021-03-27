@@ -20,18 +20,32 @@ namespace PurpleSharp.Lib
     public class SimulationPlaybook
     {
         public string name { get; set; }
-        public string scoutfpath { get; set; }
-        public string simrpath { get; set; }
-        public int pbsleep { get; set; }
+        public string scout_full_path { get; set; }
+        public string simulator_relative_path { get; set; }
+        public int playbook_sleep { get; set; }
         public int tsleep { get; set; }
-        public string host { get; set; }
+        public string remote_host { get; set; }
+        public string opsec { get; set; } = "ppid";
         public List<PlaybookTask> tasks { get; set; }
     }
 
     public class PlaybookTask
     {
         public string technique { get; set; }
-        public int variation { get; set; } = 1;
+        public int variation { get; set; } = 1; 
+        public int task_sleep { get; set; } = 1;
+        public bool cleanup { get; set; } = true;
+        public int target_users { get; set; } = 10;
+        public int target_hosts { get; set; } = 10;
+
+        public PlaybookTask()
+        {
+        }
+
+        public PlaybookTask(string tech)
+        {
+            technique = tech;
+        }
     }
 
 
@@ -115,24 +129,6 @@ namespace PurpleSharp.Lib
 
     // Named Pipe Comms Classes
 
-    public class ReconResponse
-    {
-        public string user;
-
-        public string process;
-        
-        public string process_id;
-
-        public string process_integrity;
-        public ReconResponse(string u, string proc, string proc_id, string proc_int)
-        {
-            user = u;
-            process = proc;
-            process_id = proc_id;
-            process_integrity = proc_int;
-        }
-    }
-
     public class SimulationRequest
     {
         public string header;
@@ -146,7 +142,23 @@ namespace PurpleSharp.Lib
         }
     }
 
-    public class SimulationRequestPayload 
+    public class SimulationRequest2
+    {
+        public string header;
+
+        public string recon_type;
+
+        public SimulationPlaybook playbook;
+
+        public SimulationRequest2(string hd, string re_type = "",  SimulationPlaybook pb = null)
+        {
+            header = hd;
+            recon_type = re_type;
+            playbook = pb;
+        }
+    }
+
+    public class SimulationRequestPayload
     {
         public string recon_type;
 
@@ -175,8 +187,8 @@ namespace PurpleSharp.Lib
             task_sleep = tsleep;
             cleanup = clnup;
         }
-
     }
+    
     public class SimulationResponse
     {
         public string header;
@@ -190,8 +202,25 @@ namespace PurpleSharp.Lib
 
         }
     }
+    public class ReconResponse
+    {
+        public string user;
 
-        class Json
+        public string process;
+
+        public string process_id;
+
+        public string process_integrity;
+        public ReconResponse(string u, string proc, string proc_id, string proc_int)
+        {
+            user = u;
+            process = proc;
+            process_id = proc_id;
+            process_integrity = proc_int;
+        }
+    }
+
+    class Json
     {
         public static SimulationExercise ReadSimulationPlaybook(string jsoninput)
         {
@@ -546,9 +575,9 @@ namespace PurpleSharp.Lib
                 {
                     SimulationPlaybook playbook = new SimulationPlaybook();
                     playbook.name = layer.name;
-                    playbook.host = "random";
-                    playbook.scoutfpath = @"C:\Windows\Psexesvc.exe";
-                    playbook.simrpath = @"\Downloads\Firefox_Installer.exe";
+                    playbook.remote_host = "random";
+                    playbook.scout_full_path = @"C:\Windows\Psexesvc.exe";
+                    playbook.simulator_relative_path = @"\Downloads\Firefox_Installer.exe";
                     List<PlaybookTask> tasks = new List<PlaybookTask>();
 
 

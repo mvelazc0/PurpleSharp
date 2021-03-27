@@ -252,7 +252,6 @@ namespace PurpleSharp.Lib
                             logger.TimestampInfo("Received SYN");
                             s_payload = sim_request.sim_request_payload;
                             ReconResponse recon_response;
-                            byte[] bytes_recon_response;
                             if (sim_request.sim_request_payload.recon_type.Equals("privileged")) privileged = true;
                             parentprocess = Recon.GetHostProcess(privileged);
                             if (parentprocess != null && Recon.GetExplorer() != null)
@@ -298,14 +297,122 @@ namespace PurpleSharp.Lib
 
                                 byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SimulationRequest("ACK", s_payload)));
                                 string result = NamedPipes.RunNoAuthClientSerialized(simulator_np, bytes_sim_rqeuest);
-
                                 logger.TimestampInfo("Received back from Simulator " + result);
-                                /*
-                                System.Threading.Thread.Sleep(3000);
-                                logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + s_payload.techniques + " pbsleep:" + s_payload.playbook_sleep + " tsleep:" + s_payload.task_sleep + " cleanup:" + s_payload.cleanup);
-                                RunNoAuthClient(simulator_np, "technique:" + s_payload.techniques + " variation:" + s_payload.variation.ToString() + " pbsleep:" + s_payload.playbook_sleep.ToString() + " tsleep:" + s_payload.task_sleep.ToString() + " cleanup:" + s_payload.cleanup);
-                                System.Threading.Thread.Sleep(2000);
-                                */
+ 
+                            }
+
+                            sim_response = new SimulationResponse("ACK");
+                            byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
+                            pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
+                            logger.TimestampInfo(String.Format("Sent SimulationResponse object 2"));
+                            running = false;
+
+                        }
+                        else if (sim_request.header.Equals("FIN"))
+                        {
+                            logger.TimestampInfo("Received a FIN command");
+                            sim_response = new SimulationResponse("ACK");
+                            byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
+                            pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
+                            running = false;
+                        }
+
+                        pipeServer.Disconnect();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.TimestampInfo(ex.ToString());
+                logger.TimestampInfo(ex.Message.ToString());
+            }
+        }
+
+        public static void RunScoutServiceSerialized2(string scout_np, string simulator_np, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            bool running = true;
+            bool privileged = false;
+
+            string technique, opsec, simpfath, duser, user, simbinary, cleanup;
+            technique = opsec = simpfath = duser = user = simbinary = cleanup = "";
+            Process parentprocess = null;
+            int pbsleep, tsleep, variation;
+            pbsleep = tsleep = 0;
+            variation = 1;
+            SimulationPlaybook PlaybookToSend = null;
+            Thread.Sleep(1500);
+
+            try
+            {
+                using (var pipeServer = new NamedPipeServerStream(scout_np, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message))
+                {
+
+                    logger.TimestampInfo("Starting scout namedpipe service with PID:" + Process.GetCurrentProcess().Id);
+                    while (running)
+                    {
+                        SimulationResponse sim_response;
+                        logger.TimestampInfo("Waiting for client connection...");
+                        pipeServer.WaitForConnection();
+                        logger.TimestampInfo("Client connected.");
+                        var messageBytes = ReadMessage(pipeServer);
+                        var line = Encoding.UTF8.GetString(messageBytes);
+                        logger.TimestampInfo("Received from client: " + line);
+                        SimulationRequest2 sim_request = JsonConvert.DeserializeObject<SimulationRequest2>(line);
+
+                        if (sim_request.header.Equals("SYN"))
+                        {
+                            logger.TimestampInfo("Received SYN");
+                            PlaybookToSend = sim_request.playbook;
+                            ReconResponse recon_response;
+                            if (sim_request.recon_type.Equals("privileged")) privileged = true;
+                            parentprocess = Recon.GetHostProcess(privileged);
+                            if (parentprocess != null && Recon.GetExplorer() != null)
+                            {
+                                duser = Recon.GetProcessOwnerWmi(Recon.GetExplorer());
+                                recon_response = new ReconResponse(duser, parentprocess.ProcessName, parentprocess.Id.ToString(), privileged.ToString());
+                                user = duser.Split('\\')[1];
+                                logger.TimestampInfo(String.Format("Recon identified {0} logged in. Process to Spoof: {1} PID: {2}", duser, parentprocess.ProcessName, parentprocess.Id));
+                            }
+                            else
+                            {
+                                recon_response = new ReconResponse("", "", "", "");
+                                logger.TimestampInfo("Recon did not identify any logged users");
+                            }
+
+                            simpfath = "C:\\Users\\" + user + "\\" + sim_request.playbook.simulator_relative_path;
+                            int index = sim_request.playbook.simulator_relative_path.LastIndexOf(@"\");
+                            simbinary = sim_request.playbook.simulator_relative_path.Substring(index + 1);
+
+                            sim_response = new SimulationResponse("SYN/ACK", recon_response);
+                            byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
+                            pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
+                            logger.TimestampInfo(String.Format("Sent SimulationResponse object"));
+
+                        }
+                        else if (sim_request.header.Equals("ACT"))
+                        {
+
+                            logger.TimestampInfo("Received ACT");
+                            if (PlaybookToSend.opsec.Equals("ppid"))
+                            {
+
+                                logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
+                                logger.TimestampInfo("Spoofing " + parentprocess.ProcessName + " PID: " + parentprocess.Id.ToString());
+                                logger.TimestampInfo("Executing: " + simpfath + " /n");
+                                //Launcher.SpoofParent(parentprocess.Id, simpath, simbin + " " + cmdline);
+                                //Launcher.SpoofParent(parentprocess.Id, simpfath, simrpath + " /s");
+
+                                Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /n");
+                                //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
+
+                                //logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + s_payload.techniques + " pbsleep:" + s_payload.playbook_sleep + " tsleep:" + s_payload.task_sleep + " cleanup:" + s_payload.cleanup);
+                                logger.TimestampInfo("Sending Simulation Playbook to Simulation Agent through namedpipe: " + PlaybookToSend.simulator_relative_path);
+
+                                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SimulationRequest2("ACK", "", PlaybookToSend)));
+                                string result = NamedPipes.RunNoAuthClientSerialized(simulator_np, bytes_sim_rqeuest);
+                                logger.TimestampInfo("Received back from Simulator " + result);
                             }
 
                             sim_response = new SimulationResponse("ACK");
@@ -401,9 +508,10 @@ namespace PurpleSharp.Lib
 
         }
 
-        public static string[] RunSimulationServiceSerialized(string npipe, string log)
+        public static SimulationPlaybook RunSimulationServiceSerialized(string npipe, string log)
         {
             string[] result = new string[5];
+            SimulationPlaybook playbook = null;
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
             try
@@ -424,13 +532,17 @@ namespace PurpleSharp.Lib
                     var messageBytes = ReadMessage(pipeServer);
                     var line = Encoding.UTF8.GetString(messageBytes);
                     logger.TimestampInfo("Received from client: " + line);
-                    SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
+                    SimulationRequest2 sim_request = JsonConvert.DeserializeObject<SimulationRequest2>(line);
 
+                    playbook = sim_request.playbook;
+
+                    /*
                     result[0] = sim_request.sim_request_payload.techniques;
                     result[1] = sim_request.sim_request_payload.variation;
                     result[2] = sim_request.sim_request_payload.playbook_sleep;
                     result[3] = sim_request.sim_request_payload.task_sleep;
                     result[4] = sim_request.sim_request_payload.cleanup;
+                    */
 
                     sim_response = new SimulationResponse("ACK");
                     byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
@@ -438,12 +550,12 @@ namespace PurpleSharp.Lib
 
 
                     pipeServer.Disconnect();
-                    return result;
+                    return playbook;
                 }
             }
             catch
             {
-                return result;
+                return playbook;
             }
 
         }
