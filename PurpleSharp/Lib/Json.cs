@@ -23,7 +23,6 @@ namespace PurpleSharp.Lib
         public string scout_full_path { get; set; }
         public string simulator_relative_path { get; set; }
         public int playbook_sleep { get; set; }
-        public int tsleep { get; set; }
         public string remote_host { get; set; }
         public string opsec { get; set; } = "ppid";
         public List<PlaybookTask> tasks { get; set; }
@@ -33,7 +32,7 @@ namespace PurpleSharp.Lib
     {
         public string technique { get; set; }
         public int variation { get; set; } = 1; 
-        public int task_sleep { get; set; } = 1;
+        public int task_sleep { get; set; } = 0;
         public bool cleanup { get; set; } = true;
         public int target_users { get; set; } = 10;
         public int target_hosts { get; set; } = 10;
@@ -42,9 +41,12 @@ namespace PurpleSharp.Lib
         {
         }
 
-        public PlaybookTask(string tech)
+        public PlaybookTask(string tech, int var, int t_sleep, bool cl = true)
         {
             technique = tech;
+            variation = var;
+            task_sleep = t_sleep;
+            cleanup = cleanup;
         }
     }
 
