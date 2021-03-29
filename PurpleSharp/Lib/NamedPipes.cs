@@ -241,7 +241,7 @@ namespace PurpleSharp.Lib
                         var messageBytes = ReadMessage(pipeServer);
                         var line = Encoding.UTF8.GetString(messageBytes);
                         logger.TimestampInfo("Received from client: " + line);
-                        SimulationRequest2 sim_request = JsonConvert.DeserializeObject<SimulationRequest2>(line);
+                        SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
 
                         if (sim_request.header.Equals("SYN"))
                         {
@@ -291,7 +291,7 @@ namespace PurpleSharp.Lib
                                 //logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + s_payload.techniques + " pbsleep:" + s_payload.playbook_sleep + " tsleep:" + s_payload.task_sleep + " cleanup:" + s_payload.cleanup);
                                 logger.TimestampInfo("Sending Simulation Playbook to Simulation Agent through namedpipe: " + PlaybookToSend.simulator_relative_path);
 
-                                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SimulationRequest2("ACK", "", PlaybookToSend)));
+                                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SimulationRequest("ACK", "", PlaybookToSend)));
                                 string result = NamedPipes.RunNoAuthClientSerialized(simulator_np, bytes_sim_rqeuest);
                                 logger.TimestampInfo("Received back from Simulator " + result);
                             }
@@ -411,7 +411,7 @@ namespace PurpleSharp.Lib
                     var messageBytes = ReadMessage(pipeServer);
                     var line = Encoding.UTF8.GetString(messageBytes);
                     logger.TimestampInfo("Received from client: " + line);
-                    SimulationRequest2 sim_request = JsonConvert.DeserializeObject<SimulationRequest2>(line);
+                    SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
 
                     playbook = sim_request.playbook;
                     sim_response = new SimulationResponse("ACK");
