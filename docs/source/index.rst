@@ -23,8 +23,9 @@
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Demos
+   :caption: Presentations/Demos
 
+   Presentations <presentations/presentations>
    Demos <demos/demos>
 
 
@@ -60,7 +61,7 @@ Goals / Use Cases
 
 The attack telemetry produced by simulating techniques with PurpleSharp aids detection teams in:
 
-- Building new detecttion analytics
+- Building new detection analytics
 - Testing existing detection analytics
 - Validating detection resiliency
 - Identifying gaps in visibility
