@@ -40,14 +40,15 @@ Demo 3 @ Defcon 28 Safe Mode - Blue Team Village
    <iframe width="560" height="315" src="https://www.youtube.com/embed/6gB-upKXTZ4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 
-Demo 1 @ @ EU ATT&CK Community Workshop
+Demo 1 @ EU ATT&CK Community Workshop
 ---------------------------------------
 .. raw:: html
 
    <iframe width="560" height="315" src="https://www.youtube.com/embed/lZRE0XX_MXs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-Demo 2 @ @ EU ATT&CK Community Workshop
+Demo 2 @ EU ATT&CK Community Workshop
 ---------------------------------------
 .. raw:: html
 
    <iframe width="560" height="315" src="https://www.youtube.com/embed/onqdJ-IO9Dk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
