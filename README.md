@@ -30,7 +30,7 @@ PurpleSharp can be built with Visual Studio Community 2019 or 2020.
 
 ## Documentation
 
-[https://purplesharp.readthedocs.io/](https://purplesharp.readthedocs.io/)
+[https://www.purplesharp.com/](https://www.purplesharp.com/)
 
 
 ## Authors
