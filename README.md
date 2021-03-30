@@ -24,7 +24,13 @@ The attack telemetry produced by simulating techniques with PurpleSharp aids det
 
 ## Quick Start Guide
 
+### Build from Source
+
 PurpleSharp can be built with Visual Studio Community 2019 or 2020.
+
+### Download Latest Release
+
+[Download](https://github.com/mvelazc0/PurpleSharp/releases) the latest release binary ready to be used for simulations.
 
 .NET Framework 4.5 is required.
 
