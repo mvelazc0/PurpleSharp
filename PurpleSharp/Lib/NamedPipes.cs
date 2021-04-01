@@ -57,7 +57,7 @@ namespace PurpleSharp.Lib
                         }
                         else if (line.ToLower().Equals("auditpol"))
                         {
-                            writer.WriteLine(System.Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Recon.GetAuditPolicy())));
+                            writer.WriteLine(Convert.ToBase64String(Encoding.ASCII.GetBytes(Recon.GetAuditPolicy())));
                             writer.Flush();
                         }
                         else if (line.ToLower().Equals("wef"))
@@ -223,7 +223,7 @@ namespace PurpleSharp.Lib
             string duser, simulator_full_path, user, simulator_binary;
             duser = simulator_full_path = user = simulator_binary = "";
             Process parentprocess = null;
-            SimulationPlaybook PlaybookToSend = null;
+            SimulationPlaybook PlaybookForSimulator = null;
             Thread.Sleep(1500);
 
             try
@@ -242,11 +242,50 @@ namespace PurpleSharp.Lib
                         var line = Encoding.UTF8.GetString(messageBytes);
                         logger.TimestampInfo("Received from client: " + line);
                         SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
+                        ScoutResponse scout_response = null;
 
-                        if (sim_request.header.Equals("SYN"))
+                        if (sim_request.header.Equals("SCT"))
+                        {
+                            logger.TimestampInfo("Received SCT");
+                            switch (sim_request.recon_type)
+                            {
+                                case "auditpol":
+                                    scout_response = new ScoutResponse(Convert.ToBase64String(Encoding.ASCII.GetBytes(Recon.GetAuditPolicy())));
+                                    break;
+                                case "wef":
+                                    scout_response = new ScoutResponse(Convert.ToBase64String(Encoding.ASCII.GetBytes(Recon.GetWefSettings())));
+                                    break;
+                                case "pws":
+                                    scout_response = new ScoutResponse(Convert.ToBase64String(Encoding.ASCII.GetBytes(Recon.GetPwsLoggingSettings())));
+                                    break;
+                                case "ps":
+                                    scout_response = new ScoutResponse(Convert.ToBase64String(Encoding.ASCII.GetBytes(Recon.GetProcs())));
+                                    break;
+                                case "svcs":
+                                    scout_response = new ScoutResponse(Convert.ToBase64String(Encoding.ASCII.GetBytes(Recon.GetServices())));
+                                    break;
+                                case "cmdline":
+                                    scout_response = new ScoutResponse(Convert.ToBase64String(Encoding.ASCII.GetBytes(Recon.GetCmdlineAudittingSettings())));
+                                    break;
+                                case "all":
+                                    string results = Recon.GetAuditPolicy() + "\n" + Recon.GetWefSettings() + "\n" + Recon.GetPwsLoggingSettings()+"\n"+ Recon.GetProcs()+"\n"+ Recon.GetServices()+"\n"+ Recon.GetCmdlineAudittingSettings();
+                                    scout_response = new ScoutResponse(Convert.ToBase64String(Encoding.ASCII.GetBytes(results)));
+                                    break;
+                                default:
+                                    break;
+                            }
+                            sim_response = new SimulationResponse("SYN/ACK", null, scout_response);
+                            byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
+                            pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
+                            logger.TimestampInfo(String.Format("Sent SimulationResponse object"));
+                            running = false;
+                            
+                        }
+
+                        else if (sim_request.header.Equals("SYN"))
                         {
                             logger.TimestampInfo("Received SYN");
-                            PlaybookToSend = sim_request.playbook;
+                            PlaybookForSimulator = sim_request.playbook;
                             ReconResponse recon_response;
                             if (sim_request.recon_type.Equals("privileged")) privileged = true;
                             parentprocess = Recon.GetHostProcess(privileged);
@@ -276,7 +315,7 @@ namespace PurpleSharp.Lib
                         else if (sim_request.header.Equals("ACT"))
                         {
                             logger.TimestampInfo("Received ACT");
-                            if (PlaybookToSend.opsec.Equals("ppid"))
+                            if (PlaybookForSimulator.opsec.Equals("ppid"))
                             {
 
                                 logger.TimestampInfo("Using Parent Process Spoofing technique for Opsec");
@@ -289,9 +328,9 @@ namespace PurpleSharp.Lib
                                 //Launcher.SpoofParent(parentprocess.Id, simpfath, simbinary + " /s");
 
                                 //logger.TimestampInfo("Sending payload to Simulation Agent through namedpipe: " + "technique:" + s_payload.techniques + " pbsleep:" + s_payload.playbook_sleep + " tsleep:" + s_payload.task_sleep + " cleanup:" + s_payload.cleanup);
-                                logger.TimestampInfo("Sending Simulation Playbook to Simulation Agent through namedpipe: " + PlaybookToSend.simulator_relative_path);
+                                logger.TimestampInfo("Sending Simulation Playbook to Simulation Agent through namedpipe: " + PlaybookForSimulator.simulator_relative_path);
 
-                                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SimulationRequest("ACK", "", PlaybookToSend)));
+                                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SimulationRequest("ACK", "", PlaybookForSimulator)));
                                 string result = NamedPipes.RunNoAuthClientSerialized(simulator_np, bytes_sim_rqeuest);
                                 logger.TimestampInfo("Received back from Simulator " + result);
                             }
@@ -391,9 +430,10 @@ namespace PurpleSharp.Lib
 
         public static SimulationPlaybook RunSimulationServiceSerialized(string npipe, string log)
         {
-            SimulationPlaybook playbook = new SimulationPlaybook();
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
+    
+            SimulationPlaybook playbook = new SimulationPlaybook();
             try
             {
                 //https://helperbyte.com/questions/171742/how-to-connect-to-a-named-pipe-without-administrator-rights
@@ -421,8 +461,9 @@ namespace PurpleSharp.Lib
                     return playbook;
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                logger.TimestampInfo(ex.Message);
                 return playbook;
             }
 

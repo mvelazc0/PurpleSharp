@@ -1,14 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using PurpleSharp.Lib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using PurpleSharp.Lib;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System.Management.Automation.Language;
 
 namespace PurpleSharp
 {
@@ -31,12 +29,9 @@ namespace PurpleSharp
             Console.WriteLine("\t\t\tby Mauricio Velazco (@mvelazco)");
             Console.WriteLine();
             Console.WriteLine("\t\t\thttps://github.com/mvelazc0/PurpleSharp");
-            Console.WriteLine("\t\t\thttps://purplesharp.readthedocs.io");
+            Console.WriteLine("\t\t\thttps://www.purplesharp.com");
             Console.WriteLine();
         }
-
-
-
         public static void Main(string[] args)
         {
             bool cleanup, opsec, verbose, scoutservice, simservice, newchild, scout, remote, navigator;
@@ -159,7 +154,7 @@ namespace PurpleSharp
 
             }
 
-            config_params = new CommandlineParameters(scoutfpath, simrpath, rhost, ruser, rpwd, domain, techniques, dc, scout_np, simulator_np, log, variation, pbsleep, tsleep, cleanup, opsec, verbose);
+            config_params = new CommandlineParameters(scoutfpath, simrpath, rhost, ruser, rpwd, domain, techniques, dc, scout_action, scout_np, simulator_np, log, variation, pbsleep, tsleep, cleanup, opsec, verbose);
             //// Handling Internal Parameters ////
 
             if (newchild)
@@ -246,12 +241,14 @@ namespace PurpleSharp
                     {
                         Console.Write("Password for {0}\\{1}: ", domain, ruser);
                         rpwd = Utils.GetPassword();
+                        config_params.remote_password = rpwd;
                         Console.WriteLine();
                     }
 
                     if (!rhost.Equals("random"))
                     {
-                        Scout(rhost, domain, ruser, rpwd, scoutfpath, log, scout_action, scout_np, verbose);
+                        RunScoutEnumeration(config_params);
+                        //Scout(rhost, domain, ruser, rpwd, scoutfpath, log, scout_action, scout_np, verbose);
                         return;
                     }
                     else if (!dc.Equals(""))
@@ -265,7 +262,9 @@ namespace PurpleSharp
                             var random = new Random();
                             int index = random.Next(targets.Count);
                             Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
-                            Scout(targets[index].ComputerName, domain, ruser, rpwd, scoutfpath, log, scout_action, scout_np, verbose);
+                            config_params.remote_host = targets[index].ComputerName;
+                            RunScoutEnumeration(config_params);
+                            //Scout(targets[index].ComputerName, domain, ruser, rpwd, scoutfpath, log, scout_action, scout_np, verbose);
                             return;
                         }
                         else
@@ -327,7 +326,7 @@ namespace PurpleSharp
                     else if (engagement.type.Equals("remote"))
                     { 
                         Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
-                        string pass = Utils.GetPassword();
+                        engagement.password = Utils.GetPassword();
                         Console.WriteLine("[+] PurpleSharp will execute {0} playbook(s)", engagement.playbooks.Count);
 
                         SimulationExerciseResult engagementResults = new SimulationExerciseResult();
@@ -351,7 +350,7 @@ namespace PurpleSharp
                             string techs2 = String.Join(",", techs);
                             if (playbook.remote_host.Equals("random"))
                             {
-                                List<Computer> targets = Ldap.GetADComputers(10, logger, engagement.dc, engagement.username, pass);
+                                List<Computer> targets = Ldap.GetADComputers(10, logger, engagement.domain_controller, engagement.username, engagement.password);
                                 if (targets.Count > 0)
                                 {
                                     Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
@@ -359,7 +358,8 @@ namespace PurpleSharp
                                     int index = random.Next(targets.Count);
                                     Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
                                     Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, targets[index].Fqdn);
-                                    playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass, scout_np, playbook, log, false);
+                                    playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, log);
+                                    //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass, scout_np, playbook, log, false);
                                     if (playbookResults == null) continue;
                                     playbookResults.name = playbook.name;
                                 }
@@ -369,7 +369,8 @@ namespace PurpleSharp
                             else
                             {
                                 Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, playbook.remote_host);
-                                playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass,scout_np, playbook, log, false);
+                                playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, log);
+                                //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass,scout_np, playbook, log, false);
                                 if (playbookResults == null) continue;
                                 playbookResults.name = playbook.name;
                             }
@@ -569,6 +570,58 @@ namespace PurpleSharp
                 RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
             }
         }
+        public static void RunScoutEnumeration(CommandlineParameters cmd_params)
+        {
+            List<String> actions = new List<string>() { "all", "wef", "pws", "ps", "svcs", "auditpol", "cmdline" };
+            string result = "";
+
+            if (!actions.Contains(cmd_params.scout_action))
+            {
+                Console.WriteLine("[*] Not supported.");
+                Console.WriteLine("[*] Exiting");
+                return;
+            }
+            string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            int index = cmd_params.scout_full_path.LastIndexOf(@"\");
+            string scoutFolder = cmd_params.scout_full_path.Substring(0, index + 1);
+            string args = "/o";
+
+            Console.WriteLine("[+] Uploading Scout to {0} on {1}", cmd_params.scout_full_path, cmd_params.remote_host);
+            RemoteLauncher.upload(uploadPath, cmd_params.scout_full_path, cmd_params.remote_host, cmd_params.remote_user, cmd_params.remote_password, cmd_params.domain);
+
+            Console.WriteLine("[+] Executing the Scout via WMI ...");
+            RemoteLauncher.wmiexec(cmd_params.remote_host, cmd_params.scout_full_path, args, cmd_params.domain, cmd_params.remote_user, cmd_params.remote_password);
+            Console.WriteLine("[+] Connecting to the Scout ...");
+
+            SimulationRequest sim_request = new SimulationRequest("SCT", cmd_params.scout_action);
+            byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request));
+            result = NamedPipes.RunClientSerialized(cmd_params.remote_host, cmd_params.domain, cmd_params.remote_user, cmd_params.remote_password, cmd_params.scout_namepipe, bytes_sim_rqeuest);
+            SimulationResponse sim_response = JsonConvert.DeserializeObject<SimulationResponse>(result);
+
+            if (sim_response.header.Equals("SYN/ACK"))
+            {
+                Console.WriteLine("[+] OK");
+                string results = Encoding.UTF8.GetString(Convert.FromBase64String(sim_response.scout_response.results));
+                if (cmd_params.verbose)
+                {
+                    Console.WriteLine("[+] Grabbing the Scout output...");
+                    System.Threading.Thread.Sleep(1000);
+                    string sresults = RemoteLauncher.readFile(cmd_params.remote_host, scoutFolder + cmd_params.log_filename, cmd_params.remote_user, cmd_params.remote_password, cmd_params.domain);
+                    Console.WriteLine("[+] Results:");
+                    Console.WriteLine();
+                    Console.WriteLine(sresults);
+                }
+                Console.WriteLine("[+] Scout Results...");
+                Console.WriteLine();
+                Console.WriteLine(results);
+                Console.WriteLine();
+                Console.WriteLine("[+] Cleaning up...");
+                Console.WriteLine("[+] Deleting " + @"\\" + cmd_params.remote_host + @"\" + cmd_params.scout_full_path.Replace(":", "$"));
+                RemoteLauncher.delete(cmd_params.scout_full_path, cmd_params.remote_host, cmd_params.remote_user, cmd_params.remote_password, cmd_params.domain);
+                Console.WriteLine("[+] Deleting " + @"\\" + cmd_params.remote_host + @"\" + (scoutFolder + cmd_params.log_filename).Replace(":", "$"));
+                RemoteLauncher.delete(scoutFolder + cmd_params.log_filename, cmd_params.remote_host, cmd_params.remote_user, cmd_params.remote_password, cmd_params.domain);
+            }
+        }
         public static void ExecuteRemoteTechniquesSerialized(CommandlineParameters cmd_params)
         {
             // techniques that need to be executed from a high integrity process
@@ -749,7 +802,7 @@ namespace PurpleSharp
                 }
             }
         }
-        public static SimulationPlaybookResult ExecuteRemoteTechniquesJsonSerialized(string rhost, string domain, string ruser, string rpwd, string scout_np, SimulationPlaybook playbook, string log, bool verbose)
+        public static SimulationPlaybookResult ExecuteRemoteTechniquesJsonSerialized_old(string rhost, string domain, string ruser, string rpwd, string scout_np, SimulationPlaybook playbook, string log, bool verbose)
         {
             // techniques that need to be executed from a high integrity process
             string[] privileged_techniques = new string[] { "T1003.001", "T1136.001", "T1070.001", "T1543.003", "T1546.003" };
@@ -867,6 +920,128 @@ namespace PurpleSharp
                 //
                 //Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
                 RemoteLauncher.delete(scoutFolder + log, rhost, ruser, rpwd, domain);
+
+                return Json.GetPlaybookResult(results);
+            }
+        }
+        public static SimulationPlaybookResult ExecuteRemoteTechniquesJsonSerialized(SimulationExercise exercise, SimulationPlaybook playbook, string scout_np,  string log)
+        {
+            // techniques that need to be executed from a high integrity process
+            string[] privileged_techniques = new string[] { "T1003.001", "T1136.001", "T1070.001", "T1543.003", "T1546.003" };
+
+            string uploadPath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            int index = playbook.scout_full_path.LastIndexOf(@"\");
+            string scoutFolder = playbook.scout_full_path.Substring(0, index + 1);
+            Thread.Sleep(3000);
+
+            if (playbook.opsec.Equals("ppid"))
+            {
+                string result = "";
+                string args = "/o";
+
+                //Console.WriteLine("[+] Uploading Scout to {0} on {1}", scoutfpath, rhost);
+                RemoteLauncher.upload(uploadPath, playbook.scout_full_path, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+
+                //Console.WriteLine("[+] Executing the Scout via WMI ...");
+                RemoteLauncher.wmiexec(playbook.remote_host, playbook.scout_full_path, args, exercise.domain, exercise.username, exercise.password);
+                //Console.WriteLine("[+] Connecting to namedpipe service ...");
+
+                SimulationRequest sim_request = new SimulationRequest("SYN", "regular", playbook);
+                //if (privileged_techniques.Contains(techniques.ToUpper())) sim_request.recon_type = "privileged";
+                byte[] bytes_sim_rqeuest = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request));
+                result = NamedPipes.RunClientSerialized(playbook.remote_host, exercise.domain, exercise.username, exercise.password, scout_np, bytes_sim_rqeuest);
+                SimulationResponse sim_response = JsonConvert.DeserializeObject<SimulationResponse>(result);
+
+
+
+                if (sim_response.header.Equals("SYN/ACK"))
+                {
+                    //Console.WriteLine("[+] OK");
+                    string duser = sim_response.recon_response.user;
+                    if (duser == "")
+                    {
+
+                        Console.WriteLine("[!] Could not identify a suitable process for the simulation. Is a user logged in on: " + playbook.remote_host + "?");
+                        sim_request = new SimulationRequest("FIN");
+                        result = NamedPipes.RunClientSerialized(playbook.remote_host, exercise.domain, exercise.username, exercise.password, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
+                        Thread.Sleep(1000);
+                        RemoteLauncher.delete(playbook.scout_full_path, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+                        RemoteLauncher.delete(scoutFolder + log, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+                        //Console.WriteLine("[!] Exitting.");
+                        return null;
+                    }
+                    else
+                    {
+                        string user = duser.Split('\\')[1];
+                        string simfpath = "C:\\Users\\" + user + "\\" + playbook.simulator_relative_path;
+                        int index2 = playbook.simulator_relative_path.LastIndexOf(@"\");
+                        string simrfolder = playbook.simulator_relative_path.Substring(0, index2 + 1);
+
+                        string simfolder = "C:\\Users\\" + user + "\\" + simrfolder;
+
+                        //Console.WriteLine("[+] Uploading Simulator to " + simfpath);
+                        RemoteLauncher.upload(uploadPath, simfpath, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+
+                        //Console.WriteLine("[+] Triggering simulation using PPID Spoofing | Process: {0}.exe | PID: {1} | High Integrity: {2}", sim_response.recon_response.process, sim_response.recon_response.process_id, sim_response.recon_response.process_integrity);
+                        sim_request = new SimulationRequest("ACT");
+                        result = NamedPipes.RunClientSerialized(playbook.remote_host, exercise.domain, exercise.username, exercise.password, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
+
+                        System.Threading.Thread.Sleep(5000);
+                        bool finished = false;
+                        int counter = 1;
+                        string results = RemoteLauncher.readFile(playbook.remote_host, simfolder + log, exercise.username, exercise.password, exercise.domain);
+                        while (finished == false)
+                        {
+                            if (results.Split('\n').Last().Contains("Playbook Finished"))
+                            {
+                                Console.WriteLine("[+] Results:");
+                                Console.WriteLine();
+                                Console.WriteLine(results);
+                                Console.WriteLine();
+                                RemoteLauncher.delete(playbook.scout_full_path, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+                                RemoteLauncher.delete(scoutFolder + log, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+                                RemoteLauncher.delete(simfpath, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+                                RemoteLauncher.delete(simfolder + log, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+                                finished = true;
+                            }
+                            else
+                            {
+                                Console.WriteLine("[+] Not finished. Waiting an extra {0} seconds", counter * 10);
+                                Thread.Sleep(counter * 10 * 1000);
+                                results = RemoteLauncher.readFile(playbook.remote_host, simfolder + log, exercise.username, exercise.password, exercise.domain);
+                            }
+                            counter += 1;
+                        }
+                        return Json.GetPlaybookResult(results);
+
+                    }
+                }
+                else
+                {
+                    //Console.WriteLine("[!] Could not connect to namedpipe service");
+                    return null;
+                }
+            }
+            else
+            {
+                //Console.WriteLine("[+] Uploading PurpleSharp to {0} on {1}", scoutfpath, rhost);
+                RemoteLauncher.upload(uploadPath, playbook.scout_full_path, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+
+                string cmdline = "/t ";// + techniques;
+                //Console.WriteLine("[+] Executing PurpleSharp via WMI ...");
+                RemoteLauncher.wmiexec(playbook.remote_host, playbook.scout_full_path, cmdline, exercise.domain, exercise.username, exercise.password);
+                Thread.Sleep(3000);
+                Console.WriteLine("[+] Obtaining results...");
+                string results = RemoteLauncher.readFile(playbook.remote_host, scoutFolder + log, exercise.username, exercise.password, exercise.domain);
+                Console.WriteLine("[+] Results:");
+                Console.WriteLine();
+                Console.WriteLine(results);
+                //Console.WriteLine("[+] Cleaning up...");
+                //Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + scoutfpath.Replace(":", "$"));
+                RemoteLauncher.delete(playbook.scout_full_path, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
+                //
+                //Console.WriteLine("[+] Deleting " + @"\\" + rhost + @"\" + (scoutFolder + log).Replace(":", "$"));
+                RemoteLauncher.delete(scoutFolder + log, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
 
                 return Json.GetPlaybookResult(results);
             }

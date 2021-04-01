@@ -45,11 +45,13 @@ namespace PurpleSharp.Lib
 
         public string log_filename;
 
+        public string scout_action;
+
         public CommandlineParameters()
         {
-            
+
         }
-        public CommandlineParameters(string scout_path, string simulator_path, string rhost, string ruser, string rpwd, string d, string techs, string dc, string scout_np, string simulator_np, string log, int var, int pbsleep, int tsleep, bool cln, bool ops, bool verb )
+        public CommandlineParameters(string scout_path, string simulator_path, string rhost, string ruser, string rpwd, string d, string techs, string dc, string sc_action, string scout_np, string simulator_np, string log, int var, int pbsleep, int tsleep, bool cln, bool ops, bool verb)
         {
             scout_full_path = scout_path;
             simulator_relative_path = simulator_path;
@@ -59,6 +61,7 @@ namespace PurpleSharp.Lib
             domain = d;
             techniques = techs;
             domain_controller = dc;
+            scout_action = sc_action;
             scout_namepipe = scout_np;
             simulator_namedpipe = simulator_np;
             log_filename = log;
@@ -76,13 +79,12 @@ namespace PurpleSharp.Lib
     {
         public string domain { get; set; }
         public string username { get; set; }
-        public string dc { get; set; }
+        public string password { get; set; }
+        public string domain_controller { get; set; }
         public int sleep { get; set; }
         public string type { get; set; }
         public List<SimulationPlaybook> playbooks { get; set; }
     }
-
-
     public class SimulationPlaybook
     {
         public string name { get; set; }
@@ -95,14 +97,13 @@ namespace PurpleSharp.Lib
         public SimulationPlaybook(int pbsleep)
         {
             playbook_sleep = pbsleep;
-            
+
         }
         public SimulationPlaybook()
         {
-           
+
         }
     }
-
     public class PlaybookTask
     {
         public string technique { get; set; }
@@ -125,7 +126,6 @@ namespace PurpleSharp.Lib
         }
     }
 
-
     // Result classes
     public class SimulationExerciseResult
     {
@@ -142,7 +142,6 @@ namespace PurpleSharp.Lib
 
         public List<PlaybookTaskResult> taskresults { get; set; }
     }
-
     public class PlaybookTaskResult
     {
         public string timestamp { get; set; }
@@ -158,7 +157,6 @@ namespace PurpleSharp.Lib
     }
 
     // ATT&CK Classes
-
     public class NavigatorLayer
     {
         public string name { get; set; }
@@ -178,20 +176,17 @@ namespace PurpleSharp.Lib
         //public string tacticRowBackground { get; set; }
         //public bool selectTechniquesAcrossTactics { get; set; }
     }
-
     public class NavigatorFilters
     {
         public string[] stages { get; set; }
         public string[] platforms { get; set; }
     }
-
     public class NavigatorGradient
     {
         public string[] colors { get; set; }
         public int minValue { get; set; }
         public int maxValue { get; set; }
     }
-
     public class NavigatorTechnique
     {
         public string techniqueID { get; set; }
@@ -203,9 +198,7 @@ namespace PurpleSharp.Lib
         //public object[] metadata { get; set; }
     }
 
-
     // Named Pipe Comms Classes
-
     public class SimulationRequest
     {
         public string header;
@@ -227,11 +220,13 @@ namespace PurpleSharp.Lib
 
         public ReconResponse recon_response;
 
-        public SimulationResponse(string stat, ReconResponse recon_resp = null)
+        public ScoutResponse scout_response;
+
+        public SimulationResponse(string stat, ReconResponse recon_resp = null, ScoutResponse sc_resp = null)
         {
             header = stat;
             recon_response = recon_resp;
-
+            scout_response = sc_resp;
         }
     }
     public class ReconResponse
@@ -250,5 +245,15 @@ namespace PurpleSharp.Lib
             process_id = proc_id;
             process_integrity = proc_int;
         }
+    }
+
+    public class ScoutResponse
+    {
+        public string results;
+        public ScoutResponse(string res)
+        {
+            results = res;
+        }
+
     }
 }
