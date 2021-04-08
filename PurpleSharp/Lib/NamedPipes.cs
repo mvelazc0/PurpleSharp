@@ -244,6 +244,7 @@ namespace PurpleSharp.Lib
                         SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
                         ScoutResponse scout_response = null;
 
+                        // Scout recon actions
                         if (sim_request.header.Equals("SCT"))
                         {
                             logger.TimestampInfo("Received SCT");
@@ -378,7 +379,6 @@ namespace PurpleSharp.Lib
             }
         }
 
-
         public static string[] RunSimulationService(string npipe, string log)
         {
             string[] result = new string[5];
@@ -457,6 +457,7 @@ namespace PurpleSharp.Lib
                     sim_response = new SimulationResponse("ACK");
                     byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
                     pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
+                    logger.TimestampInfo("Replied to client: " + Encoding.UTF8.GetString(bytes_sim_response));
                     pipeServer.Disconnect();
                     return playbook;
                 }
