@@ -106,12 +106,20 @@ namespace PurpleSharp.Lib
     }
     public class PlaybookTask
     {
-        public string technique { get; set; }
+        // Generic variables
+        public string technique_id { get; set; }
         public int variation { get; set; } = 1;
         public int task_sleep { get; set; } = 0;
         public bool cleanup { get; set; } = true;
-        public int target_users { get; set; } = 10;
-        public int target_hosts { get; set; } = 10;
+
+        // Password Spraying
+        public string protocol { get; set; } = "Kerberos";
+        public int user_target_type { get; set; } = 1;
+        public int host_target_type { get; set; } = 1;
+        public int user_target_total { get; set; } = 5;
+        public int host_target_total { get; set; } = 5;
+        public string[] user_targets { get; set; }
+        public string[] host_targets { get; set; }
 
         public PlaybookTask()
         {
@@ -119,7 +127,7 @@ namespace PurpleSharp.Lib
 
         public PlaybookTask(string tech, int var, int t_sleep, bool cl = true)
         {
-            technique = tech;
+            technique_id = tech;
             variation = var;
             task_sleep = t_sleep;
             cleanup = cleanup;

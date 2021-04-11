@@ -21,7 +21,7 @@ namespace PurpleSharp.Simulations
                 var rand = new Random();
                 int computertype = rand.Next(1, 6);
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost, logger);
+                List<Computer> targethosts = Lib.Targets.GetHostTargets_old(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 //Console.WriteLine("[*] Starting Service Based Lateral Movement attack from {0} as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
@@ -62,7 +62,7 @@ namespace PurpleSharp.Simulations
                 var rand = new Random();
                 int computertype = rand.Next(1, 6);
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost, logger);
+                List<Computer> targethosts = Lib.Targets.GetHostTargets_old(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 //Console.WriteLine("[*] Starting WinRM Based Lateral Movement attack from {0} running as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
@@ -102,7 +102,7 @@ namespace PurpleSharp.Simulations
                 int computertype = rand.Next(1, 6);
 
                 logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-                List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost, logger);
+                List<Computer> targethosts = Lib.Targets.GetHostTargets_old(computertype, nhost, logger);
                 logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
                 List<Task> tasklist = new List<Task>();
                 if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", tsleep));

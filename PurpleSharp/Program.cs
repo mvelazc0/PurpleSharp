@@ -312,7 +312,7 @@ namespace PurpleSharp
                             PlaybookTask lastTask = playbook.tasks.Last();
                             foreach (PlaybookTask task in playbook.tasks)
                             {
-                                ExecutePlaybookTechnique(task, log);
+                                ExecutePlaybookTask(task, log);
                                 if (playbook.playbook_sleep > 0 && task != lastTask) Thread.Sleep(1000 * playbook.playbook_sleep);
                             }
                             logger.TimestampInfo("Playbook Finished");
@@ -345,7 +345,7 @@ namespace PurpleSharp
                             List<string> techs = new List<string>();
                             foreach (PlaybookTask task in playbook.tasks)
                             {
-                                techs.Add(task.technique);
+                                techs.Add(task.technique_id);
                             }
                             string techs2 = String.Join(",", techs);
                             if (playbook.remote_host.Equals("random"))
@@ -878,18 +878,18 @@ namespace PurpleSharp
 
             
         }
-        public static void ExecutePlaybookTechnique(PlaybookTask task, string log)
+        public static void ExecutePlaybookTask(PlaybookTask playbook_task, string log)
         {
             var rand = new Random();
 
-            switch (task.technique)
+            switch (playbook_task.technique_id)
             {
                 //// Initial Access ////
 
                 //// Execution ////
 
                 case "T1059.001":
-                    if (task.variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
+                    if (playbook_task.variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
                     else Simulations.Execution.ExecutePowershellNET(log);
                     break;
 
@@ -918,26 +918,26 @@ namespace PurpleSharp
                 //T1053.005 - Scheduled Task
 
                 case "T1053.005":
-                    Simulations.Persistence.CreateScheduledTaskCmd(log, task.cleanup);
+                    Simulations.Persistence.CreateScheduledTaskCmd(log, playbook_task.cleanup);
                     break;
 
                 case "T1136.001":
-                    if (task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, task.cleanup);
-                    else Simulations.Persistence.CreateLocalAccountCmd(log, task.cleanup);
+                    if (playbook_task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, playbook_task.cleanup);
+                    else Simulations.Persistence.CreateLocalAccountCmd(log, playbook_task.cleanup);
                     break;
 
                 case "T1543.003":
-                    if (task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(log, task.cleanup);
-                    else Simulations.Persistence.CreateWindowsServiceCmd(log, task.cleanup);
+                    if (playbook_task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(log, playbook_task.cleanup);
+                    else Simulations.Persistence.CreateWindowsServiceCmd(log, playbook_task.cleanup);
                     break;
 
                 case "T1547.001":
-                    if (task.variation == 1) Simulations.Persistence.CreateRegistryRunKeyNET(log, task.cleanup);
-                    else Simulations.Persistence.CreateRegistryRunKeyCmd(log, task.cleanup);
+                    if (playbook_task.variation == 1) Simulations.Persistence.CreateRegistryRunKeyNET(log, playbook_task.cleanup);
+                    else Simulations.Persistence.CreateRegistryRunKeyCmd(log, playbook_task.cleanup);
                     break;
 
                 case "T1546.003":
-                    Simulations.Persistence.WMIEventSubscription(log, task.cleanup);
+                    Simulations.Persistence.WMIEventSubscription(log, playbook_task.cleanup);
                     break;
 
                 //// Privilege Escalation  ////
@@ -981,7 +981,7 @@ namespace PurpleSharp
                     break;
 
                 case "T1070.001":
-                    if (task.variation == 1) Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
+                    if (playbook_task.variation == 1) Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
                     else Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
 
                     break;
@@ -1013,17 +1013,17 @@ namespace PurpleSharp
 
                 ////  Credential Access //// 
 
-                //T1110.003 - Brute Force
+                //T1110.003 - Password Spraying
                 case "T1110.003":
                     string password = "Summer2020";
-                    if (task.variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(task.target_users, task.task_sleep, password, log);
-                    else Simulations.CredAccess.RemotePasswordSpray(task.target_hosts, task.target_users, task.task_sleep, password, log);
+                    if (playbook_task.variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(playbook_task, password, log);
+                    else Simulations.CredAccess.RemoteDomainPasswordSpray(playbook_task, password, log);
 
                     break;
 
                 //T1558.003 - Kerberoasting
                 case "T1558.003":
-                    Simulations.CredAccess.Kerberoasting(log, task.task_sleep);
+                    Simulations.CredAccess.Kerberoasting(log, playbook_task.task_sleep);
                     break;
 
                 //T1003.001 - LSASS Memory
@@ -1045,12 +1045,12 @@ namespace PurpleSharp
 
                 //T1135 - Network Share Discovery
                 case "T1135":
-                    Simulations.Discovery.EnumerateShares(task.target_hosts, task.task_sleep, log);
+                    Simulations.Discovery.EnumerateShares(playbook_task.host_target_total, playbook_task.task_sleep, log);
                     break;
 
                 //T1046 - Network Service Scanning
                 case "T1046":
-                    Simulations.Discovery.NetworkServiceDiscovery(task.target_hosts, task.task_sleep, log);
+                    Simulations.Discovery.NetworkServiceDiscovery(playbook_task.host_target_total, playbook_task.task_sleep, log);
                     break;
 
                 case "T1087.001":
@@ -1058,7 +1058,7 @@ namespace PurpleSharp
                     break;
 
                 case "T1087.002":
-                    if (task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryLdap(log);
+                    if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryLdap(log);
                     else Simulations.Discovery.DomainAccountDiscoveryCmd(log);
                     break;
 
@@ -1110,17 +1110,17 @@ namespace PurpleSharp
 
                 //T1021.006 - Windows Remote Management
                 case "T1021.006":
-                    Simulations.LateralMovement.WinRmCodeExec(task.target_hosts, task.task_sleep, log);
+                    Simulations.LateralMovement.WinRmCodeExec(playbook_task.host_target_total, playbook_task.task_sleep, log);
                     break;
 
                 //T1021 - Remote Service
                 case "T1021":
-                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(task.target_hosts, task.task_sleep, task.cleanup, log);
+                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task.host_target_total, playbook_task.task_sleep, playbook_task.cleanup, log);
                     break;
 
                 //T1047 - Windows Management Instrumentation
                 case "T1047":
-                    Simulations.LateralMovement.ExecuteWmiOnHosts(task.target_hosts, task.task_sleep, log);
+                    Simulations.LateralMovement.ExecuteWmiOnHosts(playbook_task.host_target_total, playbook_task.task_sleep, log);
                     break;
 
                 // Collection
@@ -1134,7 +1134,7 @@ namespace PurpleSharp
                 // Other Techniques
 
                 case "privenum":
-                    Simulations.Discovery.PrivilegeEnumeration(task.target_hosts, task.task_sleep, log);
+                    Simulations.Discovery.PrivilegeEnumeration(playbook_task.host_target_total, playbook_task.task_sleep, log);
                     break;
 
                 default:
@@ -1149,7 +1149,7 @@ namespace PurpleSharp
             PlaybookTask lastTask = playbook.tasks.Last();
             foreach (PlaybookTask task in playbook.tasks)
             {
-                ExecutePlaybookTechnique(task, log);
+                ExecutePlaybookTask(task, log);
                 if (playbook.playbook_sleep > 0 && task != lastTask ) Thread.Sleep(1000 * playbook.playbook_sleep);
                 logger.TimestampInfo("Playbook Finished");
             }
