@@ -18,13 +18,13 @@ namespace PurpleSharp.Simulations
         {
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Lib.Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1110.003");
             logger.TimestampInfo(String.Format("Local Domain Brute Force using the LogonUser Win32 API function"));
             logger.TimestampInfo(String.Format("Using {0}", playbook_task.protocol));
             try
             {
-                List<User> usertargets = Lib.Targets.GetUserTargets(playbook_task, logger) ;
+                List<User> usertargets = Targets.GetUserTargets(playbook_task, logger) ;
 
                 if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
                 String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
@@ -52,11 +52,10 @@ namespace PurpleSharp.Simulations
 
         }
 
-
         public static void RemoteDomainPasswordSpray(PlaybookTask playbook_task, string password, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1110.003");
             logger.TimestampInfo(String.Format("Remote Domain Brute Force using the WNetAddConnection2 Win32 API function"));
             bool Kerberos = true;

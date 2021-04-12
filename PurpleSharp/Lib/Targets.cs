@@ -144,15 +144,15 @@ namespace PurpleSharp.Lib
                     break;
 
                 case 2:
-                    logger.TimestampInfo("Targeting randomly generated users");
-                    targetusers = Targets.GetRandomUsernames(playbook_task.user_target_total, new Random());
-                    break;
-
-                case 3:
                     logger.TimestampInfo("Targeting random domain users");
                     targetusers = Ldap.GetADUsers(playbook_task.user_target_total, logger, dc, true);
                     logger.TimestampInfo(String.Format("Obtained {0} user records", targetusers.Count));
 
+                    break;
+
+                case 3:
+                    logger.TimestampInfo("Targeting randomly generated users");
+                    targetusers = Targets.GetRandomUsernames(playbook_task.user_target_total, new Random());
                     break;
 
                 case 4:

@@ -88,11 +88,13 @@ namespace PurpleSharp.Lib
     public class SimulationPlaybook
     {
         public string name { get; set; }
+        public string description { get; set; }
         public string scout_full_path { get; set; }
         public string simulator_relative_path { get; set; }
         public int playbook_sleep { get; set; }
         public string remote_host { get; set; }
         public string opsec { get; set; } = "ppid";
+        public bool enabled { get; set; } = true;
         public List<PlaybookTask> tasks { get; set; }
         public SimulationPlaybook(int pbsleep)
         {
