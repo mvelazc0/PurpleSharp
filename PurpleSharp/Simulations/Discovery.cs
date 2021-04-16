@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PurpleSharp.Lib;
+using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Threading;
@@ -125,14 +126,13 @@ namespace PurpleSharp.Simulations
             logger.TimestampInfo("Using LDAP to execute this technique");
             try
             {
-                DiscoveryHelper.ListUsersLdap(logger);
+                DiscoveryHelper.LdapQueryForObjects(logger, 1);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
             {
                 logger.SimulationFailed(ex);
-            }
-            
+            }   
         }
 
         public static void DomainAccountDiscoveryCmd(string log)
@@ -317,18 +317,59 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void DomainGroups(string log)
+        public static void DomainGroupDiscoveryCmd(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1069.002");
-            logger.TimestampInfo("Using the command line to execute the technique");
-
+            logger.TimestampInfo("Using the command line to execute technique");
             try
             {
-                ExecutionHelper.StartProcess("", "net group /domain", logger);
-                ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", logger);
-                logger.SimulationFinished();
+                if (playbook_task.groups.Length > 0)
+                {
+                    foreach (string group in playbook_task.groups)
+                    {
+                        ExecutionHelper.StartProcess("", String.Format("net group \"{0}\" /domain", group), logger);
+                    }
+                    logger.SimulationFinished();
+                }
+                else
+                {
+                    ExecutionHelper.StartProcess("", "net group /domain", logger);
+                    logger.SimulationFinished();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void DomaiGroupDiscoveryLdap(PlaybookTask playbook_task, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1069.002");
+            logger.TimestampInfo("Using LDAP to execute technique");
+            try
+            {
+                if (playbook_task.groups.Length > 0)
+                {
+                    foreach (string group in playbook_task.groups)
+                    {
+                        logger.TimestampInfo(String.Format("Querying LDAP for members of '{0}'", group));
+                        DiscoveryHelper.LdapQueryForObjects(logger, 2, "", group);
+                    }
+                    logger.SimulationFinished();
+                }
+                else
+                {
+                    logger.TimestampInfo("Querying LDAP for all groups");
+                    DiscoveryHelper.LdapQueryForObjects(logger, 2);
+                    logger.SimulationFinished();
+                }
+
             }
             catch (Exception ex)
             {

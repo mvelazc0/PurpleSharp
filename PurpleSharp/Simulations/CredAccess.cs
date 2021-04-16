@@ -28,7 +28,7 @@ namespace PurpleSharp.Simulations
 
                 if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
                 String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
-                if (playbook_task.user_target_type == 6) domain = ".";
+                //if (playbook_task.user_target_type == 6) domain = ".";
 
                 foreach (var user in usertargets)
                 {

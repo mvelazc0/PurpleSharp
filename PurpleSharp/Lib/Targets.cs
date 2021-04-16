@@ -135,7 +135,7 @@ namespace PurpleSharp.Lib
             switch (playbook_task.user_target_type)
             {
                 case 1:
-                    logger.TimestampInfo("Targing playbook defined users");
+                    logger.TimestampInfo("Targeting playbook defined users");
                     foreach (string user in playbook_task.user_targets)
                     {
                         User nuser = new User(user);

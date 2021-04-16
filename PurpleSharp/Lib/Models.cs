@@ -114,7 +114,7 @@ namespace PurpleSharp.Lib
         public int task_sleep { get; set; } = 0;
         public bool cleanup { get; set; } = true;
 
-        // Password Spraying
+        // Password Spraying T1110.003
         public string protocol { get; set; } = "Kerberos";
         public int user_target_type { get; set; } = 1;
         public int host_target_type { get; set; } = 1;
@@ -122,6 +122,10 @@ namespace PurpleSharp.Lib
         public int host_target_total { get; set; } = 5;
         public string[] user_targets { get; set; }
         public string[] host_targets { get; set; }
+
+        // Group Domain Enumeration T1069.002
+        public string[] groups { get; set; } = { };
+
 
         public PlaybookTask()
         {
