@@ -1022,9 +1022,8 @@ namespace PurpleSharp
 
                 //T1110.003 - Password Spraying
                 case "T1110.003":
-                    string password = "Summer2020";
-                    if (playbook_task.variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(playbook_task, password, log);
-                    else Simulations.CredAccess.RemoteDomainPasswordSpray(playbook_task, password, log);
+                    if (playbook_task.variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(playbook_task, log);
+                    else Simulations.CredAccess.RemoteDomainPasswordSpray(playbook_task, log);
 
                     break;
 

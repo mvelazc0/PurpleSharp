@@ -14,7 +14,7 @@ namespace PurpleSharp.Simulations
     public class CredAccess
     {
 
-        public static void LocalDomainPasswordSpray(PlaybookTask playbook_task, string password, string log)
+        public static void LocalDomainPasswordSpray(PlaybookTask playbook_task, string log)
         {
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -34,12 +34,12 @@ namespace PurpleSharp.Simulations
                 {
                     if (playbook_task.protocol.ToUpper().Equals("KERBEROS"))
                     {
-                        CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 0, logger);
+                        CredAccessHelper.LogonUser(user.UserName, domain, playbook_task.spray_password, 2, 0, logger);
                         if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                     }
                     else
                     {
-                        CredAccessHelper.LogonUser(user.UserName, domain, password, 2, 2, logger);
+                        CredAccessHelper.LogonUser(user.UserName, domain, playbook_task.spray_password, 2, 2, logger);
                         if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                     }
                 }
@@ -52,7 +52,7 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void RemoteDomainPasswordSpray(PlaybookTask playbook_task, string password, string log)
+        public static void RemoteDomainPasswordSpray(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
@@ -85,7 +85,7 @@ namespace PurpleSharp.Simulations
                         if (playbook_task.task_sleep > 0 ) Thread.Sleep(playbook_task.task_sleep * 1000);
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            CredAccessHelper.RemoteSmbLogin(host_targets[0], domain, tempuser.UserName, password, Kerberos, logger);
+                            CredAccessHelper.RemoteSmbLogin(host_targets[0], domain, tempuser.UserName, playbook_task.spray_password, Kerberos, logger);
                         }));
                     }
                     Task.WaitAll(tasklist.ToArray());
@@ -106,7 +106,7 @@ namespace PurpleSharp.Simulations
                         if (playbook_task.task_sleep > 0 && temp > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            CredAccessHelper.RemoteSmbLogin(host_targets[temp], domain, user_targets[temp].UserName, password, Kerberos, logger);
+                            CredAccessHelper.RemoteSmbLogin(host_targets[temp], domain, user_targets[temp].UserName, playbook_task.spray_password, Kerberos, logger);
 
                         }));
                     }

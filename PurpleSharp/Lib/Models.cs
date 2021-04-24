@@ -122,6 +122,7 @@ namespace PurpleSharp.Lib
         public int host_target_total { get; set; } = 5;
         public string[] user_targets { get; set; }
         public string[] host_targets { get; set; }
+        public string spray_password { get; set; } = "Passw0rd1";
 
         // Group Domain Enumeration T1069.002
         public string[] groups { get; set; } = { };
