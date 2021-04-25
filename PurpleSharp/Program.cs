@@ -1065,6 +1065,7 @@ namespace PurpleSharp
 
                 case "T1087.002":
                     if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(log);
+                    else if (playbook_task.variation == 2) Simulations.Discovery.DomainAccountDiscoveryPowerShell(log);
                     else Simulations.Discovery.DomainAccountDiscoveryLdap(log); 
                     break;
 
@@ -1094,6 +1095,7 @@ namespace PurpleSharp
 
                 case "T1069.002":
                     if (playbook_task.variation == 1) Simulations.Discovery.DomainGroupDiscoveryCmd(playbook_task, log);
+                    else if (playbook_task.variation == 2) Simulations.Discovery.DomainGroupDiscoveryPowerShell(playbook_task, log);
                     else Simulations.Discovery.DomaiGroupDiscoveryLdap(playbook_task, log);
                     break;
 

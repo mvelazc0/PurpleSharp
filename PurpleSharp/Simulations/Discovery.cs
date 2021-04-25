@@ -121,7 +121,7 @@ namespace PurpleSharp.Simulations
         public static void DomainAccountDiscoveryLdap(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1087.002");
             logger.TimestampInfo("Using LDAP to execute this technique");
             try
@@ -138,7 +138,7 @@ namespace PurpleSharp.Simulations
         public static void DomainAccountDiscoveryCmd(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Lib.Logger(currentPath + log);
             logger.SimulationHeader("T1087.002");
             logger.TimestampInfo("Using the command line to execute the technique");
 
@@ -151,6 +151,25 @@ namespace PurpleSharp.Simulations
             {
                 logger.SimulationFailed(ex);
             }   
+        }
+
+        public static void DomainAccountDiscoveryPowerShell(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1087.002");
+            logger.TimestampInfo("Using PowerShell to execute the technique");
+
+            try
+            {
+                string encodedPwd = "RwBlAHQALQBBAEQAVQBzAGUAcgAgAC0ARgBpAGwAdABlAHIAIAAqACAAfAAgAFMAZQBsAGUAYwB0AC0ATwBiAGoAZQBjAHQAIABTAGEAbQBBAGMAYwBvAHUAbgB0AE4AQQBtAGUA";
+                ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
         }
 
         public static void LocalAccountDiscoveryCmd(string log)
@@ -301,7 +320,7 @@ namespace PurpleSharp.Simulations
         public static void LocalGroups(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1069.001");
             logger.TimestampInfo("Using the command line to execute the technique");
 
@@ -320,7 +339,7 @@ namespace PurpleSharp.Simulations
         public static void DomainGroupDiscoveryCmd(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1069.002");
             logger.TimestampInfo("Using the command line to execute technique");
             try
@@ -336,6 +355,41 @@ namespace PurpleSharp.Simulations
                 else
                 {
                     ExecutionHelper.StartProcess("", "net group /domain", logger);
+                    logger.SimulationFinished();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void DomainGroupDiscoveryPowerShell(PlaybookTask playbook_task, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1069.002");
+            logger.TimestampInfo("Using PowerShell to execute the technique");
+            try
+            {
+                if (playbook_task.groups.Length > 0)
+                {
+                    foreach (string group in playbook_task.groups)
+                    {
+                        string cleanPws = String.Format("Get-AdGroup -Filter {{Name -like '{0}'}} | Get-ADGroupMember | Select SamAccountName", group);
+                        logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+                        var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+                        ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+                    }
+                    logger.SimulationFinished();
+                }
+                else
+                {
+                    string cleanPws = String.Format("Get-AdGroup -Filter {{Name -like 'Domain Admins'}} | Get-ADGroupMember | Select SamAccountName");
+                    logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+                    var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+                    ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
                     logger.SimulationFinished();
 
                 }
