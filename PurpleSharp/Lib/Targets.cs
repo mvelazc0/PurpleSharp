@@ -207,7 +207,7 @@ namespace PurpleSharp.Lib
 
         }
 
-        public static List<Computer> GetHostTargets(PlaybookTask playbook_task, Lib.Logger logger)
+        public static List<Computer> GetHostTargets(PlaybookTask playbook_task, Logger logger)
         {
             List<Computer> host_targets = new List<Computer>();
             Computer host_target = new Computer();
@@ -238,7 +238,7 @@ namespace PurpleSharp.Lib
                     break;
                 
                 case 3:
-
+                    //TODO: This option is not needed, It can be part of case 1.
                     logger.TimestampInfo(String.Format("Targeting {0} hosts defined in playbook", playbook_task.host_targets.Length));
                     for (int i = 0; i < playbook_task.host_targets.Length; i++)
                     {

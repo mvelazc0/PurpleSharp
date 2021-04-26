@@ -71,15 +71,16 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void PortScan(Computer computer, TimeSpan timeout)
+        public static void PortScan(Computer computer, TimeSpan timeout, int[] ports, Logger logger)
         {
             IPAddress server2 = IPAddress.Parse(computer.IPv4);
             //List<int> ports = new List<int> { 21, 22, 23, 25, 80, 135, 139, 443, 445, 1433, 3306, 3389, 8080, 8000, 10000 };
-            List<int> ports = new List<int> { 135, 139, 443, 445, 1433, 3306, 3389};
+            //List<int> ports = new List<int> { 135, 139, 443, 445, 1433, 3306, 3389};
 
             foreach (int port in ports)
             {
                 //Console.WriteLine("Scanning port {0} on {1}", port, computer.Fqdn);
+                logger.TimestampInfo(String.Format("Scanning port {0} on {1}", port, computer.IPv4));
                 IPEndPoint remoteEP = new IPEndPoint(server2, port);
                 Socket sender = new Socket(remoteEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
@@ -110,12 +111,9 @@ namespace PurpleSharp.Simulations
                     //DateTime dtime = DateTime.Now;
                     //Console.WriteLine("{0}[{1}] Could not perform network service scan on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
                     //return false;
-
                 }
-
             }
             DateTime dtime = DateTime.Now;
-            Console.WriteLine("{0}[{1}] Finished network service scan on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
         }
 
         public static void LdapQueryForObjects(Logger logger, int type=1, string user = "", string group = "")

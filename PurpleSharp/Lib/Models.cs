@@ -116,17 +116,23 @@ namespace PurpleSharp.Lib
 
         // Password Spraying T1110.003
         public string protocol { get; set; } = "Kerberos";
-        public int user_target_type { get; set; } = 1;
-        public int host_target_type { get; set; } = 1;
-        public int user_target_total { get; set; } = 5;
-        public int host_target_total { get; set; } = 5;
-        public string[] user_targets { get; set; }
-        public string[] host_targets { get; set; }
         public string spray_password { get; set; } = "Passw0rd1";
 
+        // User target variables
+        public int user_target_type { get; set; } = 1;
+        public int user_target_total { get; set; } = 5;
+        public string[] user_targets { get; set; }
+        
+        // Host target variables
+        public int host_target_type { get; set; } = 1;
+        public int host_target_total { get; set; } = 5;
+        public string[] host_targets { get; set; }
+        
         // Group Domain Enumeration T1069.002
         public string[] groups { get; set; } = { };
 
+        // Network Service Scanning
+        public int[] ports { get; set; } = { 135, 139, 443, 445, 1433, 3306, 3389 };
 
         public PlaybookTask()
         {

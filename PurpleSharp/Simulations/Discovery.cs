@@ -9,24 +9,61 @@ namespace PurpleSharp.Simulations
 {
     class Discovery
     {
-        public static void EnumerateShares(int nhosts, int tsleep, string log)
+
+        public static void NetworkShareEnumerationCmdLocal(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1135");
+            logger.TimestampInfo("Using the command line to execute the technique");
+            try
+            {
+                ExecutionHelper.StartProcess("", "net share", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void NetworkShareEnumerationCmdRemote(PlaybookTask playbook_task, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1135");
+            logger.TimestampInfo("Using the command line to execute the technique");
+            try
+            {
+                List<Computer> target_hosts = Targets.GetHostTargets(playbook_task, logger);
+                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", playbook_task.task_sleep));
+                foreach (Computer computer in target_hosts)
+                {
+                    ExecutionHelper.StartProcess("", String.Format("net view \\\\{0}", computer.IPv4), logger);
+                }
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void NetworkShareEnumerationApiRemote(PlaybookTask playbook_task, string log)
         {
 
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1135");
             logger.TimestampInfo("Using the Win32 API NetShareEnum function to execute this technique");
 
             try
             {
+                //List<Computer> targetcomputers = Lib.Targets.GetHostTargets_old(computertype, nhosts, logger);
                 List<Task> tasklist = new List<Task>();
-                var rand = new Random();
-                int computertype = rand.Next(1, 6);
-
-                List<Computer> targetcomputers = Lib.Targets.GetHostTargets_old(computertype, nhosts, logger);
-                logger.TimestampInfo(String.Format("Obtained {0} target computers", targetcomputers.Count));
-                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each enumeration attempt", tsleep));
-                foreach (Computer computer in targetcomputers)
+                List<Computer> target_hosts = Targets.GetHostTargets(playbook_task, logger);
+                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each enumeration attempt", playbook_task.task_sleep));
+                foreach (Computer computer in target_hosts)
                 {
                     if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
                     {
@@ -35,7 +72,7 @@ namespace PurpleSharp.Simulations
                             DiscoveryHelper.ShareEnum(computer, logger);
 
                         }));
-                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
+                        if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                     }
 
                 }
@@ -75,37 +112,34 @@ namespace PurpleSharp.Simulations
             }
             Task.WaitAll(tasklist.ToArray());
         }
-        public static void NetworkServiceDiscovery(int nhost, int tsleep, string log)
+        public static void NetworkServiceDiscovery(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1046");
             logger.TimestampInfo("Using the System.Net.Sockets .NET namespace to execute this technique");
 
             try
             {
-                var rand = new Random();
-                int computertype = rand.Next(1, 6);
                 List<Task> tasklist = new List<Task>();
-                List<Computer> targetcomputers = Lib.Targets.GetHostTargets_old(computertype, nhost, logger);
-                logger.TimestampInfo(String.Format("Obtained {0} target computers for the scan", targetcomputers.Count));
-                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", tsleep));
-                foreach (Computer computer in targetcomputers)
+                List<Computer> target_hosts = Targets.GetHostTargets(playbook_task, logger);
+                //logger.TimestampInfo(String.Format("Obtained {0} target computers for the scan", target_hosts.Count));
+                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", playbook_task.task_sleep));
+                foreach (Computer computer in target_hosts)
                 {
-                    if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
+                    //if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
+                    //{
+                    Computer temp = computer;
+                    TimeSpan interval = TimeSpan.FromSeconds(5);
+
+                    tasklist.Add(Task.Factory.StartNew(() =>
                     {
-                        Computer temp = computer;
-                        TimeSpan interval = TimeSpan.FromSeconds(5);
+                        logger.TimestampInfo(String.Format("Starting port scan against {0} ({1})", temp.ComputerName, temp.IPv4));
+                        DiscoveryHelper.PortScan(temp, interval, playbook_task.ports, logger) ;
+                    }));
+                    if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
 
-                        tasklist.Add(Task.Factory.StartNew(() =>
-                        {
-                            logger.TimestampInfo(String.Format("Starting port scan against {0} ({1})", temp.ComputerName, temp.IPv4));
-                            DiscoveryHelper.PortScan(temp, interval);
-
-                        }));
-                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
-
-                    }
+                    //}
                 }
                 Task.WaitAll(tasklist.ToArray());
                 logger.SimulationFinished();

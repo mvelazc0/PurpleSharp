@@ -1051,12 +1051,14 @@ namespace PurpleSharp
 
                 //T1135 - Network Share Discovery
                 case "T1135":
-                    Simulations.Discovery.EnumerateShares(playbook_task.host_target_total, playbook_task.task_sleep, log);
+                    if (playbook_task.variation == 1) Simulations.Discovery.NetworkShareEnumerationCmdLocal(log);
+                    else if (playbook_task.variation == 2) Simulations.Discovery.NetworkShareEnumerationCmdRemote(playbook_task, log);
+                    else Simulations.Discovery.NetworkShareEnumerationApiRemote(playbook_task, log);
                     break;
 
                 //T1046 - Network Service Scanning
                 case "T1046":
-                    Simulations.Discovery.NetworkServiceDiscovery(playbook_task.host_target_total, playbook_task.task_sleep, log);
+                    Simulations.Discovery.NetworkServiceDiscovery(playbook_task, log);
                     break;
 
                 case "T1087.001":
