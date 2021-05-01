@@ -1084,7 +1084,8 @@ namespace PurpleSharp
                     break;
 
                 case "T1482":
-                    Simulations.Discovery.DomainTrustDiscovery(log);
+                    if (playbook_task.variation == 1) Simulations.Discovery.DomainTrustDiscoveryCmd(log);
+                    else Simulations.Discovery.DomainTrustDiscoveryPowerShell(log);
                     break;
 
                 case "T1201":

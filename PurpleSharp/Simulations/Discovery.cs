@@ -18,7 +18,7 @@ namespace PurpleSharp.Simulations
             logger.TimestampInfo("Using the command line to execute the technique");
             try
             {
-                ExecutionHelper.StartProcess("", "net share", logger);
+                ExecutionHelper.StartProcessApi("", "net share", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -39,7 +39,7 @@ namespace PurpleSharp.Simulations
                 if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", playbook_task.task_sleep));
                 foreach (Computer computer in target_hosts)
                 {
-                    ExecutionHelper.StartProcess("", String.Format("net view \\\\{0}", computer.IPv4), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format("net view \\\\{0}", computer.IPv4), logger);
                 }
                 logger.SimulationFinished();
             }
@@ -178,7 +178,8 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcess("", "net user /domain", logger);
+                //ExecutionHelper.StartProcessApi("", "net user /domain", logger);
+                ExecutionHelper.StartProcessNET("net.exe", "user /domain", logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -196,8 +197,10 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                string encodedPwd = "RwBlAHQALQBBAEQAVQBzAGUAcgAgAC0ARgBpAGwAdABlAHIAIAAqACAAfAAgAFMAZQBsAGUAYwB0AC0ATwBiAGoAZQBjAHQAIABTAGEAbQBBAGMAYwBvAHUAbgB0AE4AQQBtAGUA";
-                ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
+                string cleanPws = String.Format("Get-ADUser -Filter * | Select-Object SamAccountNAme");
+                logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+                var cleanPwsBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -216,7 +219,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 //ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
-                ExecutionHelper.StartProcess("", "net user", logger);
+                ExecutionHelper.StartProcessApi("", "net user", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -232,8 +235,8 @@ namespace PurpleSharp.Simulations
             logger.SimulationHeader("T1007");
             try
             {
-                ExecutionHelper.StartProcess("", "net start", logger);
-                ExecutionHelper.StartProcess("", "tasklist /svc", logger);
+                ExecutionHelper.StartProcessApi("", "net start", logger);
+                ExecutionHelper.StartProcessApi("", "tasklist /svc", logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -246,12 +249,12 @@ namespace PurpleSharp.Simulations
         public static void SystemUserDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1033");
             try
             {
-                ExecutionHelper.StartProcess("", "whoami", logger);
-                ExecutionHelper.StartProcess("", "query user", logger);
+                ExecutionHelper.StartProcessApi("", "whoami", logger);
+                ExecutionHelper.StartProcessApi("", "query user", logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -264,13 +267,13 @@ namespace PurpleSharp.Simulations
         public static void SystemNetworkConnectionsDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1049");
             try
             {
-                ExecutionHelper.StartProcess("", "netstat", logger);
-                ExecutionHelper.StartProcess("", "net use", logger);
-                ExecutionHelper.StartProcess("", "net session", logger);
+                ExecutionHelper.StartProcessApi("", "netstat", logger);
+                ExecutionHelper.StartProcessApi("", "net use", logger);
+                ExecutionHelper.StartProcessApi("", "net session", logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -282,11 +285,11 @@ namespace PurpleSharp.Simulations
         static public void SystemNetworkConfigurationDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1016");
             try
             {
-                ExecutionHelper.StartProcess("", "ipconfig /all", logger);
+                ExecutionHelper.StartProcessApi("", "ipconfig /all", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -298,13 +301,13 @@ namespace PurpleSharp.Simulations
         static public void FileAndDirectoryDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1083");
 
             try
             {
-                ExecutionHelper.StartProcess("", @"dir c:\ >> %temp%\download", logger);
-                ExecutionHelper.StartProcess("", @"dir C:\Users\ >> %temp%\download", logger);
+                ExecutionHelper.StartProcessApi("", @"dir c:\ >> %temp%\download", logger);
+                ExecutionHelper.StartProcessApi("", @"dir C:\Users\ >> %temp%\download", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -313,17 +316,37 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void DomainTrustDiscovery(string log)
+        public static void DomainTrustDiscoveryCmd(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1482");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
-                ExecutionHelper.StartProcess("","nltest /domain_trusts", logger);
-                ExecutionHelper.StartProcess("", "nltest /all_trusts", logger);
+                ExecutionHelper.StartProcessApi("","nltest /domain_trusts", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void DomainTrustDiscoveryPowerShell(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1482");
+            logger.TimestampInfo("Using PowerShell to execute the technique");
+
+            try
+            {
+                string cleanPws = String.Format("Get-DomainTrusts");
+                logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+                var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -341,8 +364,8 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcess("", "net accounts", logger);
-                ExecutionHelper.StartProcess("", "net accounts /domain", logger);
+                ExecutionHelper.StartProcessApi("", "net accounts", logger);
+                ExecutionHelper.StartProcessApi("", "net accounts /domain", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -350,7 +373,6 @@ namespace PurpleSharp.Simulations
                 logger.SimulationFailed(ex);
             }
         }
-
         public static void LocalGroups(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -360,8 +382,8 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcess("", "net localgroup", logger);
-                ExecutionHelper.StartProcess("", "net localgroup \"Administrators\"", logger);
+                ExecutionHelper.StartProcessApi("", "net localgroup", logger);
+                ExecutionHelper.StartProcessApi("", "net localgroup \"Administrators\"", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -382,13 +404,13 @@ namespace PurpleSharp.Simulations
                 {
                     foreach (string group in playbook_task.groups)
                     {
-                        ExecutionHelper.StartProcess("", String.Format("net group \"{0}\" /domain", group), logger);
+                        ExecutionHelper.StartProcessApi("", String.Format("net group \"{0}\" /domain", group), logger);
                     }
                     logger.SimulationFinished();
                 }
                 else
                 {
-                    ExecutionHelper.StartProcess("", "net group /domain", logger);
+                    ExecutionHelper.StartProcessApi("", "net group /domain", logger);
                     logger.SimulationFinished();
 
                 }
@@ -414,7 +436,7 @@ namespace PurpleSharp.Simulations
                         string cleanPws = String.Format("Get-AdGroup -Filter {{Name -like '{0}'}} | Get-ADGroupMember | Select SamAccountName", group);
                         logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
                         var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
-                        ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+                        ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
                     }
                     logger.SimulationFinished();
                 }
@@ -423,7 +445,7 @@ namespace PurpleSharp.Simulations
                     string cleanPws = String.Format("Get-AdGroup -Filter {{Name -like 'Domain Admins'}} | Get-ADGroupMember | Select SamAccountName");
                     logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
                     var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
-                    ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
                     logger.SimulationFinished();
 
                 }
@@ -474,9 +496,9 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcess("", "reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall", logger);
-                ExecutionHelper.StartProcess("", "reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\"", logger);
-                ExecutionHelper.StartProcess("", "reg query HKLM\\System\\Currentcontrolset\\Service", logger);
+                ExecutionHelper.StartProcessApi("", "reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall", logger);
+                ExecutionHelper.StartProcessApi("", "reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\"", logger);
+                ExecutionHelper.StartProcessApi("", "reg query HKLM\\System\\Currentcontrolset\\Service", logger);
 
                 logger.SimulationFinished();
             }
@@ -495,8 +517,8 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcess("", "netsh advfirewall firewall show rule name=all", logger);
-                ExecutionHelper.StartProcess("", "wmic / Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName / Format:List", logger);
+                ExecutionHelper.StartProcessApi("", "netsh advfirewall firewall show rule name=all", logger);
+                ExecutionHelper.StartProcessApi("", "wmic / Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName / Format:List", logger);
                 
 
                 logger.SimulationFinished();
@@ -516,8 +538,8 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcess("", "systeminfo", logger);
-                ExecutionHelper.StartProcess("", "net config workstation", logger);
+                ExecutionHelper.StartProcessApi("", "systeminfo", logger);
+                ExecutionHelper.StartProcessApi("", "net config workstation", logger);
 
                 logger.SimulationFinished();
             }
@@ -536,8 +558,8 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcess("", "w32tm /tz", logger);
-                ExecutionHelper.StartProcess("", "time /T", logger);
+                ExecutionHelper.StartProcessApi("", "w32tm /tz", logger);
+                ExecutionHelper.StartProcessApi("", "time /T", logger);
 
                 logger.SimulationFinished();
             }

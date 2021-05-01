@@ -15,7 +15,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string encodedPwd = "UwB0AGEAcgB0AC0AUwBsAGUAZQBwACAALQBzACAAMgAwAA==";
-                ExecutionHelper.StartProcess("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -57,7 +57,7 @@ namespace PurpleSharp.Simulations
             logger.SimulationHeader("T1059.003");
             try
             {
-                ExecutionHelper.StartProcess("", "cmd.exe /C whoami", logger);
+                ExecutionHelper.StartProcessApi("", "cmd.exe /C whoami", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -74,8 +74,8 @@ namespace PurpleSharp.Simulations
             logger.SimulationHeader("T1569.002");
             try
             {
-                ExecutionHelper.StartProcess("", "net start UpdaterService", logger);
-                ExecutionHelper.StartProcess("", "sc start UpdaterService", logger);
+                ExecutionHelper.StartProcessApi("", "net start UpdaterService", logger);
+                ExecutionHelper.StartProcessApi("", "sc start UpdaterService", logger);
 
                 logger.SimulationFinished();
             }
@@ -95,7 +95,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = "invoice0420.vbs";
-                ExecutionHelper.StartProcess("", String.Format("wscript.exe {0}", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("wscript.exe {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -114,7 +114,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = "invoice0420.js";
-                ExecutionHelper.StartProcess("", String.Format("wscript.exe {0}", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("wscript.exe {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

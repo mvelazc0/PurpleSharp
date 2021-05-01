@@ -1,7 +1,9 @@
+using PurpleSharp.Lib;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace PurpleSharp.Simulations
 { 
@@ -30,7 +32,7 @@ namespace PurpleSharp.Simulations
             else if (retValue != false && cleanup == false ) logger.TimestampInfo("Could not start process!");
         }
 
-        public static void StartProcess(string binary, string cmdline, Lib.Logger logger)
+        public static void StartProcessApi(string binary, string cmdline, Lib.Logger logger)
         {
             
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
@@ -51,6 +53,35 @@ namespace PurpleSharp.Simulations
             else logger.TimestampInfo("Could not start process!");
         }
 
+        public static void StartProcessNET(string binary, string cmdline, Logger logger)
+        {
+
+            using (Process process = new Process())
+            {
+                process.StartInfo.FileName = binary;
+                process.StartInfo.Arguments = cmdline;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                logger.TimestampInfo("Using the System.Diagnostics .NET namespace to execute the technique");
+                process.Start();
+                logger.TimestampInfo(String.Format("Process successfully created. (PID): " + process.Id));
+
+                string standard_output;
+                int i = 0;
+                while ((standard_output = process.StandardOutput.ReadLine()) != null && i < 5)
+                {
+                    if (!standard_output.Trim().Equals(""))
+                    {
+                        //do something
+                        logger.TimestampInfo(standard_output);
+                        //Console.WriteLine(standard_output);
+                        i++;
+                        //break;
+                    }
+                }
+                process.WaitForExit();
+            }
+        }
         public static void StartProcessAsUser(string binary, string cmdline, string domain, string username, string password)
         {
             Structs.STARTUPINFO startupInfo = new Structs.STARTUPINFO();
