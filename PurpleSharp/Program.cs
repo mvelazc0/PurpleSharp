@@ -203,7 +203,7 @@ namespace PurpleSharp
                     catch
                     {
                         Console.WriteLine("[!] Error generating JSON layer...");
-                        Console.WriteLine("[!] Exitting...");
+                        Console.WriteLine("[!] Exiting...");
                         return;
                     }
                 }
@@ -223,7 +223,7 @@ namespace PurpleSharp
                 else
                 {
                     Console.WriteLine("[!] Didnt recognize parameter...");
-                    Console.WriteLine("[!] Exitting...");
+                    Console.WriteLine("[!] Exiting...");
                     return;
                 }
 
@@ -300,7 +300,9 @@ namespace PurpleSharp
                 {
                     if (engagement.type.Equals("local"))
                     {
-                        Console.WriteLine("[+] PurpleSharp will execute up to {0} playbook(s) locally", engagement.playbooks.Count);
+                        logger.TimestampInfo(String.Format("PurpleSharp will execute up to {0} playbook(s) locally", engagement.playbooks.Count));
+                        //Console.WriteLine("[+] PurpleSharp will execute up to {0} playbook(s) locally", engagement.playbooks.Count);
+                        SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
                         string results ="";
                         foreach (SimulationPlaybook playbook in engagement.playbooks)
                         {
@@ -318,20 +320,29 @@ namespace PurpleSharp
                                     if (playbook.playbook_sleep > 0 && task != lastTask) Thread.Sleep(1000 * playbook.playbook_sleep);
                                 }
                                 logger.TimestampInfo("Playbook Finished");
+                                if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
+                                {
+                                    Console.WriteLine();
+                                    logger.TimestampInfo(String.Format("Sleeping {0} seconds until next playbook...", engagement.sleep));
+                                    Thread.Sleep(1000 * engagement.sleep );
+                                }
 
                             }
                         }
-                        results = System.IO.File.ReadAllText(log);
+
+                        logger.TimestampInfo("Writting JSON results...");
+                        results = File.ReadAllText(log);
                         string output_file = pb_file.Replace(".json", "") + "_results.json";
                         SimulationExerciseResult simulationresults = Json.GetSimulationExerciseResult(results);
                         Json.WriteJsonSimulationResults(simulationresults, output_file);
+                        logger.TimestampInfo("DONE. Open " + output_file);
                     }
 
                     else if (engagement.type.Equals("remote"))
                     { 
                         Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
                         engagement.password = Utils.GetPassword();
-                        Console.WriteLine("[+] PurpleSharp will executeup to {0} playbook(s) remotely", engagement.playbooks.Count);
+                        logger.TimestampInfo(String.Format("PurpleSharp will executeup to {0} playbook(s) remotely", engagement.playbooks.Count));
 
                         SimulationExerciseResult engagementResults = new SimulationExerciseResult();
                         engagementResults.playbookresults = new List<SimulationPlaybookResult>();
@@ -345,7 +356,7 @@ namespace PurpleSharp
                                 playbookResults.taskresults = new List<PlaybookTaskResult>();
                                 playbookResults.name = playbook.name;
                                 playbookResults.host = playbook.remote_host;
-                                Console.WriteLine("[+] Running Playbook {0}", playbook.name);
+                                logger.TimestampInfo(String.Format("Running Playbook {0}", playbook.name));
 
                                 PlaybookTask lastTask = playbook.tasks.Last();
                                 List<string> techs = new List<string>();
@@ -362,19 +373,19 @@ namespace PurpleSharp
                                         Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
                                         var random = new Random();
                                         int index = random.Next(targets.Count);
-                                        Console.WriteLine("[+] Picked random host for simulation: " + targets[index].Fqdn);
-                                        Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, targets[index].Fqdn);
+                                        logger.TimestampInfo(String.Format("Picked random host for simulation {0}",targets[index].Fqdn));
+                                        logger.TimestampInfo(String.Format("Executing techniques {0} against {1}", techs2, targets[index].Fqdn));
                                         playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, simulator_np, log);
                                         //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass, scout_np, playbook, log, false);
                                         if (playbookResults == null) continue;
                                         playbookResults.name = playbook.name;
                                     }
-                                    else Console.WriteLine("[!] Could not obtain targets for the simulation");
+                                    else logger.TimestampInfo("Could not obtain targets for the simulation");
 
                                 }
                                 else
                                 {
-                                    Console.WriteLine("[+] Executing techniques {0} against {1}", techs2, playbook.remote_host);
+                                    logger.TimestampInfo(String.Format("Executing techniques {0} against {1}", techs2, playbook.remote_host));
                                     playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, simulator_np, log);
                                     //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass,scout_np, playbook, log, false);
                                     if (playbookResults == null) continue;
@@ -383,25 +394,25 @@ namespace PurpleSharp
                                 if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
                                 {
                                     Console.WriteLine();
-                                    Console.WriteLine("[+] Sleeping {0} minutes until next playbook...", engagement.sleep);
+                                    logger.TimestampInfo(String.Format("Sleeping {0} minutes until next playbook...", engagement.sleep));
                                     Thread.Sleep(1000 * engagement.sleep * 60);
                                 }
                                 engagementResults.playbookresults.Add(playbookResults);
                             }
                         }
 
-                        Console.WriteLine("Writting JSON results...");
+                        logger.TimestampInfo("Writting JSON results...");
                         string output_file = pb_file.Replace(".json", "") + "_results.json";
                         Json.WriteJsonSimulationResults(engagementResults, output_file);
-                        Console.WriteLine("DONE. Open " + output_file);
+                        logger.TimestampInfo("DONE. Open " + output_file);
                         Console.WriteLine();
                         return;
                     }
                 }
                 else
                 {
-                    Console.WriteLine("[!] Could not parse JSON input.");
-                    Console.WriteLine("[*] Exiting");
+                    logger.TimestampInfo("Could not parse JSON input.");
+                    logger.TimestampInfo("Exiting");
                     return;
                 }   
             }
@@ -410,7 +421,7 @@ namespace PurpleSharp
             if (remote)
             {
                 string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-                Lib.Logger logger = new Lib.Logger(currentPath + log);
+                Logger logger = new Logger(currentPath + log);
 
                 if (!rhost.Equals("") && !domain.Equals("") && !ruser.Equals("") && !techniques.Equals(""))
                 {
@@ -434,10 +445,10 @@ namespace PurpleSharp
                         targets = Ldap.GetADComputers(10, logger, dc, ruser, rpwd);
                         if (targets.Count > 0)
                         {
-                            Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
+                            logger.TimestampInfo(String.Format("Obtained {0} possible targets.", targets.Count));
                             var random = new Random();
                             int index = random.Next(targets.Count);
-                            Console.WriteLine("[+] Picked Random host for simulation: " + targets[index].Fqdn);
+                            logger.TimestampInfo(String.Format("Picked Random host for simulation: " + targets[index].Fqdn));
                             config_params.remote_host = targets[index].Fqdn;
                             ExecuteRemoteTechniquesSerialized(config_params);
                             //ExecuteRemoteTechniquesSerialized(targets[index].Fqdn, domain, ruser, rpwd, techniques, variation, pbsleep, tsleep, scoutfpath, scout_np, simrpath, simulator_np, log, opsec, verbose, cleanup);
@@ -445,22 +456,22 @@ namespace PurpleSharp
                         }
                         else
                         {
-                            Console.WriteLine("[!] Could not obtain targets for the simulation");
+                            logger.TimestampInfo("Could not obtain targets for the simulation");
                             return;
                         }
                     }
                     else
                     {
-                        Console.WriteLine("[*] Missing dc :( ");
-                        Console.WriteLine("[*] Exiting");
+                        logger.TimestampInfo("Missing dc!");
+                        logger.TimestampInfo("Exiting");
                         return;
                     }
 
                 }
                 else
                 {
-                    Console.WriteLine("[*] Missing parameters :( ");
-                    Console.WriteLine("[*] Exiting");
+                    logger.TimestampInfo("Missing parameters :( ");
+                    logger.TimestampInfo("Exiting");
                     return;
                 }
             }
@@ -607,7 +618,7 @@ namespace PurpleSharp
                         Thread.Sleep(1000);
                         RemoteLauncher.delete(cmd_params.scout_full_path, cmd_params.remote_host, cmd_params.remote_user, cmd_params.remote_password, cmd_params.domain);
                         RemoteLauncher.delete(scoutFolder + cmd_params.log_filename, cmd_params.remote_host, cmd_params.remote_user, cmd_params.remote_password, cmd_params.domain);
-                        Console.WriteLine("[!] Exitting.");
+                        Console.WriteLine("[!] Exiting.");
                         return;
                     }
                     else
@@ -674,7 +685,7 @@ namespace PurpleSharp
                 else
                 {
                     Console.WriteLine("[!] Could not connect to namedpipe service");
-                    Console.WriteLine("[!] Exitting.");
+                    Console.WriteLine("[!] Exiting.");
                     return;
                 }
             }
@@ -781,7 +792,7 @@ namespace PurpleSharp
                         Thread.Sleep(1000);
                         RemoteLauncher.delete(playbook.scout_full_path, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
                         RemoteLauncher.delete(scoutFolder + log, playbook.remote_host, exercise.username, exercise.password, exercise.domain);
-                        //Console.WriteLine("[!] Exitting.");
+                        //Console.WriteLine("[!] Exiting.");
                         return null;
                     }
                     else

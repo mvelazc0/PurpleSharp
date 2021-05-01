@@ -43,7 +43,7 @@ namespace PurpleSharp.Simulations
             Structs.SECURITY_ATTRIBUTES tSec = new Structs.SECURITY_ATTRIBUTES();
             pSec.nLength = Marshal.SizeOf(pSec);
             tSec.nLength = Marshal.SizeOf(tSec);
-            logger.TimestampInfo("Using the Win32 API call CreateProcess to execute: " + cmdline);
+            logger.TimestampInfo(String.Format("Using the Win32 API call CreateProcess to execute: '{0}'", cmdline));
             retValue = WinAPI.CreateProcess(null, cmdline, ref pSec, ref tSec, false, NORMAL_PRIORITY_CLASS, IntPtr.Zero, null, ref sInfo, out pInfo);
 
             if (retValue)
@@ -62,7 +62,7 @@ namespace PurpleSharp.Simulations
                 process.StartInfo.Arguments = cmdline;
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
-                logger.TimestampInfo("Using the System.Diagnostics .NET namespace to execute the technique");
+                logger.TimestampInfo(String.Format("Using the System.Diagnostics .NET namespace to execute '{0} {1}'", binary, cmdline));
                 process.Start();
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + process.Id));
 
