@@ -1062,7 +1062,8 @@ namespace PurpleSharp
                     break;
 
                 case "T1087.001":
-                    Simulations.Discovery.LocalAccountDiscoveryCmd(log);
+                    if (playbook_task.variation == 1) Simulations.Discovery.LocalAccountDiscoveryCmd(log);
+                    else if (playbook_task.variation == 2) Simulations.Discovery.LocalAccountDiscoveryPowerShell(log);
                     break;
 
                 case "T1087.002":

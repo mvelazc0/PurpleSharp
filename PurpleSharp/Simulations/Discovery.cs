@@ -1,4 +1,5 @@
-﻿using PurpleSharp.Lib;
+﻿using Microsoft.SqlServer.Server;
+using PurpleSharp.Lib;
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
@@ -212,14 +213,36 @@ namespace PurpleSharp.Simulations
         public static void LocalAccountDiscoveryCmd(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1087.001");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
-                //ExecutionHelper.StartProcess("", "net group \"Domain Admins\" /domain", log);
-                ExecutionHelper.StartProcessApi("", "net user", logger);
+                //ExecutionHelper.StartProcessApi("", "net user", logger);
+                ExecutionHelper.StartProcessNET("net.exe", "user", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+        public static void LocalAccountDiscoveryPowerShell(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1087.001");
+            logger.TimestampInfo("Using PowerShell to execute the technique");
+
+            try
+            {
+                string cleanPws = String.Format("Get-LocalUser");
+                logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+                var cleanPwsBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+                //ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+                ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
+
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -231,7 +254,7 @@ namespace PurpleSharp.Simulations
         public static void SystemServiceDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1007");
             try
             {
@@ -254,7 +277,6 @@ namespace PurpleSharp.Simulations
             try
             {
                 ExecutionHelper.StartProcessApi("", "whoami", logger);
-                ExecutionHelper.StartProcessApi("", "query user", logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
