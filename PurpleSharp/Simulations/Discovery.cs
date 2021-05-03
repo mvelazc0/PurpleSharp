@@ -192,7 +192,7 @@ namespace PurpleSharp.Simulations
         public static void DomainAccountDiscoveryPowerShell(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1087.002");
             logger.TimestampInfo("Using PowerShell to execute the technique");
 
@@ -201,7 +201,8 @@ namespace PurpleSharp.Simulations
                 string cleanPws = String.Format("Get-ADUser -Filter * | Select-Object SamAccountNAme");
                 logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
                 var cleanPwsBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
-                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
+                ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
+                //ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -276,7 +277,8 @@ namespace PurpleSharp.Simulations
             logger.SimulationHeader("T1033");
             try
             {
-                ExecutionHelper.StartProcessApi("", "whoami", logger);
+                //ExecutionHelper.StartProcessApi("", "whoami", logger);
+                ExecutionHelper.StartProcessNET("cmd.exe", "/c whoami", logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -347,7 +349,8 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcessApi("","nltest /domain_trusts", logger);
+                ExecutionHelper.StartProcessNET("nltest.exe", "/domain_trusts", logger);
+                //ExecutionHelper.StartProcessApi("","nltest /domain_trusts", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -426,13 +429,15 @@ namespace PurpleSharp.Simulations
                 {
                     foreach (string group in playbook_task.groups)
                     {
-                        ExecutionHelper.StartProcessApi("", String.Format("net group \"{0}\" /domain", group), logger);
+                        ExecutionHelper.StartProcessNET("net.exe", String.Format("group \"{0}\" /domain", group), logger);
+                        //ExecutionHelper.StartProcessApi("", String.Format("net group \"{0}\" /domain", group), logger);
                     }
                     logger.SimulationFinished();
                 }
                 else
                 {
-                    ExecutionHelper.StartProcessApi("", "net group /domain", logger);
+                    ExecutionHelper.StartProcessNET("net.exe", String.Format("group /domain"), logger);
+                    //ExecutionHelper.StartProcessApi("", "net group /domain", logger);
                     logger.SimulationFinished();
 
                 }
@@ -458,7 +463,8 @@ namespace PurpleSharp.Simulations
                         string cleanPws = String.Format("Get-AdGroup -Filter {{Name -like '{0}'}} | Get-ADGroupMember | Select SamAccountName", group);
                         logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
                         var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
-                        ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+                        //ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+                        ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
                     }
                     logger.SimulationFinished();
                 }
@@ -554,14 +560,16 @@ namespace PurpleSharp.Simulations
         public static void SystemInformationDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1082");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
-                ExecutionHelper.StartProcessApi("", "systeminfo", logger);
-                ExecutionHelper.StartProcessApi("", "net config workstation", logger);
+                //ExecutionHelper.StartProcessApi("", "systeminfo", logger);
+                //ExecutionHelper.StartProcessApi("", "net config workstation", logger);
+                ExecutionHelper.StartProcessNET("cmd.exe /c", "systeminfo", logger);
+                //ExecutionHelper.StartProcessNET("net.exe", "config workstation", logger);
 
                 logger.SimulationFinished();
             }
@@ -590,6 +598,45 @@ namespace PurpleSharp.Simulations
                 logger.SimulationFailed(ex);
             }
         }
-        
+        public static void RemoteSystemDiscoveryCmd(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1018");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcessNET("cmd.exe", "/c net view", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void RemoteSystemDiscoveryPowerShell(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1018");
+            logger.TimestampInfo("Using PowerShell to execute the technique");
+
+            try
+            {
+                string cleanPws = String.Format("Get-ADComputer -Filter  {{enabled -eq $true}} | Select-Object Name, DNSHostName, OperatingSystem, LastLogonDate");
+                logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+                var cleanPwsBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+                ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
+                //ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
     }
 }

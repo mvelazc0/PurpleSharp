@@ -58,7 +58,7 @@ namespace PurpleSharp.Simulations
             Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1110.003");
             logger.TimestampInfo(String.Format("Remote Domain Brute Force using the WNetAddConnection2 Win32 API function"));
-            bool Kerberos = true;
+            bool Kerberos = false;
             List<Computer> host_targets = new List<Computer>();
             List<User> user_targets = new List<User>();
             List<Task> tasklist = new List<Task>();
@@ -68,9 +68,11 @@ namespace PurpleSharp.Simulations
             {
                 if (playbook_task.user_target_type == 99) domain = ".";
                 // Executing a remote authentication with Kerberos will not connect to the remote host, just the DC.
+                Kerberos = false;
+
                 host_targets = Targets.GetHostTargets(playbook_task, logger);
                 user_targets = Targets.GetUserTargets(playbook_task, logger);
-                if (playbook_task.protocol.ToUpper().Equals("NTLM")) Kerberos = false;
+                //if (playbook_task.protocol.ToUpper().Equals("NTLM")) Kerberos = false;
                 if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
 
                 if (playbook_task.host_target_type == 1 || playbook_task.host_target_type == 2)

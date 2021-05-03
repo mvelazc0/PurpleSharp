@@ -68,7 +68,7 @@ namespace PurpleSharp.Simulations
 
                 string standard_output;
                 int i = 0;
-                while ((standard_output = process.StandardOutput.ReadLine()) != null && i < 5)
+                while ((standard_output = process.StandardOutput.ReadLine()) != null && i < 10)
                 {
                     if (!standard_output.Trim().Equals(""))
                     {

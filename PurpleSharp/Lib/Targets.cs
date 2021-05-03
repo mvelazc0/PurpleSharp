@@ -128,9 +128,10 @@ namespace PurpleSharp.Lib
 
         public static List<User> GetUserTargets(PlaybookTask playbook_task, Logger logger)
         {
+            PrincipalContext context;
+            string dc;
             List<User> targetusers = new List<User>();
-            PrincipalContext context = new PrincipalContext(ContextType.Domain);
-            string dc = context.ConnectedServer;
+
 
             switch (playbook_task.user_target_type)
             {
@@ -144,6 +145,8 @@ namespace PurpleSharp.Lib
                     break;
 
                 case 2:
+                    context = new PrincipalContext(ContextType.Domain);
+                    dc = context.ConnectedServer;
                     logger.TimestampInfo("Targeting random domain users");
                     targetusers = Ldap.GetADUsers(playbook_task.user_target_total, logger, dc, true);
                     logger.TimestampInfo(String.Format("Obtained {0} user records", targetusers.Count));
@@ -168,6 +171,8 @@ namespace PurpleSharp.Lib
                     break;
 
                 case 6:
+                    context = new PrincipalContext(ContextType.Domain);
+                    dc = context.ConnectedServer;
                     logger.TimestampInfo("Targeting disabled users");
                     targetusers = Ldap.GetADUsers(playbook_task.user_target_total, logger, dc, false);
                     logger.TimestampInfo(String.Format("Obtained {0} user records", targetusers.Count));
