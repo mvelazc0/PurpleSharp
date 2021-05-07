@@ -14,7 +14,7 @@ Visit the [Demos](https://www.purplesharp.com/en/latest/demos/demos.html) sectio
 
 ## Goals / Use Cases
 
-The attack telemetry produced by simulating techniques with PurpleSharp aids detection teams in:
+The attack telemetry produced by simulating techniques with PurpleSharp aids research & detection teams in:
 
 * Building new detecttion analytics
 * Testing existing detection analytics
