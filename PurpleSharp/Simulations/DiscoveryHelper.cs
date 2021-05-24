@@ -71,15 +71,16 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void PortScan(Computer computer, TimeSpan timeout)
+        public static void PortScan(Computer computer, TimeSpan timeout, int[] ports, Logger logger)
         {
             IPAddress server2 = IPAddress.Parse(computer.IPv4);
             //List<int> ports = new List<int> { 21, 22, 23, 25, 80, 135, 139, 443, 445, 1433, 3306, 3389, 8080, 8000, 10000 };
-            List<int> ports = new List<int> { 135, 139, 443, 445, 1433, 3306, 3389};
+            //List<int> ports = new List<int> { 135, 139, 443, 445, 1433, 3306, 3389};
 
             foreach (int port in ports)
             {
                 //Console.WriteLine("Scanning port {0} on {1}", port, computer.Fqdn);
+                logger.TimestampInfo(String.Format("Scanning port {0} on {1}", port, computer.IPv4));
                 IPEndPoint remoteEP = new IPEndPoint(server2, port);
                 Socket sender = new Socket(remoteEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
@@ -110,15 +111,12 @@ namespace PurpleSharp.Simulations
                     //DateTime dtime = DateTime.Now;
                     //Console.WriteLine("{0}[{1}] Could not perform network service scan on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
                     //return false;
-
                 }
-
             }
             DateTime dtime = DateTime.Now;
-            Console.WriteLine("{0}[{1}] Finished network service scan on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
         }
 
-        public static void ListUsersLdap(Logger logger)
+        public static void LdapQueryForObjects(Logger logger, int type=1, string user = "", string group = "")
         {
             try
             {
@@ -128,25 +126,51 @@ namespace PurpleSharp.Simulations
                 DirectoryEntry searchRoot = new DirectoryEntry("LDAP://" + dc);
                 DirectorySearcher search = new DirectorySearcher();
                 search = new DirectorySearcher(searchRoot);
-                Console.WriteLine(search);
-                search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
-                search.PropertiesToLoad.Add("samaccountname");
-                search.PropertiesToLoad.Add("displayname");
+
+                //users
+                if (type == 1)
+                {
+                    search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+                    search.PropertiesToLoad.Add("samaccountname");
+                    search.PropertiesToLoad.Add("displayname");
+                }
+                else if (type == 2)
+                {
+                    if (group.Equals(""))
+                    {
+                        search.Filter = "(&(objectClass=group))";
+                        search.PropertiesToLoad.Add("samaccountname");
+                        search.PropertiesToLoad.Add("CanonicalName");
+                    }
+                    else
+                    {
+                        //https://forums.asp.net/t/1991180.aspx?Query+AD+for+users+in+a+specific+group+by+group+name+
+                        search.Filter = String.Format("(&(cn={0})(objectClass=group))", group);
+                        search.PropertiesToLoad.Add("member");
+                    }   
+                }
                 search.SizeLimit = 15;
                 SearchResult result;
                 SearchResultCollection resultCol = search.FindAll();
 
                 if (resultCol != null)
                 {
-                    logger.TimestampInfo("Obtained results via LDAP");
+                    logger.TimestampInfo(String.Format("Obtained {0} results via LDAP", resultCol.Count));
                     for (int counter = 0; counter < resultCol.Count; counter++)
                     {
                         string UserNameEmailString = string.Empty;
                         result = resultCol[counter];
                         if (result.Properties.Contains("samaccountname") && result.Properties.Contains("displayname"))
                         {
-                            Console.WriteLine((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
                             logger.TimestampInfo((String)result.Properties["displayname"][0] + ": " + (String)result.Properties["samaccountname"][0]);
+                        }
+                        else if (result.Properties.Contains("samaccountname") && result.Properties.Contains("CanonicalName"))
+                        {
+                            logger.TimestampInfo((String)result.Properties["samaccountname"][0] + " - " + (String)result.Properties["CanonicalName"][0]);
+                        }
+                        else if (result.Properties.Contains("Member"))
+                        {
+                            logger.TimestampInfo((String)result.Properties["member"][0]);
                         }
                     }
                 }
@@ -158,7 +182,6 @@ namespace PurpleSharp.Simulations
                 logger.TimestampInfo(ex.Message.ToString());
             }
         }
-
 
     }
 }

@@ -35,11 +35,11 @@ namespace PurpleSharp.Simulations
             {
                 string username = "haxor";
                 string pwd = "Passw0rd123El7";
-                ExecutionHelper.StartProcess("", String.Format("net user {0} {1} /add", username, pwd), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("net user {0} {1} /add", username, pwd), logger);
                 Thread.Sleep(2000);
                 if (cleanup)
                 {
-                    ExecutionHelper.StartProcess("", String.Format("net user {0} /delete", username), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format("net user {0} /delete", username), logger);
                 }
                 else
                 {
@@ -66,10 +66,10 @@ namespace PurpleSharp.Simulations
             {
                 string taskName = "BadScheduledTask";
                 string binpath = @"C:\Windows\Temp\xyz12345.exe";
-                ExecutionHelper.StartProcess("", String.Format(@"SCHTASKS /CREATE /SC DAILY /TN {0} /TR ""{1}"" /ST 13:00", taskName, binpath), logger);
+                ExecutionHelper.StartProcessApi("", String.Format(@"SCHTASKS /CREATE /SC DAILY /TN {0} /TR ""{1}"" /ST 13:00", taskName, binpath), logger);
                 if (cleanup)
                 {
-                    ExecutionHelper.StartProcess("", String.Format(@"SCHTASKS /DELETE /F /TN {0}", taskName, binpath), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format(@"SCHTASKS /DELETE /F /TN {0}", taskName, binpath), logger);
                     Thread.Sleep(3000);
                 }
                 else
@@ -116,11 +116,11 @@ namespace PurpleSharp.Simulations
                 string regKey = "BadApp";
                 string binpath = @"C:\Windows\Temp\xyz12345.exe";
 
-                ExecutionHelper.StartProcess("", String.Format(@"REG ADD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /t REG_SZ /F /D {1}", regKey, binpath), logger);
+                ExecutionHelper.StartProcessApi("", String.Format(@"REG ADD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /t REG_SZ /F /D {1}", regKey, binpath), logger);
                 if (cleanup)
                 {
                     Thread.Sleep(3000);
-                    ExecutionHelper.StartProcess("", String.Format(@"REG DELETE HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /F", regKey), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format(@"REG DELETE HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /V {0} /F", regKey), logger);
                 }
                 else
                 {
@@ -166,9 +166,9 @@ namespace PurpleSharp.Simulations
             {
                 string serviceName = "UpdaterService";
                 string servicePath = @"C:\Windows\Temp\superlegit.exe";
-                ExecutionHelper.StartProcess("", String.Format(@"sc create {0} binpath= {1} type= own start= auto", serviceName, servicePath), logger);
+                ExecutionHelper.StartProcessApi("", String.Format(@"sc create {0} binpath= {1} type= own start= auto", serviceName, servicePath), logger);
                 Thread.Sleep(3000);
-                if (cleanup) ExecutionHelper.StartProcess("", String.Format(@"sc delete {0}", serviceName), logger);
+                if (cleanup) ExecutionHelper.StartProcessApi("", String.Format(@"sc delete {0}", serviceName), logger);
                 else logger.TimestampInfo(String.Format("The created Service: {0} ImagePath: {1} was not deleted as part of the simulation", serviceName, servicePath));
             }
             catch(Exception ex)

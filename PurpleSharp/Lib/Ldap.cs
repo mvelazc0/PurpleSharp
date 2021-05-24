@@ -15,12 +15,31 @@ namespace PurpleSharp
         public string UserName { get; set; }
         public string DisplayName { get; set; }
         public bool isMapped { get; set; }
+
+        public User(string username)
+        {
+            UserName = username;
+        }
+        public User()
+        {
+        }
     }
     public class Computer
     {
         public string ComputerName { get; set; }
         public string Fqdn { get; set; }
         public string IPv4 { get; set; }
+
+        public Computer(string hostname, string ip)
+        {
+            ComputerName = hostname;
+            IPv4 = ip;
+        }
+        public Computer()
+        {
+            
+        }
+
     }
 
     public class Ldap
@@ -70,7 +89,7 @@ namespace PurpleSharp
                 SearchResult result;
 
                 if (Enabled) logger.TimestampInfo("Querying for active domain users with badPwdCount <= 3..");
-                else logger.TimestampInfo(" Querying for disabled domain users ..");
+                else logger.TimestampInfo("Querying for disabled domain users ..");
 
                 SearchResultCollection resultCol = search.FindAll();
                 
@@ -101,7 +120,7 @@ namespace PurpleSharp
             }
         }
 
-        public static List<User> GetADAdmins(int count)
+        public static List<User> GetADAdmins(int count, Lib.Logger logger)
         {
 
             DirectoryEntry rootDSE = new DirectoryEntry("LDAP://RootDSE");
@@ -115,7 +134,7 @@ namespace PurpleSharp
             search.Filter = "(&(objectCategory=person)(objectClass=user)(adminCount=1)(!samAccountName=krbtgt)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
             search.SizeLimit = count * 5;
             SearchResult result;
-            Console.WriteLine("[*] Querying for active administrative users (adminCount=1) ..");
+            logger.TimestampInfo("Querying for active administrative users (adminCount=1) ..");
             SearchResultCollection resultCol = search.FindAll();
             if (resultCol != null)
             {
@@ -137,11 +156,11 @@ namespace PurpleSharp
 
         }
 
-        public static List<User> GetDomainAdmins()
+        public static List<User> GetDomainAdmins(Lib.Logger logger)
         {
             List<User> lstDas = new List<User>();
             PrincipalContext PC = new PrincipalContext(ContextType.Domain);
-            Console.WriteLine("[*] Querying for active Domain Admins ..");
+            logger.TimestampInfo("Querying for active Domain Admins ..");
             GroupPrincipal GP = GroupPrincipal.FindByIdentity(PC, "Domain Admins");
             foreach (UserPrincipal member in GP.Members)
             {

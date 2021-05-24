@@ -5,113 +5,6 @@ using System.IO;
 
 namespace PurpleSharp.Lib
 {
-    // Input classes
-    public class SimulationExercise
-    {
-        public string domain { get; set; }
-        public string username { get; set; }
-        public string dc { get; set; }
-        public int sleep { get; set; }
-        public string type { get; set; }
-        public List<SimulationPlaybook> playbooks { get; set; }
-    }
-
-
-    public class SimulationPlaybook
-    {
-        public string name { get; set; }
-        public string scoutfpath { get; set; }
-        public string simrpath { get; set; }
-        public int pbsleep { get; set; }
-        public int tsleep { get; set; }
-        public string host { get; set; }
-        public List<PlaybookTask> tasks { get; set; }
-    }
-
-    public class PlaybookTask
-    {
-        public string technique { get; set; }
-        public int variation { get; set; } = 1;
-    }
-
-
-    // Result classes
-    public class SimulationExerciseResult
-    {
-        public List<SimulationPlaybookResult> playbookresults { get; set; }
-    }
-
-    public class SimulationPlaybookResult
-    {
-        public string name { get; set; }
-        public string host { get; set; }
-        public string user { get; set; }
-        public string simprocess { get; set; }
-        public int simprocessid { get; set; }
-
-        public List<PlaybookTaskResult> taskresults { get; set; }
-    }
-
-    public class PlaybookTaskResult
-    {
-        public string timestamp { get; set; }
-        public string technique { get; set; }
-        //public string host { get; set; }
-        public bool success { get; set; }
-        public List<TaskDebugMsg> debugmsgs { get; set; }
-
-    }
-    public class TaskDebugMsg
-    {
-        public string msg { get; set; }
-    }
-
-    //Mitre ATT&CK 
-
-    public class NavigatorLayer
-    {
-        public string name { get; set; }
-        public string version { get; set; }
-        public string domain { get; set; }
-        public string description { get; set; }
-        public bool hideDisabled { get; set; }
-
-        public NavigatorFilters filters { get; set; }
-        public List<NavigatorTechnique> techniques { get; set; }
-
-
-        //public Gradient gradient { get; set; }
-        //public object[] legendItems { get; set; }
-        //public object[] metadata { get; set; }
-        //public bool showTacticRowBackground { get; set; }
-        //public string tacticRowBackground { get; set; }
-        //public bool selectTechniquesAcrossTactics { get; set; }
-    }
-
-    public class NavigatorFilters
-    {
-        public string[] stages { get; set; }
-        public string[] platforms { get; set; }
-    }
-
-    public class NavigatorGradient
-    {
-        public string[] colors { get; set; }
-        public int minValue { get; set; }
-        public int maxValue { get; set; }
-    }
-
-    public class NavigatorTechnique
-    {
-        public string techniqueID { get; set; }
-        //public string tactic { get; set; }
-        public string color { get; set; }
-        //public string comment { get; set; }
-        public int score { get; set; }
-        public bool enabled { get; set; }
-        //public object[] metadata { get; set; }
-    }
-
 
     class Json
     {
@@ -128,60 +21,6 @@ namespace PurpleSharp.Lib
                 return null;
             }
         }
-
-        /*
-        public static PlaybookTaskResult GetTaskResult(string results)
-        {
-
-            PlaybookTaskResult taskresult = new PlaybookTaskResult();
-            List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
-
-
-            string[] lines = results.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string line in lines)
-            {
-                if (line.Contains("Starting"))
-                {
-                    taskresult.timestamp = line.Substring(0, line.IndexOf('[')).Trim();
-
-                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Starting ", "").Replace("Simulation on ", "").Trim();
-
-                    taskresult.technique = strip.Split(' ')[0];
-                    //taskresult.host = strip.Split(' ')[1];
-                }
-                else if (line.Contains("Simulator"))
-                {
-                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Trim();
-                    //string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "").Replace("as ", "").Trim();
-                    string strip = line.Substring(line.LastIndexOf("]") + 1).Replace("Simulator running from ", "").Replace("with PID:", "|").Replace("as ", "|").Trim();
-
-                    //taskresult.simprocess = strip.Split('|')[0];
-                    //taskresult.simprocessid = Int32.Parse(strip.Split('|')[1]);
-                    //taskresult.user = strip.Split('|')[2];
-                }
-                else if (line.Contains("Simulation Finished"))
-                {
-                    taskresult.success = true;
-                }
-                else if (line.Contains("Simulation Failed"))
-                {
-                    taskresult.success = false;
-                }
-                else
-                {
-                    TaskDebugMsg debugmsg = new TaskDebugMsg();
-                    debugmsg.msg = line;
-                    debugmsgs.Add(debugmsg);
-                }
-                //Console.WriteLine(line.Substring(line.LastIndexOf(']') + 1));
-            }
-            taskresult.debugmsgs = debugmsgs;
-            return taskresult;
-            //File.WriteAllText("result.json", JsonConvert.SerializeObject(taskresult));
-        }
-        */
-
         public static SimulationExerciseResult GetSimulationExerciseResult(string results)
         {
             SimulationExerciseResult simulationresult = new SimulationExerciseResult();
@@ -468,14 +307,14 @@ namespace PurpleSharp.Lib
                 {
                     SimulationPlaybook playbook = new SimulationPlaybook();
                     playbook.name = layer.name;
-                    playbook.host = "random";
-                    playbook.scoutfpath = @"C:\Windows\Psexesvc.exe";
-                    playbook.simrpath = @"\Downloads\Firefox_Installer.exe";
+                    playbook.remote_host = "random";
+                    playbook.scout_full_path = @"C:\Windows\Psexesvc.exe";
+                    playbook.simulator_relative_path = @"\Downloads\Firefox_Installer.exe";
                     List<PlaybookTask> tasks = new List<PlaybookTask>();
 
 
                     PlaybookTask task = new PlaybookTask();
-                    task.technique = technique.techniqueID;
+                    task.technique_id = technique.techniqueID;
                     tasks.Add(task);
                     playbook.tasks = tasks;
                     playbooks.Add(playbook);
