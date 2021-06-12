@@ -2,6 +2,10 @@
 [![Open_Threat_Research Community](https://img.shields.io/badge/Open_Threat_Research-Community-brightgreen.svg)](https://twitter.com/OTR_Community)
 [![BlackHat Arsenal 2021](https://raw.githubusercontent.com/toolswatch/badges/master/arsenal/usa/2021.svg)](https://www.blackhat.com/us-21/arsenal/schedule/#purplesharp--active-directory-attack-simulations-24011)
 
+<p align="center">
+  <img src="https://github.com/mvelazc0/PurpleSharp/blob/docs/docs/source/images/logo.png?raw=true" alt="Sublime's custom image"/>
+</p>
+
 Defending enterprise networks against attackers continues to present a difficult challenge for blue teams. Prevention has fallen short; improving detection & response capabilities has proven to be a step in the right direction. However, without the telemetry produced by adversary behavior, building new and testing existing detection capabilities will be constrained. 
 
 PurpleSharp is an open source adversary simulation tool written in C# that executes adversary techniques within Windows Active Directory environments. The resulting telemetry
