@@ -29,9 +29,9 @@
    Demos <demos/demos>
 
 
+.. image:: /images/new-logo2.png
 
-PurpleSharp
-===========
+|
 
 Defending enterprise networks against attackers continues to present a difficult challenge for blue teams. Prevention has fallen short; improving detection
 & response capabilities has proven to be a step in the right direction. However, without the telemetry produced by adversary behavior, building new and testing
