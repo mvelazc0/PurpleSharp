@@ -3,7 +3,7 @@
 [![BlackHat Arsenal 2021](https://raw.githubusercontent.com/toolswatch/badges/master/arsenal/usa/2021.svg)](https://www.blackhat.com/us-21/arsenal/schedule/#purplesharp--active-directory-attack-simulations-24011)
 
 <p align="center">
-  <img src="https://github.com/mvelazc0/PurpleSharp/blob/docs/docs/source/images/logo.png?raw=true" alt="Sublime's custom image"/>
+  <img src="https://github.com/mvelazc0/PurpleSharp/blob/docs/docs/source/images/new-logo2.png?raw=true" alt="Sublime's custom image"/>
 </p>
 
 Defending enterprise networks against attackers continues to present a difficult challenge for blue teams. Prevention has fallen short; improving detection & response capabilities has proven to be a step in the right direction. However, without the telemetry produced by adversary behavior, building new and testing existing detection capabilities will be constrained. 
