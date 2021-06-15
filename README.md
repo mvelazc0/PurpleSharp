@@ -57,7 +57,7 @@ The community is a great source of ideas and feedback. Thank you all.
 * [Matt Graeber](https://twitter.com/mattifestation)
 * [Jonny Johnson](https://twitter.com/jsecurity101)
 * [Keith McCammon](https://twitter.com/kwm)
-* [Andrew Schwartz](https://www.trustedsec.com/team/andrew-schwartz/)
+* [Andrew Schwartz](https://twitter.com/4ndr3w6S)
 
 ## License
 
