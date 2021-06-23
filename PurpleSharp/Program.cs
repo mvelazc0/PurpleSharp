@@ -51,15 +51,35 @@ namespace PurpleSharp
             scout_np = "scoutpipe";
             simulator_np="simpipe";
 
-            //should move this to sqlite or a JSON file.
-            string[] execution = new string[] { "T1053.005", "T1059.003", "T1059.005", "T1059.007", "T1059.001", "T1569.002"};
-            string[] persistence = new string[] { "T1053.005", "T1136.001", "T1543.003", "T1547.001", "T1546.003", "T1197" };
-            string[] privelege_escalation = new string[] { "T1053.005", "T1543.003", "T1547.001", "T1546.003", "T1055.002", "T1055.004" };
-            string[] defense_evasion = new string[] { "T1218.010", "T1218.005", "T1218.003", "T1218.011", "T1070.001", "T1220", "T1055.002", "T1055.003", "T1055.004", "T1140", "T1197", "T1218.009", "T1218.004", "T1134.004" };
-            string[] credential_access = new string[] { "T1110.003", "T1558.003", "T1003.001" };
-            string[] discovery = new string[] { "T1135", "T1046", "T1087.001", "T1087.002", "T1007", "T1033", "T1049", "T1016", "T1018", "T1083", "T1482", "T1201","T1069.001", "T1069.002", "T1012", "T1518.001", "T1082", "T1124" };
-            string[] lateral_movement = new string[] { "T1021", "T1021.006", "T1047" };
-            string[] supported_techniques = execution.Union(persistence).Union(privelege_escalation).Union(defense_evasion).Union(credential_access).Union(discovery).Union(lateral_movement).ToArray();
+            /*
+            string[] execution = new string[] { "T1053", "T1053.005", "T1059", "T1059.001", "T1059.003", "T1059.005", "T1059.007", "T1569", "T1569.002" };
+            string[] persistence = new string[] { "T1053", "T1053.005", "T1136", "T1136.001", "T1197", "T1543", "T1543.003", "T1546", "T1546.003", "T1547", "T1547.001" };
+            string[] privilege_escalation = new string[] { "T1053.005", "T1134", "T1134.004" , "T1543.003", "T1547.001", "T1546.003", "T1055", "T1055.002", "T1055.004"};
+            string[] defense_evasion = new string[] { "T1055.002", "T1055.003", "T1055.004", "T1070", "T1070.001", "T1218", "T1218.003", "T1218.010", "T1218.004", "T1218.005", "T1218.009", "T1218.011", "T1140", "T1197", "T1134", "T1134.004", "T1220" };
+            string[] credential_access = new string[] { "T1003", "T1003.001", "T1110", "T1110.003", "T1558", "T1558.003"};
+            string[] discovery = new string[] { "T1135", "T1046", "T1087", "T1087.001", "T1087.002", "T1007", "T1033", "T1049", "T1016", "T1018", "T1083", "T1482", "T1201","T1069", "T1069.001", "T1069.002", "T1012", "T1518", "T1518.001", "T1082", "T1124" };
+            string[] lateral_movement = new string[] { "T1021", "T1021.002", "T1021.006", "T1047" };
+            string[] supported_techniques = execution.Union(persistence).Union(privilege_escalation).Union(defense_evasion).Union(credential_access).Union(discovery).Union(lateral_movement).ToArray();
+            */
+            //should move this to sqlite, an embedded resource or an external JSON file.
+            string[] execution_techniques = new string[] { "T1053", "T1059", "T1569"};
+            string[] execution_subtechniques = new string[] { "T1053.005","T1059.001", "T1059.003", "T1059.005", "T1059.007", "T1569.002" };
+            string[] persistence_techniques = new string[] { "T1053", "T1136", "T1197", "T1543", "T1546", "T1547"};
+            string[] persistence_subtechniques = new string[] { "T1053.005", "T1136.001", "T1543.003", "T1546.003", "T1547.001" };
+            string[] privilege_escalation_techniques = new string[] {"T1134", "T1055", };
+            string[] privilege_escalation_subtechniques = new string[] { "T1053.005", "T1134.004", "T1543.003", "T1547.001", "T1546.003", "T1055.002", "T1055.004" };
+            string[] defense_evasion_techniques = new string[] { "T1055", "T1070", "T1218", "T1140", "T1197", "T1134","T1220" };
+            string[] defense_evasion_subtechniques = new string[] { "T1055.002", "T1055.003", "T1055.004", "T1070.001", "T1218.003", "T1218.010", "T1218.004", "T1218.005", "T1218.009", "T1218.011", "T1134.004"};
+            string[] credential_access_techniques = new string[] { "T1003", "T1110", "T1558"};
+            string[] credential_access_subtechniques = new string[] {"T1003.001", "T1110.003", "T1558.003" };
+            string[] discovery_techniques = new string[] { "T1135", "T1046", "T1087", "T1007", "T1033", "T1049", "T1016", "T1018", "T1083", "T1482", "T1201", "T1069", "T1012", "T1518", "T1082", "T1124" };
+            string[] discovery_subtechniques = new string[] { "T1087.001", "T1087.002", "T1007", "T1069.001", "T1069.002", "T1518.001" };
+            string[] lateral_movement_techniques = new string[] { "T1021", "T1047" };
+            string[] lateral_movement_subtechniques = new string[] {  "T1021.002", "T1021.006" };
+            string[] supported_techniques = execution_techniques.Union(persistence_techniques).Union(privilege_escalation_techniques).Union(defense_evasion_techniques).Union(credential_access_techniques).Union(discovery_techniques).Union(lateral_movement_techniques).ToArray();
+            string[] supported_subtechniques = execution_subtechniques.Union(persistence_subtechniques).Union(privilege_escalation_subtechniques).Union(defense_evasion_subtechniques).Union(credential_access_subtechniques).Union(discovery_subtechniques).Union(lateral_movement_subtechniques).ToArray();
+
+
 
             if (args.Length == 0)
             {
@@ -194,9 +214,10 @@ namespace PurpleSharp
                 {
                     try
                     {
-                        Console.WriteLine("[+] PurpleSharp supports "+ supported_techniques.Count() +" unique ATT&CK techniques.");
+                        Console.WriteLine("[+] PurpleSharp supports " + supported_subtechniques.Distinct().Count() + " unique ATT&CK subtechniques" + " and "+supported_techniques.Distinct().Count() +" unique ATT&CK techniques.");
                         Console.WriteLine("[+] Generating an ATT&CK Navigator layer...");
-                        Json.ExportAttackLayer(supported_techniques.Distinct().ToArray());
+                        //Json.ExportAttackLayer(supported_techniques.Distinct().ToArray());
+                        Json.ExportAttackLayer(supported_techniques.Union(supported_subtechniques).ToArray());
                         Console.WriteLine("[!] Open PurpleSharp_Navigator.json on https://mitre-attack.github.io/attack-navigator");
                         return;
                     }
@@ -1148,7 +1169,7 @@ namespace PurpleSharp
                     break;
 
                 //T1021 - Remote Service
-                case "T1021":
+                case "T1021.002":
                     Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task.host_target_total, playbook_task.task_sleep, playbook_task.cleanup, log);
                     break;
 

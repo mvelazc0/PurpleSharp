@@ -251,7 +251,7 @@ namespace PurpleSharp.Lib
         {
 
             NavigatorLayer layer = new NavigatorLayer();
-            layer.version = "3.0";
+            layer.version = "4.2";
             layer.name = "PurpleSharp Coverage";
             layer.domain = "mitre-enterprise";
             layer.description = "Layer of techniques supported by PurpleSharp";
