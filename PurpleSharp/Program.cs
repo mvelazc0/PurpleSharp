@@ -235,7 +235,7 @@ namespace PurpleSharp
                     NavigatorLayer layer = Json.ReadNavigatorLayer(json);
                     Console.WriteLine("[!] Loaded attack navigator '{0}'", layer.name);
                     Console.WriteLine("[+] Converting ATT&CK navigator Json...");
-                    SimulationExercise engagement = Json.ConvertNavigatorToSimulationExercise(layer, supported_techniques.Distinct().ToArray());
+                    SimulationExercise engagement = Json.ConvertNavigatorToSimulationExercise(layer, supported_techniques.Distinct().ToArray(), supported_subtechniques.Distinct().ToArray());
                     Json.CreateSimulationExercise(engagement);
                     Console.WriteLine("[!] Done");
                     Console.WriteLine("[+] Open simulation.json");

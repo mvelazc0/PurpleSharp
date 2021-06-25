@@ -294,7 +294,7 @@ namespace PurpleSharp.Lib
 
         }
 
-        public static SimulationExercise ConvertNavigatorToSimulationExercise(NavigatorLayer layer, string[] supportedtechniques)
+        public static SimulationExercise ConvertNavigatorToSimulationExercise(NavigatorLayer layer, string[] supportedtechniques, string[] supportedsubtechniques)
         {
             SimulationExercise engagement = new SimulationExercise();
             List<SimulationPlaybook> playbooks = new List<SimulationPlaybook>();
@@ -303,7 +303,7 @@ namespace PurpleSharp.Lib
             foreach (NavigatorTechnique technique in layer.techniques)
             {
 
-                if (Array.IndexOf(supportedtechniques, technique.techniqueID) > -1)
+                if (Array.IndexOf(supportedtechniques, technique.techniqueID) > -1 || Array.IndexOf(supportedsubtechniques, technique.techniqueID) > -1)
                 {
                     SimulationPlaybook playbook = new SimulationPlaybook();
                     playbook.name = layer.name;

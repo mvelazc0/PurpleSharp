@@ -82,7 +82,7 @@ namespace PurpleSharp.Lib
         public string password { get; set; }
         public string domain_controller { get; set; }
         public int sleep { get; set; }
-        public string type { get; set; }
+        public string type { get; set; } = "local";
         public List<SimulationPlaybook> playbooks { get; set; }
     }
     public class SimulationPlaybook
