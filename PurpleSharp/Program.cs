@@ -1170,7 +1170,9 @@ namespace PurpleSharp
 
                 //T1021 - Remote Service
                 case "T1021.002":
-                    Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task.host_target_total, playbook_task.task_sleep, playbook_task.cleanup, log);
+                    if (playbook_task.variation == 1) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
+                    else Simulations.LateralMovement.ModifyRemoteServiceOnHosts(playbook_task, log);
+                    //Simulations.LateralMovement.CreateRemoteServiceOnHosts_Old(playbook_task.host_target_total, playbook_task.task_sleep, playbook_task.cleanup, log);
                     break;
 
                 //T1047 - Windows Management Instrumentation

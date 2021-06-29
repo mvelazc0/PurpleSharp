@@ -34,6 +34,7 @@ namespace PurpleSharp
         {
             ComputerName = hostname;
             IPv4 = ip;
+            Fqdn = "";
         }
         public Computer()
         {

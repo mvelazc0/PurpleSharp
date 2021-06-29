@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PurpleSharp.Lib;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Management;
@@ -6,24 +7,27 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Threading;
 using TaskScheduler;
 
 namespace PurpleSharp.Simulations
 {
     class LateralMovementHelper
     {
+
         // From https://stackoverflow.com/questions/23481394/programmatically-install-windows-service-on-remote-machine
-        public static void CreateRemoteServiceApi(Computer computer, bool cleanup, Lib.Logger logger)
+        // and https://stackoverflow.com/questions/37983453/how-to-deploy-windows-service-on-remote-system-using-c-sharp-programatically
+        public static void CreateRemoteServiceApi_Old(Computer computer, bool cleanup, Lib.Logger logger)
         {
-            var scmHandle = WinAPI.OpenSCManager(computer.Fqdn, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+            //var scmHandle = WinAPI.OpenSCManager(computer.Fqdn, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+            var scmHandle = WinAPI.OpenSCManager(computer.ComputerName, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
 
             if (scmHandle == IntPtr.Zero)
             {
                 DateTime dtime = DateTime.Now;
                 int err = Marshal.GetLastWin32Error();
-                //Console.WriteLine("{0}[{1}] Could not obtain a handle to SCM on {2}. Not an admin ?", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                logger.TimestampInfo(String.Format("Could not obtain a handle to SCM on {0}. Not an admin ?", computer.Fqdn));
-                return;
+                logger.TimestampInfo(String.Format("Could not obtain a handle to the Service Control Manager on {0}.", computer.Fqdn));
+                throw new ArgumentException("Could not obtain a handle to SCM", "Error");
 
             }
             string servicePath = @"C:\Windows\Temp\superlegit.exe";      // A path to some running service now
@@ -38,7 +42,6 @@ namespace PurpleSharp.Simulations
             {
                 DateTime dtime = DateTime.Now;
                 logger.TimestampInfo(String.Format("Created service '{0}' on {1} with 'CreateService' Win32 API", serviceName, computer.ComputerName));
-                //Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
 
                 if (cleanup)
                 {
@@ -52,9 +55,10 @@ namespace PurpleSharp.Simulations
                     logger.TimestampInfo(String.Format("The created Service: {0} was not deleted on {1} as part of the simulation", serviceName, computer.ComputerName));
                 }
             }
-            /*
-            if (!created)
+            
+            else
             {
+                // service was not created
                 if (createdErr == 1073)
                 {
                     // Error: "The specified service already exists"
@@ -113,14 +117,140 @@ namespace PurpleSharp.Simulations
                 }
 
             }
-            */
+            
 
-            //WinAPI.StartService(svcHandleCreated, 0, null);
+            WinAPI.StartService(svcHandleCreated, 0, null);
 
 
             WinAPI.CloseServiceHandle(svcHandleCreated);
             WinAPI.CloseServiceHandle(scmHandle);
         }
+
+        // From https://stackoverflow.com/questions/23481394/programmatically-install-windows-service-on-remote-machine
+        // and https://stackoverflow.com/questions/37983453/how-to-deploy-windows-service-on-remote-system-using-c-sharp-programatically
+        public static void CreateRemoteServiceApi(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+            var scmHandle = IntPtr.Zero;
+            int createdErr = 0;
+
+            if (!computer.Fqdn.Equals("")) scmHandle = WinAPI.OpenSCManager(computer.Fqdn, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+            else if (!computer.ComputerName.Equals("")) scmHandle = WinAPI.OpenSCManager(computer.ComputerName, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+            else scmHandle = WinAPI.OpenSCManager(computer.IPv4, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+
+            if (scmHandle == IntPtr.Zero)
+            {
+                createdErr = Marshal.GetLastWin32Error();
+                logger.TimestampInfo(String.Format("Could not obtain a handle to the Service Control Manager on {0}.", computer.Fqdn));
+                throw new Win32Exception(createdErr);
+
+            }
+
+            IntPtr svcHandleCreated = IntPtr.Zero; 
+            bool created = CreateService(scmHandle, playbook_task.servicePath, playbook_task.serviceName, playbook_task.serviceName, out svcHandleCreated, out createdErr); ;
+
+            if (created)
+            {
+                logger.TimestampInfo(String.Format("Created service '{0}' on {1} with 'CreateService' Win32 API", playbook_task.serviceName, computer.ComputerName));
+
+                WinAPI.StartService(svcHandleCreated, 0, null);
+                logger.TimestampInfo(String.Format("Service '{0}' started on {1} with 'StartService' Win32 API", playbook_task.serviceName, computer.ComputerName));
+
+                if (playbook_task.cleanup)
+                {
+                    IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, playbook_task.serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
+                    bool deletedService = WinAPI.DeleteService(svcHandleOpened);
+                    logger.TimestampInfo(String.Format("Deleted service '{0}' on {1} with 'DeleteService' Win32API", playbook_task.serviceName, computer.ComputerName));
+                    WinAPI.CloseServiceHandle(svcHandleOpened);
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("The created Service: {0} was not deleted on {1} as part of the simulation", playbook_task.serviceName, computer.ComputerName));
+                }
+            }
+
+            else
+            {
+                // service was not created
+
+                if (createdErr == 1073)
+                {
+                    // Error: "The specified service already exists"
+                    logger.TimestampInfo(String.Format("Failed to create service {0} on {1}. Service already exists", playbook_task.serviceName, computer.ComputerName));
+
+                }
+                else
+                {
+                    // Some other serice creation error
+                    logger.TimestampInfo(String.Format("Failed to create service {0} on {1}.", playbook_task.serviceName, computer.ComputerName));
+                    throw new Win32Exception(createdErr);
+                }
+
+            }
+            WinAPI.CloseServiceHandle(svcHandleCreated);
+            WinAPI.CloseServiceHandle(scmHandle);
+        }
+
+        //Based on https://github.com/Mr-Un1k0d3r/SCShell
+        public static void ModifyRemoteServiceApi(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+            var scmHandle = IntPtr.Zero;
+            int createdErr = 0;
+            int bytesNeeded = 0;
+            IntPtr qscPtr = IntPtr.Zero;
+
+
+            if (!computer.Fqdn.Equals("")) scmHandle = WinAPI.OpenSCManager(computer.Fqdn, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+            else if (!computer.ComputerName.Equals("")) scmHandle = WinAPI.OpenSCManager(computer.ComputerName, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+            else scmHandle = WinAPI.OpenSCManager(computer.IPv4, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
+
+            if (scmHandle == IntPtr.Zero)
+            {
+                createdErr = Marshal.GetLastWin32Error();
+                logger.TimestampInfo(String.Format("Could not obtain a handle to the Service Control Manager on {0}.", computer.Fqdn));
+                throw new Win32Exception(createdErr);
+            }
+            if (!playbook_task.serviceName.Equals("random"))
+            {
+                IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, playbook_task.serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
+                if (svcHandleOpened == IntPtr.Zero)
+                {
+                    logger.TimestampInfo(String.Format("Could not obtain a handle to remote Service {0}.", playbook_task.serviceName));
+                    throw new Win32Exception(createdErr);
+                }
+                Structs.QueryServiceConfig qscs = new Structs.QueryServiceConfig();
+                int retCode = WinAPI.QueryServiceConfig(svcHandleOpened, qscPtr, 0, ref bytesNeeded);
+                if (retCode == 0  && bytesNeeded == 0)
+                {
+                    throw new Win32Exception();
+                }
+                
+                qscPtr = Marshal.AllocCoTaskMem((int)bytesNeeded);
+                retCode = WinAPI.QueryServiceConfig(svcHandleOpened, qscPtr, bytesNeeded, ref bytesNeeded);
+                logger.TimestampInfo(String.Format("Got handle for remote Service {0}.", playbook_task.serviceName));
+                qscs = (Structs.QueryServiceConfig)Marshal.PtrToStructure(qscPtr, new Structs.QueryServiceConfig().GetType());
+                string originalBinaryPath = Marshal.PtrToStringAuto(qscs.binaryPathName);
+                logger.TimestampInfo("Original binary path " + originalBinaryPath);
+
+                bool serviceChanged = WinAPI.ChangeServiceConfig(svcHandleOpened, 0xFFFFFFFF, 0x00000003, 0, playbook_task.servicePath, null, null, null, null, null, null);
+                if (!serviceChanged)
+                {
+                    logger.TimestampInfo(String.Format("Could not modify remote Service '{0}'.", playbook_task.serviceName));
+                    throw new Win32Exception(createdErr);
+                }
+                logger.TimestampInfo(String.Format("Succesfully modified remote Service '{0}' using ChangeServiceConfig.", playbook_task.serviceName));
+
+                WinAPI.StartService(svcHandleOpened, 0, null);
+                logger.TimestampInfo(String.Format("Service '{0}' started  with new ServicePath {1}", playbook_task.serviceName, playbook_task.servicePath));
+                Thread.Sleep(3000);
+
+                serviceChanged = WinAPI.ChangeServiceConfig(svcHandleOpened, 0xFFFFFFFF, 0x00000003, 0, originalBinaryPath, null, null, null, null, null, null);
+                if (serviceChanged)
+                {
+                    logger.TimestampInfo(String.Format("Restored remote Service '{0}' to the original path.", playbook_task.serviceName));
+                }
+            }
+        }
+
 
         // From https://stackoverflow.com/questions/23481394/programmatically-install-windows-service-on-remote-machine
         static bool CreateService(IntPtr scmHandle, string servicePath, string serviceName, string serviceDispName, out IntPtr serviceHandleCreated, out int errorCodeIfFailed)

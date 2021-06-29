@@ -134,6 +134,10 @@ namespace PurpleSharp.Lib
         // Network Service Scanning
         public int[] ports { get; set; } = { 135, 139, 443, 445, 1433, 3306, 3389 };
 
+        // Remote Service Creation
+        public string serviceName { get; set; } ="PurpleSharp Updater";
+        public string servicePath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
         public PlaybookTask()
         {
         }

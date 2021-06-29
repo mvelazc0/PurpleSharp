@@ -660,6 +660,20 @@ public class Structs
         public ulong LastExceptionFromRip;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct QueryServiceConfig
+    {
+        public int serviceType;
+        public int startType;
+        public int errorControl;
+        public IntPtr binaryPathName;
+        public IntPtr loadOrderGroup;
+        public int tagID;
+        public IntPtr dependencies;
+        public IntPtr startName;
+        public IntPtr displayName;
+    }
+
 
 
 
