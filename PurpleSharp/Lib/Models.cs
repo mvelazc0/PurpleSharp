@@ -138,6 +138,9 @@ namespace PurpleSharp.Lib
         public string serviceName { get; set; } ="PurpleSharp Updater";
         public string servicePath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
 
+        // WinRM remote execution
+        public string command { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
         public PlaybookTask()
         {
         }

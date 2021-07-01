@@ -281,23 +281,28 @@ namespace PurpleSharp.Simulations
             return serviceHandleCreated != IntPtr.Zero;
         }
 
-        public static void WinRMCodeExecution(Computer computer, string command, Lib.Logger logger)
+        public static void WinRMCodeExecution(Computer computer, PlaybookTask playbook_task, Logger logger)
         {
+
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
             try
             {
-                var connectTo = new Uri(String.Format("http://{0}:5985/wsman", computer.Fqdn));
+                var connectTo = new Uri(String.Format("http://{0}:5985/wsman", target));
+                logger.TimestampInfo(String.Format("Connecting to http://{0}:5985/wsman", target));
                 var connection = new WSManConnectionInfo(connectTo);
                 var runspace = RunspaceFactory.CreateRunspace(connection);
                 runspace.Open();
                 using (var powershell = PowerShell.Create())
                 {
                     powershell.Runspace = runspace;
-                    powershell.AddScript(command);
+                    powershell.AddScript(playbook_task.command);
                     var results = powershell.Invoke();
                     runspace.Close();
-                    DateTime dtime = DateTime.Now;
-                    logger.TimestampInfo(String.Format("Started a process using WinRM on {0}", computer.ComputerName));
-                    //Console.WriteLine("{0}[{1}] Successfully created a process using WinRM on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                    logger.TimestampInfo(String.Format("Successfully executed {0} using WinRM on {1}", playbook_task.command, computer.ComputerName));
 
                     /*
                     Console.WriteLine("Return command ");
@@ -310,26 +315,74 @@ namespace PurpleSharp.Simulations
             }
             catch (Exception ex)
             {
-                DateTime dtime = DateTime.Now;
                 if (ex.Message.Contains("Access is denied"))
                 {
                     logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. (Access Denied)", computer.Fqdn));
-                    //Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Access Denied)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                    throw new Exception();
                 }
                 else if (ex.GetType().ToString().Contains("PSRemotingTransportException"))
                 {
-                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. (Port Closed)", computer.Fqdn));
-                    //Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Port Closed)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
+                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. (Connection Issues)", computer.Fqdn));
+                    throw new Exception();
                 }
                 else
                 {
                     logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. {1}", computer.Fqdn, ex.GetType()));
-                    //Console.WriteLine("{0}[{1}] Failed to execute a process using WinRM on {2}. {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, ex.GetType());
+                    throw new Exception();
                 }
-
             }
-            
+        }
 
+        public static void WinRMCodeExecution2(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
+            try
+            {
+                var connectTo = new Uri(String.Format("http://{0}:5985/wsman", target));
+                logger.TimestampInfo(String.Format("Connecting to http://{0}:5985/wsman", target));
+                var connection = new WSManConnectionInfo(connectTo);
+                var runspace = RunspaceFactory.CreateRunspace(connection);
+                runspace.Open();
+                using (var powershell = PowerShell.Create())
+                {
+                    powershell.Runspace = runspace;
+                    powershell.AddScript(playbook_task.command);
+                    var results = powershell.Invoke();
+                    runspace.Close();
+                    logger.TimestampInfo(String.Format("Successfully executed {0} using WinRM on {1}", playbook_task.command, computer.ComputerName));
+
+                    /*
+                    Console.WriteLine("Return command ");
+                    foreach (var obj in results.Where(o => o != null))
+                    {
+                        Console.WriteLine("\t" + obj);
+                    }
+                    */
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Access is denied"))
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. (Access Denied)", computer.Fqdn));
+                    throw new Exception();
+                }
+                else if (ex.GetType().ToString().Contains("PSRemotingTransportException"))
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. (Connection Issues)", computer.Fqdn));
+                    throw new Exception();
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WinRM on {0}. {1}", computer.Fqdn, ex.GetType()));
+                    throw new Exception();
+                }
+            }
         }
 
         public static void WmiCodeExecution(Computer computer, string command, Lib.Logger logger)

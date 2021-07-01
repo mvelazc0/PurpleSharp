@@ -1165,7 +1165,7 @@ namespace PurpleSharp
 
                 //T1021.006 - Windows Remote Management
                 case "T1021.006":
-                    Simulations.LateralMovement.WinRmCodeExec(playbook_task.host_target_total, playbook_task.task_sleep, log);
+                    Simulations.LateralMovement.WinRmCodeExec(playbook_task, log);
                     break;
 
                 //T1021 - Remote Service

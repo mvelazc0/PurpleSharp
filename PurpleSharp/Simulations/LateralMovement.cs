@@ -136,34 +136,29 @@ namespace PurpleSharp.Simulations
         }
 
 
-        static public void WinRmCodeExec(int nhost, int tsleep, string log)
+        static public void WinRmCodeExec(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1021.006");
             logger.TimestampInfo("Using the System.Management.Automation .NET namespace to execute this technique");
 
+            List<Computer> host_targets = new List<Computer>();
+            List<Task> tasklist = new List<Task>();
             try
             {
-                var rand = new Random();
-                int computertype = rand.Next(1, 6);
-                logger.TimestampInfo(String.Format("Querying LDAP for random targets..."));
-                List<Computer> targethosts = Lib.Targets.GetHostTargets_old(computertype, nhost, logger);
-                logger.TimestampInfo(String.Format("Obtained {0} target computers", targethosts.Count));
-                List<Task> tasklist = new List<Task>();
-                //Console.WriteLine("[*] Starting WinRM Based Lateral Movement attack from {0} running as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
-                if (tsleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", tsleep));
+                host_targets = Targets.GetHostTargets(playbook_task, logger);
 
-                foreach (Computer computer in targethosts)
+                foreach (Computer computer in host_targets)
                 {
                     Computer temp = computer;
                     if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            LateralMovementHelper.WinRMCodeExecution(temp, "powershell.exe", logger);
+                            LateralMovementHelper.WinRMCodeExecution(temp, playbook_task, logger);
                         }));
-                        if (tsleep > 0) Thread.Sleep(tsleep * 1000);
+                        if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
                     }
                 }
                 Task.WaitAll(tasklist.ToArray());
