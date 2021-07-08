@@ -1177,7 +1177,7 @@ namespace PurpleSharp
 
                 //T1047 - Windows Management Instrumentation
                 case "T1047":
-                    Simulations.LateralMovement.ExecuteWmiOnHosts(playbook_task.host_target_total, playbook_task.task_sleep, log);
+                    Simulations.LateralMovement.ExecuteWmiOnHosts(playbook_task, log);
                     break;
 
                 // Collection

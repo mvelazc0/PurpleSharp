@@ -48,7 +48,7 @@ namespace PurpleSharp.Lib
         }
 
 
-        public static List<Computer> GetDomainNeighborTargets(int count, Lib.Logger logger)
+        public static List<Computer> GetDomainNeighborTargets(int count, Logger logger)
         {
 
             List<Computer> targets = new List<Computer>();
@@ -245,23 +245,20 @@ namespace PurpleSharp.Lib
                     break;
 
                 case 2:
-                    logger.TimestampInfo("Targeting a random domain host target");
+                    logger.TimestampInfo("Targeting a random domain hosts");
                     host_targets = GetDomainNeighborTargets(playbook_task.host_target_total, logger);
                     logger.TimestampInfo(String.Format("Obtained {0} host records", host_targets.Count));
+                    /*
+                    // Pick one random host
                     var random = new Random();
                     int index = random.Next(host_targets.Count);
                     host_target = host_targets[index];
                     logger.TimestampInfo(String.Format("Randomly picked {0} {1} as the target", host_target.ComputerName, host_target.IPv4));
                     host_targets.Clear();
                     host_targets.Add(host_target);
+                    */
                     break;
-                
-                case 4:
-                    logger.TimestampInfo("Targeting random domain hosts");
-                    host_targets = GetDomainNeighborTargets(playbook_task.host_target_total, logger);
-                    logger.TimestampInfo(String.Format("Obtained {0} host records", host_targets.Count));
-                    break;
-                
+
                 default:
                     return host_targets;
             }
