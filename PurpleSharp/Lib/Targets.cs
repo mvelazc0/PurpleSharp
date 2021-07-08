@@ -216,20 +216,34 @@ namespace PurpleSharp.Lib
         {
             List<Computer> host_targets = new List<Computer>();
             Computer host_target = new Computer();
+            IPAddress ipAddress = null;
+
             bool isValidIp;
 
             switch (playbook_task.host_target_type)
             {
                 case 1:
-                    IPAddress ipAddress = null;
-                    isValidIp = IPAddress.TryParse(playbook_task.host_targets[0], out ipAddress);
-                    if (isValidIp) host_target = new Computer("", playbook_task.host_targets[0]);
-                    else host_target = new Computer(playbook_task.host_targets[0], Networking.ResolveHostname(playbook_task.host_targets[0]).ToString());
-                    logger.TimestampInfo(String.Format("Using {0} {1} as the target", host_target.ComputerName, host_target.IPv4));
-                    host_targets.Add(host_target);
-                    
+                    if (playbook_task.host_targets.Length > 1)
+                    {
+                        foreach (string target in playbook_task.host_targets)
+                        {
+                            isValidIp = IPAddress.TryParse(target, out ipAddress);
+                            if (isValidIp) host_target = new Computer("", target);
+                            else host_target = new Computer(target, Networking.ResolveHostname(target).ToString());
+                            host_targets.Add(host_target);
+                        }
+                        logger.TimestampInfo(String.Format("Using {0} targets defined in the playbook", playbook_task.host_targets.Length.ToString()));
+                    }
+                    else
+                    {
+                        isValidIp = IPAddress.TryParse(playbook_task.host_targets[0], out ipAddress);
+                        if (isValidIp) host_target = new Computer("", playbook_task.host_targets[0]);
+                        else host_target = new Computer(playbook_task.host_targets[0], Networking.ResolveHostname(playbook_task.host_targets[0]).ToString());
+                        logger.TimestampInfo(String.Format("Using {0} {1} as the target", host_target.ComputerName, host_target.IPv4));
+                        host_targets.Add(host_target);
+                    }
                     break;
-                
+
                 case 2:
                     logger.TimestampInfo("Targeting a random domain host target");
                     host_targets = GetDomainNeighborTargets(playbook_task.host_target_total, logger);
@@ -240,18 +254,6 @@ namespace PurpleSharp.Lib
                     logger.TimestampInfo(String.Format("Randomly picked {0} {1} as the target", host_target.ComputerName, host_target.IPv4));
                     host_targets.Clear();
                     host_targets.Add(host_target);
-                    break;
-                
-                case 3:
-                    //TODO: This option is not needed, It can be part of case 1.
-                    logger.TimestampInfo(String.Format("Targeting {0} hosts defined in playbook", playbook_task.host_targets.Length));
-                    for (int i = 0; i < playbook_task.host_targets.Length; i++)
-                    {
-                        isValidIp = IPAddress.TryParse(playbook_task.host_targets[i], out ipAddress);
-                        if (isValidIp) host_target = new Computer("", playbook_task.host_targets[i]);
-                        else host_target = new Computer(playbook_task.host_targets[i], Networking.ResolveHostname(playbook_task.host_targets[i]).ToString());
-                        host_targets.Add(host_target);
-                    }
                     break;
                 
                 case 4:
