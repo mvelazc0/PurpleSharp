@@ -138,8 +138,14 @@ namespace PurpleSharp.Lib
         public string serviceName { get; set; } ="PurpleSharp Updater";
         public string servicePath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
 
-        // WinRM remote execution
+        // WinRM remote execution and WMI remote execution
         public string command { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
+        // Creating local and remote scheduled tasks
+        public string taskName { get; set; } = @"PurpleSharp Updater";
+        public string taskPath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
+
 
         public PlaybookTask()
         {

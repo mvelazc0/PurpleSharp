@@ -203,7 +203,42 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        static public void CreateSchTaskOnHosts(int nhost, int sleep, bool cleanup)
+        static public void CreateSchTaskOnHostsCmdline(PlaybookTask playbook_task, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1053 - Lateral Movement");
+            logger.TimestampInfo("Using the schtasks.exe to execute this technique");
+            List<Computer> host_targets = new List<Computer>();
+            List<Task> tasklist = new List<Task>();
+            try
+            {
+                host_targets = Targets.GetHostTargets(playbook_task, logger);
+                foreach (Computer computer in host_targets)
+                {
+                    Computer temp = computer;
+                    if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
+                    {
+
+                        tasklist.Add(Task.Factory.StartNew(() =>
+                        {
+                            LateralMovementHelper.CreateRemoteScheduledTaskCmdline(temp, playbook_task, logger);
+                        }));
+                        if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
+                    }
+
+                }
+                Task.WaitAll(tasklist.ToArray());
+                logger.SimulationFinished();
+
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        static public void CreateSchTaskOnHosts_Old(int nhost, int sleep, bool cleanup)
         {
             /*
             var rand = new Random();

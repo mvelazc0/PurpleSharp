@@ -1180,6 +1180,11 @@ namespace PurpleSharp
                     Simulations.LateralMovement.ExecuteWmiOnHosts(playbook_task, log);
                     break;
 
+                case "T10531":
+                    if (playbook_task.variation == 1) Simulations.LateralMovement.CreateSchTaskOnHostsCmdline(playbook_task, log);
+                    break;
+
+
                 // Collection
 
                 // Command and Control

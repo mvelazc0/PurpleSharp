@@ -365,157 +365,89 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void CreateRemoteScheduledTask(Computer computer, string command, bool cleanup)
+        private static string DateTimetoUTC(DateTime dateParam)
         {
+            string buffer = dateParam.ToString("********HHmmss.ffffff");
+            TimeSpan tickOffset = TimeZone.CurrentTimeZone.GetUtcOffset(dateParam);
+            buffer += (tickOffset.Ticks >= 0) ? '+' : '-';
+            buffer += (Math.Abs(tickOffset.Ticks) / System.TimeSpan.TicksPerMinute).ToString("d3");
+            return buffer;
+        }
+
+        public static void CreateRemoteScheduledTaskWmi(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
             try
             {
-                /*
                 ConnectionOptions connectoptions = new ConnectionOptions();
-                var wmiScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", computer.Fqdn), connectoptions);
-                wmiScope.Connect();
-
-                //Getting time
-                string serverTime = null;
-                SelectQuery timeQuery = new SelectQuery(@"select LocalDateTime from Win32_OperatingSystem");
-                ManagementObjectSearcher timeQuerySearcher = new ManagementObjectSearcher(timeQuery);
-                foreach (ManagementObject mo in timeQuerySearcher.Get())
-                {
-                    serverTime = mo["LocalDateTime"].ToString();
-                }
-
-                //Adding 2 minutes to the time
-                Console.WriteLine("Got Remote computer time {0}", serverTime);
-
-                //running command
-                object[] cmdParams = { command, serverTime, false, null, null, true, 0 };
-                ManagementClass serverCommand = new ManagementClass(wmiScope, new ManagementPath("Win32_ScheduledJob"), null);
-                serverCommand.InvokeMethod("Create", cmdParams);
-                DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Successfully created a process using WMI on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                */
-                
-                /*
-                string strJobId = "";
-                ConnectionOptions connectoptions = new ConnectionOptions();
-                connectoptions.Impersonation = ImpersonationLevel.Impersonate;
-                connectoptions.Authentication = AuthenticationLevel.PacketPrivacy;
                 connectoptions.EnablePrivileges = true;
-                Console.WriteLine(computer.Fqdn);
-                
-                var wmiScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", computer.Fqdn), connectoptions);
 
-                //ManagementScope manScope = new ManagementScope(computer.Fqdn, connOptions);
-                
+
+
+                //var processToRun = new[] { playbook_task.command };
+                object[] cmdParams = { playbook_task.command, DateTimetoUTC(DateTime.Now.AddMinutes(1)), false, null, null, true, 0 };
+                var wmiScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", target), connectoptions);
 
                 wmiScope.Connect();
-                ObjectGetOptions objectGetOptions = new ObjectGetOptions();
-                ManagementPath managementPath = new ManagementPath("Win32_ScheduledJob");
-                ManagementClass processClass = new ManagementClass(wmiScope, managementPath, objectGetOptions);
+                Console.WriteLine("Connected");
 
+                var wmiScheduledJob = new ManagementClass(wmiScope, new ManagementPath("Win32_ScheduledJob"), new ObjectGetOptions());
 
-                var processToRun = new[] { command };
-                */
-
-                /*
-                ManagementBaseObject inParams = processClass.GetMethodParameters("Create");
-                //inParams["Name"] = "TESTER";
-                inParams["Owner"] = "Tester";
-                inParams["Command"] = "ipconfig.exe";
-                //inParams["StartTime"] = "********171000.000000-300";
-                */
-
-
-                /*
-
-
-                ManagementBaseObject inParams = processClass.GetMethodParameters("Create");
-                inParams["Caption"] = "Suspicious ScheduledTask";
-                inParams["Command"] = "iponfig.exe";
-                //inParams["TaskName"] = "TESTER";
-                string StartTime = DateTime.Now.AddMinutes(1).ToUniversalTime().ToString();
-                inParams["StartTime"] = "********171000.000000-300";
-
-                //Console.WriteLine("got this far #1");
-                var wmiProcess = new ManagementClass(wmiScope, new ManagementPath("Win32_ScheduledJob"), new ObjectGetOptions());
-                //Console.WriteLine("got this far #2");
-                ManagementBaseObject outParams = processClass.InvokeMethod("Create", inParams, null);
-                //Console.WriteLine("got this far #3");
-                //wmiProcess.InvokeMethod("Create", processToRun);
-
-
-                
-                strJobId = outParams["JobId"].ToString();
-                Console.WriteLine("Out parameters:");
-                Console.WriteLine("JobId: " + outParams["JobId"]);
-
-                Console.WriteLine("ReturnValue: " + outParams["ReturnValue"]);
-                
-
-                DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Successfully created a scheduled Task using WMI on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                */
-
-                /*
-                string strJobId;
-                int DaysOfMonth = 0;
-                int DaysOfWeek = 0;
-                ManagementClass classInstance = new ManagementClass(String.Format("\\\\{0}\\root\\cimv2", computer.Fqdn), "Win32_ScheduledJob", null);
-                ManagementBaseObject inParams = classInstance.GetMethodParameters("Create");
-                inParams["Name"] = "TestTestTest";
-                inParams["Command"] = "Notepad.exe";
-                inParams["InteractWithDesktop"] = false;
-                inParams["RunRepeatedly"] = true;
-                if (DaysOfMonth > 0)
-                    inParams["DaysOfMonth"] = 0;
-                if (DaysOfWeek > 0)
-                    inParams["DaysOfWeek"] = 0;
+                ManagementBaseObject inParams = wmiScheduledJob.GetMethodParameters("Create");
+                string StartTime = DateTimetoUTC(DateTime.Now.AddMinutes(1));
+                Console.WriteLine(StartTime);
                 inParams["StartTime"] = "20101129105409.000000+330";
-                ManagementBaseObject outParams = classInstance.InvokeMethod("Create", inParams, null);
-
-                strJobId = outParams["JobId"].ToString();
-                Console.WriteLine("Out parameters:");
+                inParams["Command"] = "notepad.exe";
+                //inParams["InteractWithDesktop"] = true;
+                //inParams["RunRepeatedly"] = true;
+                //inParams["Caption"] = "Suspicious ScheduledTask";
+                ManagementBaseObject outParams = wmiScheduledJob.InvokeMethod("Create", inParams, null);
                 Console.WriteLine("JobId: " + outParams["JobId"]);
-
-                Console.WriteLine("ReturnValue: " + outParams["ReturnValue"]);
-                */
-
-                /*
-                ConnectionOptions connection = new ConnectionOptions();
-                var wmiScope = new ManagementScope(string.Format(@"\\{0}\root\CIMV2", computer.Fqdn), connection);
-                wmiScope.Connect();
-                ObjectGetOptions objectGetOptions = new ObjectGetOptions();
-                ManagementPath managementPath = new ManagementPath(path: "Win32_ScheduledJob");
-
-                DateTime currentTime = DateTime.Now;
-
-                ManagementClass classInstance = new ManagementClass(scope: wmiScope, path: managementPath, options: objectGetOptions);
-                ManagementBaseObject inParams = classInstance.GetMethodParameters("Create");
-                //inParams["Name"] = "TestTest";
-                inParams["Command"] = "cmd.exe";
-                //inParams["StartTime"] = string.Format("********{0}{1}{2}.000000+{3}", currentTime.Hour, currentTime.Minute, currentTime.Second, 240);
-                inParams["InteractWithDesktop"] = true;
-
-                ManagementBaseObject outParams = classInstance.InvokeMethod("Create", inParams, null);
-                Console.WriteLine("JobId: " + outParams["jobId"]);
-                Console.WriteLine("ReturnValue: " + outParams["returnValue"]);
                 Console.ReadKey();
-                */
 
 
+                //wmiScheduledJob.InvokeMethod("Create", cmdParams);
+                logger.TimestampInfo(String.Format("Successfully created a scheduled task remotely {0} using WMI's Win32_ScheduledJob on {1}", playbook_task.command, target));
             }
             catch (Exception ex)
             {
-                DateTime dtime = DateTime.Now;
-                if (ex.Message.Contains("ACCESSDENIED")) Console.WriteLine("{0}[{1}] Failed to execute execute a process using WMI on {2}. (Access Denied)", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
-                else Console.WriteLine("{0}[{1}] Failed to execute a process using WMI on {2}. {3}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn, ex.GetType());
-                Console.WriteLine(ex);
+                //DateTime dtime = DateTime.Now;
+                if (ex.Message.Contains("ACCESSDENIED"))
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WMI Win32_Create on {0}. (Access Denied)", target));
+                }
+                else
+                {
+                    logger.TimestampInfo(String.Format("Failed to start a process using WMI Win32_Create on {0}. {1}", target, ex.GetType()));
+                }
             }
-
 
         }
 
+        // Based on https://www.programmersought.com/article/80103808764/
+        public static void CreateRemoteScheduledTaskCmdline(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
+            string creatTaskArg = string.Format(@"/create /s {0} /sc ONCE /st 10:00 /tn ""{1}"" /tr {2} /rl HIGHEST /ru Local /IT", target, playbook_task.taskName, playbook_task.taskPath);
+            string runTaskArg = string.Format(@"/run /s {0} /tn ""{1}""", target, playbook_task.taskName); ;
+            string deleteTaskArg = string.Format(@"/delete /s {0} /tn ""{1}"" /F", target, playbook_task.taskName);
+            ExecutionHelper.StartProcessNET("schtasks.exe", creatTaskArg, logger);
+            ExecutionHelper.StartProcessNET("schtasks.exe", runTaskArg, logger);
+
+            if (playbook_task.cleanup) ExecutionHelper.StartProcessNET("schtasks.exe", deleteTaskArg, logger);
 
 
+
+        }
 
     }
 }
