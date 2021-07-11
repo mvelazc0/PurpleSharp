@@ -66,7 +66,7 @@ namespace PurpleSharp.Simulations
 
             if (playbook_task.serviceName.Equals("random"))
             {
-                string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+                string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789".ToLower();
                 Random random = new Random();
                 logger.TimestampInfo("Using random Service Name");
                 playbook_task.serviceName = new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
@@ -213,6 +213,15 @@ namespace PurpleSharp.Simulations
             logger.TimestampInfo("Using schtasks.exe to execute this technique");
             List<Computer> host_targets = new List<Computer>();
             List<Task> tasklist = new List<Task>();
+
+            if (playbook_task.taskName.Equals("random"))
+            {
+                string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789".ToLower();
+                Random random = new Random();
+                logger.TimestampInfo("Using random Task Name");
+                playbook_task.taskName = new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
+            }
+
             try
             {
                 host_targets = Targets.GetHostTargets(playbook_task, logger);

@@ -315,7 +315,6 @@ namespace PurpleSharp.Simulations
             string cleanPws = String.Format("Invoke-Command -ComputerName {0} -ScriptBlock {{ {1} }}", target, playbook_task.command);
             logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
             var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
-            //ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
             string results = ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
 
             if (results.Contains("AccessDenied")) throw new Exception();
