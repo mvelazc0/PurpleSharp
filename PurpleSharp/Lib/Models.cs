@@ -109,6 +109,7 @@ namespace PurpleSharp.Lib
     public class PlaybookTask
     {
         // Generic variables
+        public string tactic { get; set; } = "";
         public string technique_id { get; set; }
         public int variation { get; set; } = 1;
         public int task_sleep { get; set; } = 0;

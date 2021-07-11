@@ -6,6 +6,24 @@ namespace PurpleSharp.Simulations
 {
     class Execution
     {
+
+        static public void ExecuteWmiCmd(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            logger.SimulationHeader("T1047");
+            logger.TimestampInfo("Using the command line to execute the technique");
+            try
+            {
+                ExecutionHelper.StartProcessNET("wmic.exe", String.Format(@"process call create ""powershell.exe"""), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+
+        }
         static public void ExecutePowershellCmd(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;

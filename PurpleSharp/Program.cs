@@ -923,286 +923,304 @@ namespace PurpleSharp
         }
         public static void ExecutePlaybookTask(PlaybookTask playbook_task, string log)
         {
-            var rand = new Random();
 
-            switch (playbook_task.technique_id)
+            if (playbook_task.tactic.Equals(""))
             {
-                //// Initial Access ////
+                switch (playbook_task.technique_id)
+                {
+                    //// Initial Access ////
 
-                //// Execution ////
+                    //// Execution ////
+                    ///
 
-                case "T1059.001":
-                    if (playbook_task.variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
-                    else Simulations.Execution.ExecutePowershellNET(log);
-                    break;
+                    //T1047 - Windows Management Instrumentation
+                    case "T1047":
+                        Simulations.Execution.ExecuteWmiCmd(log);
+                        break;
 
-                case "T1059.003":
-                    Simulations.Execution.WindowsCommandShell(log);
-                    break;
+                    case "T1059.001":
+                        if (playbook_task.variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
+                        else Simulations.Execution.ExecutePowershellNET(log);
+                        break;
 
+                    case "T1059.003":
+                        Simulations.Execution.WindowsCommandShell(log);
+                        break;
 
-                case "T1059.005":
-                    Simulations.Execution.VisualBasic(log);
-                    break;
 
-                case "T1059.007":
-                    Simulations.Execution.JScript(log);
-                    break;
+                    case "T1059.005":
+                        Simulations.Execution.VisualBasic(log);
+                        break;
 
-                case "T1569.002":
-                    Simulations.Execution.ServiceExecution(log);
-                    break;
+                    case "T1059.007":
+                        Simulations.Execution.JScript(log);
+                        break;
 
+                    case "T1569.002":
+                        Simulations.Execution.ServiceExecution(log);
+                        break;
 
-                //T1021.006 - Windows Remote Management
 
-                //// Persistence ////
+                    //T1021.006 - Windows Remote Management
 
-                //T1053.005 - Scheduled Task
+                    //// Persistence ////
 
-                case "T1053.005":
-                    Simulations.Persistence.CreateScheduledTaskCmd(log, playbook_task.cleanup);
-                    break;
+                    //T1053.005 - Scheduled Task
 
-                case "T1136.001":
-                    if (playbook_task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, playbook_task.cleanup);
-                    else Simulations.Persistence.CreateLocalAccountCmd(log, playbook_task.cleanup);
-                    break;
+                    case "T1053.005":
+                        Simulations.Persistence.CreateScheduledTaskCmd(log, playbook_task.cleanup);
+                        break;
 
-                case "T1543.003":
-                    if (playbook_task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(log, playbook_task.cleanup);
-                    else Simulations.Persistence.CreateWindowsServiceCmd(log, playbook_task.cleanup);
-                    break;
+                    case "T1136.001":
+                        if (playbook_task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, playbook_task.cleanup);
+                        else Simulations.Persistence.CreateLocalAccountCmd(log, playbook_task.cleanup);
+                        break;
 
-                case "T1547.001":
-                    if (playbook_task.variation == 1) Simulations.Persistence.CreateRegistryRunKeyNET(log, playbook_task.cleanup);
-                    else Simulations.Persistence.CreateRegistryRunKeyCmd(log, playbook_task.cleanup);
-                    break;
+                    case "T1543.003":
+                        if (playbook_task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(log, playbook_task.cleanup);
+                        else Simulations.Persistence.CreateWindowsServiceCmd(log, playbook_task.cleanup);
+                        break;
 
-                case "T1546.003":
-                    Simulations.Persistence.WMIEventSubscription(log, playbook_task.cleanup);
-                    break;
+                    case "T1547.001":
+                        if (playbook_task.variation == 1) Simulations.Persistence.CreateRegistryRunKeyNET(log, playbook_task.cleanup);
+                        else Simulations.Persistence.CreateRegistryRunKeyCmd(log, playbook_task.cleanup);
+                        break;
 
-                //// Privilege Escalation  ////
+                    case "T1546.003":
+                        Simulations.Persistence.WMIEventSubscription(log, playbook_task.cleanup);
+                        break;
 
-                //T1543.003 - New Service
+                    //// Privilege Escalation  ////
 
-                //T1053.005 - Scheduled Task
+                    //T1543.003 - New Service
 
-                //// Defense Evasion ////
+                    //T1053.005 - Scheduled Task
 
-                case "T1218.010":
-                    Simulations.DefenseEvasion.Regsvr32(log);
-                    break;
+                    //// Defense Evasion ////
 
-                case "T1218.009":
-                    Simulations.DefenseEvasion.RegsvcsRegasm(log);
-                    break;
+                    case "T1218.010":
+                        Simulations.DefenseEvasion.Regsvr32(log);
+                        break;
 
-                case "T1218.004":
-                    Simulations.DefenseEvasion.InstallUtil(log);
-                    break;
+                    case "T1218.009":
+                        Simulations.DefenseEvasion.RegsvcsRegasm(log);
+                        break;
 
-                case "T1140":
-                    Simulations.DefenseEvasion.DeobfuscateDecode(log);
-                    break;
+                    case "T1218.004":
+                        Simulations.DefenseEvasion.InstallUtil(log);
+                        break;
 
-                case "T1218.005":
-                    Simulations.DefenseEvasion.Mshta(log);
-                    break;
+                    case "T1140":
+                        Simulations.DefenseEvasion.DeobfuscateDecode(log);
+                        break;
 
-                case "T1218.003":
-                    Simulations.DefenseEvasion.Csmtp(log);
-                    break;
+                    case "T1218.005":
+                        Simulations.DefenseEvasion.Mshta(log);
+                        break;
 
-                case "T1197":
-                    Simulations.DefenseEvasion.BitsJobs(log);
-                    break;
+                    case "T1218.003":
+                        Simulations.DefenseEvasion.Csmtp(log);
+                        break;
 
-                case "T1218.011":
-                    Simulations.DefenseEvasion.Rundll32(log);
-                    break;
+                    case "T1197":
+                        Simulations.DefenseEvasion.BitsJobs(log);
+                        break;
 
-                case "T1070.001":
-                    if (playbook_task.variation == 1) Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
-                    else Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+                    case "T1218.011":
+                        Simulations.DefenseEvasion.Rundll32(log);
+                        break;
+
+                    case "T1070.001":
+                        if (playbook_task.variation == 1) Simulations.DefenseEvasion.ClearSecurityEventLogNET(log);
+                        else Simulations.DefenseEvasion.ClearSecurityEventLogCmd(log);
+
+                        break;
+
+                    case "T1220":
+                        Simulations.DefenseEvasion.XlScriptProcessing(log);
+                        break;
+
+                    case "T1055.002":
+                        Simulations.DefenseEvasion.PortableExecutableInjection(log);
+                        break;
+
+                    case "T1055.003":
+                        Simulations.DefenseEvasion.ThreadHijack(log);
+                        break;
+
+                    case "T1055.004":
+                        Simulations.DefenseEvasion.AsynchronousProcedureCall(log);
+                        break;
+
+                    case "T1134.004":
+                        Simulations.DefenseEvasion.ParentPidSpoofing(log);
+                        break;
+
+                    //T1218.010 - Regsvr32
+
+
+                    ////  Credential Access //// 
+
+                    //T1110.003 - Password Spraying
+                    case "T1110.003":
+                        if (playbook_task.variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(playbook_task, log);
+                        else Simulations.CredAccess.RemoteDomainPasswordSpray(playbook_task, log);
+
+                        break;
+
+                    //T1558.003 - Kerberoasting
+                    case "T1558.003":
+                        Simulations.CredAccess.Kerberoasting(log, playbook_task.task_sleep);
+                        break;
+
+                    //T1003.001 - LSASS Memory
+                    case "T1003.001":
+                        Simulations.CredAccess.LsassMemoryDump(log);
+                        break;
+
+                    ////  Discovery //// 
+
+                    //T1016 System Network Configuration Discovery
+                    case "T1016":
+                        Simulations.Discovery.SystemNetworkConfigurationDiscovery(log);
+                        break;
 
-                    break;
+                    // Remote System Discovery
+                    case "T1018":
+                        if (playbook_task.variation == 1) Simulations.Discovery.RemoteSystemDiscoveryCmd(log);
+                        else if (playbook_task.variation == 2) Simulations.Discovery.RemoteSystemDiscoveryPowerShell(log);
+                        break;
 
-                case "T1220":
-                    Simulations.DefenseEvasion.XlScriptProcessing(log);
-                    break;
+                    //T1083 File and Directory Discovery
+                    case "T1083":
+                        Simulations.Discovery.FileAndDirectoryDiscovery(log);
+                        break;
 
-                case "T1055.002":
-                    Simulations.DefenseEvasion.PortableExecutableInjection(log);
-                    break;
+                    //T1135 - Network Share Discovery
+                    case "T1135":
+                        if (playbook_task.variation == 1) Simulations.Discovery.NetworkShareEnumerationCmdLocal(log);
+                        else if (playbook_task.variation == 2) Simulations.Discovery.NetworkShareEnumerationCmdRemote(playbook_task, log);
+                        else Simulations.Discovery.NetworkShareEnumerationApiRemote(playbook_task, log);
+                        break;
 
-                case "T1055.003":
-                    Simulations.DefenseEvasion.ThreadHijack(log);
-                    break;
+                    //T1046 - Network Service Scanning
+                    case "T1046":
+                        Simulations.Discovery.NetworkServiceDiscovery(playbook_task, log);
+                        break;
 
-                case "T1055.004":
-                    Simulations.DefenseEvasion.AsynchronousProcedureCall(log);
-                    break;
-
-                case "T1134.004":
-                    Simulations.DefenseEvasion.ParentPidSpoofing(log);
-                    break;
-
+                    case "T1087.001":
+                        if (playbook_task.variation == 1) Simulations.Discovery.LocalAccountDiscoveryCmd(log);
+                        else if (playbook_task.variation == 2) Simulations.Discovery.LocalAccountDiscoveryPowerShell(log);
+                        break;
 
+                    case "T1087.002":
+                        if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(log);
+                        else if (playbook_task.variation == 2) Simulations.Discovery.DomainAccountDiscoveryPowerShell(log);
+                        else Simulations.Discovery.DomainAccountDiscoveryLdap(log);
+                        break;
 
-                //T1218.010 - Regsvr32
-
+                    case "T1007":
+                        Simulations.Discovery.SystemServiceDiscovery(log);
+                        break;
 
-                ////  Credential Access //// 
+                    case "T1033":
+                        Simulations.Discovery.SystemUserDiscovery(log);
+                        break;
 
-                //T1110.003 - Password Spraying
-                case "T1110.003":
-                    if (playbook_task.variation == 1) Simulations.CredAccess.LocalDomainPasswordSpray(playbook_task, log);
-                    else Simulations.CredAccess.RemoteDomainPasswordSpray(playbook_task, log);
-
-                    break;
+                    case "T1049":
+                        Simulations.Discovery.SystemNetworkConnectionsDiscovery(log);
+                        break;
 
-                //T1558.003 - Kerberoasting
-                case "T1558.003":
-                    Simulations.CredAccess.Kerberoasting(log, playbook_task.task_sleep);
-                    break;
+                    case "T1482":
+                        if (playbook_task.variation == 1) Simulations.Discovery.DomainTrustDiscoveryCmd(log);
+                        else Simulations.Discovery.DomainTrustDiscoveryPowerShell(log);
+                        break;
 
-                //T1003.001 - LSASS Memory
-                case "T1003.001":
-                    Simulations.CredAccess.LsassMemoryDump(log);
-                    break;
-
-                ////  Discovery //// 
-
-                //T1016 System Network Configuration Discovery
-                case "T1016":
-                    Simulations.Discovery.SystemNetworkConfigurationDiscovery(log);
-                    break;
-
-                // Remote System Discovery
-                case "T1018":
-                    if (playbook_task.variation == 1) Simulations.Discovery.RemoteSystemDiscoveryCmd(log);
-                    else if (playbook_task.variation == 2) Simulations.Discovery.RemoteSystemDiscoveryPowerShell(log);
-                    break;
+                    case "T1201":
+                        Simulations.Discovery.PasswordPolicyDiscovery(log);
+                        break;
 
-                //T1083 File and Directory Discovery
-                case "T1083":
-                    Simulations.Discovery.FileAndDirectoryDiscovery(log);
-                    break;
+                    case "T1069.001":
+                        Simulations.Discovery.LocalGroups(log);
+                        break;
 
-                //T1135 - Network Share Discovery
-                case "T1135":
-                    if (playbook_task.variation == 1) Simulations.Discovery.NetworkShareEnumerationCmdLocal(log);
-                    else if (playbook_task.variation == 2) Simulations.Discovery.NetworkShareEnumerationCmdRemote(playbook_task, log);
-                    else Simulations.Discovery.NetworkShareEnumerationApiRemote(playbook_task, log);
-                    break;
+                    case "T1069.002":
+                        if (playbook_task.variation == 1) Simulations.Discovery.DomainGroupDiscoveryCmd(playbook_task, log);
+                        else if (playbook_task.variation == 2) Simulations.Discovery.DomainGroupDiscoveryPowerShell(playbook_task, log);
+                        else Simulations.Discovery.DomaiGroupDiscoveryLdap(playbook_task, log);
+                        break;
 
-                //T1046 - Network Service Scanning
-                case "T1046":
-                    Simulations.Discovery.NetworkServiceDiscovery(playbook_task, log);
-                    break;
+                    case "T1012":
+                        Simulations.Discovery.QueryRegistry(log);
+                        break;
 
-                case "T1087.001":
-                    if (playbook_task.variation == 1) Simulations.Discovery.LocalAccountDiscoveryCmd(log);
-                    else if (playbook_task.variation == 2) Simulations.Discovery.LocalAccountDiscoveryPowerShell(log);
-                    break;
+                    case "T1518.001":
+                        Simulations.Discovery.SecuritySoftwareDiscovery(log);
+                        break;
 
-                case "T1087.002":
-                    if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(log);
-                    else if (playbook_task.variation == 2) Simulations.Discovery.DomainAccountDiscoveryPowerShell(log);
-                    else Simulations.Discovery.DomainAccountDiscoveryLdap(log); 
-                    break;
+                    case "T1082":
+                        Simulations.Discovery.SystemInformationDiscovery(log);
+                        break;
 
-                case "T1007":
-                    Simulations.Discovery.SystemServiceDiscovery(log);
-                    break;
+                    case "T1124":
+                        Simulations.Discovery.SystemTimeDiscovery(log);
+                        break;
 
-                case "T1033":
-                    Simulations.Discovery.SystemUserDiscovery(log);
-                    break;
+                    ////  Lateral Movement //// 
 
-                case "T1049":
-                    Simulations.Discovery.SystemNetworkConnectionsDiscovery(log);
-                    break;
+                    //T1021.006 - Windows Remote Management
+                    case "T1021.006":
+                        Simulations.LateralMovement.WinRmCodeExec(playbook_task, log);
+                        break;
 
-                case "T1482":
-                    if (playbook_task.variation == 1) Simulations.Discovery.DomainTrustDiscoveryCmd(log);
-                    else Simulations.Discovery.DomainTrustDiscoveryPowerShell(log);
-                    break;
+                    //T1021 - Remote Service
+                    case "T1021.002":
+                        if (playbook_task.variation == 1) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
+                        else if (playbook_task.variation == 2) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
+                        else if (playbook_task.variation == 3) Simulations.LateralMovement.ModifyRemoteServiceOnHosts(playbook_task, log);
+                        break;
 
-                case "T1201":
-                    Simulations.Discovery.PasswordPolicyDiscovery(log);
-                    break;
 
-                case "T1069.001":
-                    Simulations.Discovery.LocalGroups(log);
-                    break;
 
-                case "T1069.002":
-                    if (playbook_task.variation == 1) Simulations.Discovery.DomainGroupDiscoveryCmd(playbook_task, log);
-                    else if (playbook_task.variation == 2) Simulations.Discovery.DomainGroupDiscoveryPowerShell(playbook_task, log);
-                    else Simulations.Discovery.DomaiGroupDiscoveryLdap(playbook_task, log);
-                    break;
+                    // Collection
 
-                case "T1012":
-                    Simulations.Discovery.QueryRegistry(log);
-                    break;
+                    // Command and Control
 
-                case "T1518.001":
-                    Simulations.Discovery.SecuritySoftwareDiscovery(log);
-                    break;
+                    // Exfiltration
 
-                case "T1082":
-                    Simulations.Discovery.SystemInformationDiscovery(log);
-                    break;
+                    // Impact
 
-                case "T1124":
-                    Simulations.Discovery.SystemTimeDiscovery(log);
-                    break;
+                    // Other Techniques
 
-                ////  Lateral Movement //// 
+                    case "privenum":
+                        Simulations.Discovery.PrivilegeEnumeration(playbook_task.host_target_total, playbook_task.task_sleep, log);
+                        break;
 
-                //T1021.006 - Windows Remote Management
-                case "T1021.006":
-                    Simulations.LateralMovement.WinRmCodeExec(playbook_task, log);
-                    break;
+                    default:
+                        break;
 
-                //T1021 - Remote Service
-                case "T1021.002":
-                    if (playbook_task.variation == 1) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
-                    else if (playbook_task.variation == 2) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
-                    else if (playbook_task.variation == 3) Simulations.LateralMovement.ModifyRemoteServiceOnHosts(playbook_task, log);
-                    break;
+                }
+            }
+            else if (playbook_task.tactic.ToLower().Equals("lateral movement"))
+            {
+                switch (playbook_task.technique_id)
+                {
+                    //T1053.005 - Scheduled Task
+                    case "T1053":
+                        if (playbook_task.variation == 1) Simulations.LateralMovement.CreateSchTaskOnHostsCmdline(playbook_task, log);
+                        break;
 
-                //T1047 - Windows Management Instrumentation
-                case "T1047":
-                    Simulations.LateralMovement.ExecuteWmiOnHosts(playbook_task, log);
-                    break;
+                    //T1047 - Windows Management Instrumentation
+                    case "T1047":
+                        Simulations.LateralMovement.ExecuteWmiOnHosts(playbook_task, log);
+                        break;
 
-                case "T10531":
-                    if (playbook_task.variation == 1) Simulations.LateralMovement.CreateSchTaskOnHostsCmdline(playbook_task, log);
-                    break;
-
-
-                // Collection
-
-                // Command and Control
-
-                // Exfiltration
-
-                // Impact
-
-                // Other Techniques
-
-                case "privenum":
-                    Simulations.Discovery.PrivilegeEnumeration(playbook_task.host_target_total, playbook_task.task_sleep, log);
-                    break;
-
-                default:
-                    break;
+                    default:
+                        break;
+                }
 
             }
+
         }
         public static void ExecutePlaybook(SimulationPlaybook playbook, string log)
         {
