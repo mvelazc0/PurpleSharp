@@ -357,14 +357,12 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void WmiCodeExecution(Computer computer, PlaybookTask playbook_task, Logger logger)
+        public static void WmiRemoteCodeExecutionNET(Computer computer, PlaybookTask playbook_task, Logger logger)
         {
             string target = "";
             if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
             else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
             else target = computer.IPv4;
-
-
             try
             {
                 ConnectionOptions connectoptions = new ConnectionOptions();
@@ -389,6 +387,22 @@ namespace PurpleSharp.Simulations
             }
         }
 
+        public static void WmiRemoteCodeExecutionCmdline(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
+            string startProcess = string.Format(@"/node:""{0}"" process call create ""{1}"" ", target, playbook_task.command);
+
+            string results = ExecutionHelper.StartProcessNET("wmic.exe", startProcess, logger);
+            if (results.Contains("Access is denied"))
+            {
+                throw new Exception();
+            }
+
+        }
         private static string DateTimetoUTC(DateTime dateParam)
         {
             string buffer = dateParam.ToString("********HHmmss.ffffff");

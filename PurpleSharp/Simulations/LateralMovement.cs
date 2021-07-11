@@ -174,7 +174,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1047");
-            logger.TimestampInfo("Using the System.Management .NET API to execute this technique");
+            if (playbook_task.variation == 1) logger.TimestampInfo("Using wmic.exe to execute this technique against remote hosts");
+            else if (playbook_task.variation == 2) logger.TimestampInfo("Using the System.Management .NET API to execute this technique");
             List<Computer> host_targets = new List<Computer>();
             List<Task> tasklist = new List<Task>();
             try
@@ -187,15 +188,14 @@ namespace PurpleSharp.Simulations
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            LateralMovementHelper.WmiCodeExecution(temp, playbook_task, logger);
+                            if (playbook_task.variation == 1) LateralMovementHelper.WmiRemoteCodeExecutionCmdline(temp, playbook_task, logger);
+                            else if (playbook_task.variation == 2) LateralMovementHelper.WmiRemoteCodeExecutionNET(temp, playbook_task, logger);
                         }));
                         if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
                     }
-
                 }
                 Task.WaitAll(tasklist.ToArray());
                 logger.SimulationFinished();
-
             }
             catch (Exception ex)
             {
