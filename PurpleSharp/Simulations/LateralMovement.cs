@@ -141,7 +141,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1021.006");
-            logger.TimestampInfo("Using the System.Management.Automation .NET namespace to execute this technique");
+            if (playbook_task.variation == 1) logger.TimestampInfo("Using powershell.exe to execute this technique against remote hosts");
+            else if (playbook_task.variation == 2) logger.TimestampInfo("Using the System.Management.Automation .NET namespace to execute this technique");
 
             List<Computer> host_targets = new List<Computer>();
             List<Task> tasklist = new List<Task>();
@@ -156,7 +157,8 @@ namespace PurpleSharp.Simulations
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            LateralMovementHelper.WinRMCodeExecution(temp, playbook_task, logger);
+                            if (playbook_task.variation == 1) LateralMovementHelper.WinRMCodeExecutionPowerShell(temp, playbook_task, logger);
+                            else if (playbook_task.variation == 2) LateralMovementHelper.WinRMCodeExecutionNET(temp, playbook_task, logger);
                         }));
                         if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
                     }
