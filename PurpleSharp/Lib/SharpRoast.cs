@@ -86,35 +86,36 @@ namespace PurpleSharp.Lib
                     }
                     else
                     {
+                        logger.TimestampInfo(String.Format("Obtained service ticket and hash for SPN {0} ({1})", spn, samaccountname));
                         // output to hashcat format
                         string hash = String.Format("$krb5tgs${0}$*{1}${2}${3}*${4}${5}", eType, userName, domain, spn, cipherText.Substring(0, 32), cipherText.Substring(32));
-
+                        
                         bool header = false;
                         foreach (string line in Split(hash, 80))
                         {
                             if (!header)
                             {
                                 //Console.WriteLine("Hash                   : {0}", line);
-                                DateTime dtime = DateTime.Now;
-                                //Console.WriteLine("{0}[{1}] Obtained service ticket and hash for SPN {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), spn, samaccountname);
-                                logger.TimestampInfo(String.Format("Obtained service ticket and hash for SPN {0} ({1})", spn, samaccountname));
+                                
                             }
                             else
                             {
                                 //Console.WriteLine("                         {0}", line);
+                                //Console.WriteLine(hash);
                             }
                             header = true;
                         }
-                        //Console.WriteLine();
                     }
                 }
             }
             catch (Exception ex)
             {
+                logger.TimestampInfo(String.Format("Error obtaining service ticket and hash for SPN {0} ({1})", spn, samaccountname));
+
                 //Console.WriteLine("\r\n [X] Error during request for SPN {0} : {1}\r\n", spn, ex.InnerException.Message);
-                DateTime dtime = DateTime.Now;
-                Console.WriteLine("{0}[{1}] Error obtaining service ticket and hash for SPN {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), spn, samaccountname);
-                Console.WriteLine(ex);
+                //DateTime dtime = DateTime.Now;
+                //Console.WriteLine("{0}[{1}] Error obtaining service ticket and hash for SPN {2} ({3})", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), spn, samaccountname);
+                //Console.WriteLine(ex);
             }
         }
 

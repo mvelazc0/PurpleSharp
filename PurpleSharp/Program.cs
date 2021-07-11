@@ -924,6 +924,7 @@ namespace PurpleSharp
         public static void ExecutePlaybookTask(PlaybookTask playbook_task, string log)
         {
 
+            // no specific tactic defined
             if (playbook_task.tactic.Equals(""))
             {
                 switch (playbook_task.technique_id)
@@ -1070,7 +1071,7 @@ namespace PurpleSharp
 
                     //T1558.003 - Kerberoasting
                     case "T1558.003":
-                        Simulations.CredAccess.Kerberoasting(log, playbook_task.task_sleep);
+                        Simulations.CredAccess.Kerberoasting(playbook_task, log);
                         break;
 
                     //T1003.001 - LSASS Memory

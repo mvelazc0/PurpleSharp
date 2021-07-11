@@ -120,6 +120,7 @@ namespace PurpleSharp.Lib
         public string spray_password { get; set; } = "Passw0rd1";
 
         // User target variables
+        // User by Password Spraying & Kerberoasting
         public int user_target_type { get; set; } = 1;
         public int user_target_total { get; set; } = 5;
         public string[] user_targets { get; set; }

