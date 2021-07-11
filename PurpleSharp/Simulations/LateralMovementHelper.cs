@@ -128,6 +128,30 @@ namespace PurpleSharp.Simulations
 
         // From https://stackoverflow.com/questions/23481394/programmatically-install-windows-service-on-remote-machine
         // and https://stackoverflow.com/questions/37983453/how-to-deploy-windows-service-on-remote-system-using-c-sharp-programatically
+
+        public static void CreateRemoteServiceCmdline(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
+            string createService = string.Format(@"\\{0} create ""{1}"" binpath= ""{2}""", target, playbook_task.serviceName, playbook_task.servicePath);
+            string runService = string.Format(@"\\{0} start ""{1}""", target, playbook_task.serviceName); ;
+            string deleteService = string.Format(@"\\{0} delete ""{1}""", target, playbook_task.serviceName);
+            string results = ExecutionHelper.StartProcessNET("sc.exe", createService, logger);
+            if (!results.Contains("Access is denied"))
+            {
+                ExecutionHelper.StartProcessNET("sc.exe", runService, logger);
+                if (playbook_task.cleanup) ExecutionHelper.StartProcessNET("sc.exe", deleteService, logger);
+            }
+            else
+            {
+                throw new Exception();
+            }
+
+        }
+
         public static void CreateRemoteServiceApi(Computer computer, PlaybookTask playbook_task, Logger logger)
         {
             var scmHandle = IntPtr.Zero;

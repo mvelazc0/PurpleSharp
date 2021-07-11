@@ -57,7 +57,8 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1021.002");
-            logger.TimestampInfo("Using the Win32 API CreateService function to execute this technique against remote hosts");
+            if (playbook_task.variation == 1) logger.TimestampInfo("Using sc.exe to execute this technique against remote hosts");
+            else if (playbook_task.variation == 2) logger.TimestampInfo("Using the Win32 API CreateService function to execute this technique against remote hosts");
 
             List<Computer> host_targets = new List<Computer>();
             List<Task> tasklist = new List<Task>();
@@ -70,7 +71,6 @@ namespace PurpleSharp.Simulations
                 logger.TimestampInfo("Using random Service Name");
                 playbook_task.serviceName = new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
             }
-
             try
             {
                 host_targets = Targets.GetHostTargets(playbook_task, logger);
@@ -81,14 +81,14 @@ namespace PurpleSharp.Simulations
                     {
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
-                            LateralMovementHelper.CreateRemoteServiceApi(temp, playbook_task, logger);
+                            if (playbook_task.variation == 1) LateralMovementHelper.CreateRemoteServiceCmdline(temp, playbook_task, logger);
+                            else if (playbook_task.variation == 2) LateralMovementHelper.CreateRemoteServiceApi(temp, playbook_task, logger);
                         }));
                         if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
                     }
                 }
                 Task.WaitAll(tasklist.ToArray());
                 logger.SimulationFinished();
-
             }
             catch (Exception ex)
             {
