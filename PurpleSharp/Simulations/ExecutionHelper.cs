@@ -53,7 +53,7 @@ namespace PurpleSharp.Simulations
             else logger.TimestampInfo("Could not start process!");
         }
 
-        public static void StartProcessNET(string binary, string cmdline, Logger logger)
+        public static string StartProcessNET(string binary, string cmdline, Logger logger)
         {
 
             using (Process process = new Process())
@@ -62,11 +62,14 @@ namespace PurpleSharp.Simulations
                 process.StartInfo.Arguments = cmdline;
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
                 logger.TimestampInfo(String.Format("Using the System.Diagnostics .NET namespace to execute '{0} {1}'", binary, cmdline));
                 process.Start();
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + process.Id));
 
                 string standard_output;
+                string error_output;
+                string final_output="";
                 int i = 0;
                 while ((standard_output = process.StandardOutput.ReadLine()) != null && i < 10)
                 {
@@ -74,12 +77,25 @@ namespace PurpleSharp.Simulations
                     {
                         //do something
                         logger.TimestampInfo(standard_output);
+                        final_output += standard_output;
                         //Console.WriteLine(standard_output);
                         i++;
                         //break;
                     }
                 }
+                while ((error_output = process.StandardError.ReadLine()) != null && i < 10)
+                {
+                    if (!error_output.Trim().Equals(""))
+                    {
+                        logger.TimestampInfo(error_output);
+                        final_output += error_output;
+                        i++;
+                        //break;
+                    }
+                }
                 process.WaitForExit();
+                return final_output;
+
             }
         }
         public static void StartProcessAsUser(string binary, string cmdline, string domain, string username, string password)

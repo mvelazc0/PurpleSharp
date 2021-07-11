@@ -27,7 +27,7 @@ namespace PurpleSharp.Simulations
                 DateTime dtime = DateTime.Now;
                 int err = Marshal.GetLastWin32Error();
                 logger.TimestampInfo(String.Format("Could not obtain a handle to the Service Control Manager on {0}.", computer.Fqdn));
-                throw new ArgumentException("Could not obtain a handle to SCM", "Error");
+                throw new Exception();
 
             }
             string servicePath = @"C:\Windows\Temp\superlegit.exe";      // A path to some running service now
@@ -426,10 +426,8 @@ namespace PurpleSharp.Simulations
                     logger.TimestampInfo(String.Format("Failed to start a process using WMI Win32_Create on {0}. {1}", target, ex.GetType()));
                 }
             }
-
         }
 
-        // Based on https://www.programmersought.com/article/80103808764/
         public static void CreateRemoteScheduledTaskCmdline(Computer computer, PlaybookTask playbook_task, Logger logger)
         {
             string target = "";
@@ -437,16 +435,20 @@ namespace PurpleSharp.Simulations
             else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
             else target = computer.IPv4;
 
-            string creatTaskArg = string.Format(@"/create /s {0} /sc ONCE /st 10:00 /tn ""{1}"" /tr {2} /rl HIGHEST /ru Local /IT", target, playbook_task.taskName, playbook_task.taskPath);
-            string runTaskArg = string.Format(@"/run /s {0} /tn ""{1}""", target, playbook_task.taskName); ;
-            string deleteTaskArg = string.Format(@"/delete /s {0} /tn ""{1}"" /F", target, playbook_task.taskName);
-            ExecutionHelper.StartProcessNET("schtasks.exe", creatTaskArg, logger);
-            ExecutionHelper.StartProcessNET("schtasks.exe", runTaskArg, logger);
-
-            if (playbook_task.cleanup) ExecutionHelper.StartProcessNET("schtasks.exe", deleteTaskArg, logger);
-
-
-
+            string createTask = string.Format(@"/create /s {0} /sc ONCE /st 13:30 /tn ""{1}"" /tr {2} /rl HIGHEST /ru SYSTEM", target, playbook_task.taskName, playbook_task.taskPath);
+            string runTask = string.Format(@"/run /s {0} /tn ""{1}""", target, playbook_task.taskName); ;
+            string deleteTask = string.Format(@"/delete /s {0} /tn ""{1}"" /F", target, playbook_task.taskName);
+            string results = ExecutionHelper.StartProcessNET("schtasks.exe", createTask, logger);
+            if (!results.Contains("Access is denied"))
+            {
+                ExecutionHelper.StartProcessNET("schtasks.exe", runTask, logger);
+                if (playbook_task.cleanup) ExecutionHelper.StartProcessNET("schtasks.exe", deleteTask, logger);
+            }
+            else 
+            {
+                throw new Exception();
+            }
+            
         }
 
     }

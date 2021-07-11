@@ -208,7 +208,7 @@ namespace PurpleSharp.Simulations
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1053 - Lateral Movement");
-            logger.TimestampInfo("Using the schtasks.exe to execute this technique");
+            logger.TimestampInfo("Using schtasks.exe to execute this technique");
             List<Computer> host_targets = new List<Computer>();
             List<Task> tasklist = new List<Task>();
             try
@@ -219,7 +219,6 @@ namespace PurpleSharp.Simulations
                     Computer temp = computer;
                     if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
                     {
-
                         tasklist.Add(Task.Factory.StartNew(() =>
                         {
                             LateralMovementHelper.CreateRemoteScheduledTaskCmdline(temp, playbook_task, logger);
