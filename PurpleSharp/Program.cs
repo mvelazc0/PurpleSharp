@@ -315,14 +315,13 @@ namespace PurpleSharp
                 string json = File.ReadAllText(pb_file);
                 SimulationExercise engagement = Json.ReadSimulationPlaybook(json);
                 string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-                Lib.Logger logger = new Lib.Logger(currentPath + log);
+                Logger logger = new Logger(currentPath + log);
 
                 if (engagement != null)
                 {
                     if (engagement.type.Equals("local"))
                     {
                         logger.TimestampInfo(String.Format("PurpleSharp will execute up to {0} playbook(s) locally", engagement.playbooks.Count));
-                        //Console.WriteLine("[+] PurpleSharp will execute up to {0} playbook(s) locally", engagement.playbooks.Count);
                         SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
                         string results ="";
                         foreach (SimulationPlaybook playbook in engagement.playbooks)
@@ -351,10 +350,8 @@ namespace PurpleSharp
                                     logger.TimestampInfo(String.Format("Sleeping {0} seconds until next playbook...", engagement.sleep));
                                     Thread.Sleep(1000 * engagement.sleep );
                                 }
-
                             }
                         }
-
                         logger.TimestampInfo("Writting JSON results...");
                         results = File.ReadAllText(log);
                         string output_file = pb_file.Replace(".json", "") + "_results.json";
@@ -836,7 +833,7 @@ namespace PurpleSharp
                         sim_request = new SimulationRequest("ACT");
                         result = NamedPipes.RunClientSerialized(playbook.remote_host, exercise.domain, exercise.username, exercise.password, scout_np, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_request)));
 
-                        System.Threading.Thread.Sleep(5000);
+                        Thread.Sleep(5000);
                         bool finished = false;
                         int counter = 1;
                         string results = RemoteLauncher.readFile(playbook.remote_host, simfolder + log, exercise.username, exercise.password, exercise.domain);
@@ -844,6 +841,7 @@ namespace PurpleSharp
                         {
                             if (results.Split('\n').Last().Contains("Playbook Finished"))
                             {
+                                
                                 Console.WriteLine("[+] Results:");
                                 Console.WriteLine();
                                 Console.WriteLine(results);
@@ -1180,9 +1178,6 @@ namespace PurpleSharp
                         else if (playbook_task.variation == 2) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
                         else if (playbook_task.variation == 3) Simulations.LateralMovement.ModifyRemoteServiceOnHosts(playbook_task, log);
                         break;
-
-
-
                     // Collection
 
                     // Command and Control

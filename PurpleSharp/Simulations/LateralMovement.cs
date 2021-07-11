@@ -248,35 +248,5 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        static public void CreateSchTaskOnHosts_Old(int nhost, int sleep, bool cleanup)
-        {
-            /*
-            var rand = new Random();
-            int computertype = rand.Next(1, 6);
-
-            List<Computer> targethosts = Lib.Targets.GetHostTargets(computertype, nhost);
-            List<Task> tasklist = new List<Task>();
-            Console.WriteLine("[*] Starting Scheduled Task based Lateral Movement simulation from {0} running as {1}", Environment.MachineName, WindowsIdentity.GetCurrent().Name);
-            if (sleep > 0) Console.WriteLine("[*] Sleeping {0} seconds between attempt", sleep);
-            foreach (Computer computer in targethosts)
-            {
-                if (!computer.Fqdn.ToUpper().Contains(Environment.MachineName.ToUpper()))
-                {
-                    Computer temp = computer;
-                    LateralMovementHelper.CreateRemoteScheduledTask(temp, "powershell.exe", cleanup);
-                    
-                    tasklist.Add(Task.Factory.StartNew(() =>
-                    {
-                        LateralMovementHelper.CreateRemoteScheduledTask(computer, command, cleanup);
-                    }));
-                    if (sleep > 0) Thread.Sleep(sleep * 1000);
-                    
-                }
-            }
-            //Task.WaitAll(tasklist.ToArray());
-            */
-
-        }
-
     }
 }

@@ -197,7 +197,6 @@ namespace PurpleSharp.Simulations
             {
                 logger.SimulationFailed(ex);
             }
-            
         }
 
     }
