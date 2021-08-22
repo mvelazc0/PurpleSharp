@@ -1,7 +1,8 @@
 Presentations
 ^^^^^^^^^^^^^
 
-* **BlackHat Arsenal 2021** 
+BlackHat Arsenal 2021
+---------------------
 
 PurpleSharp : Active Directory Attack Simulations
 
@@ -11,7 +12,8 @@ PurpleSharp : Active Directory Attack Simulations
 
 
 
-* **Defcon 29 Adversary Village (2021)**
+Defcon 29 Adversary Village (2021)
+----------------------------------
 
 PurpleSharp : Automated Adversary Simulation
 
@@ -20,7 +22,8 @@ PurpleSharp : Automated Adversary Simulation
    <p><iframe width="560" height="315" src="https://www.youtube.com/embed/yi1epKf0lcM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br></p>
 
 
-* **SANS Purple Team Summit 2021** 
+SANS Purple Team Summit 2021
+----------------------------
 
 Active Directory Purple Team Playbooks
 
@@ -29,7 +32,8 @@ Active Directory Purple Team Playbooks
    <p><iframe width="560" height="315" src="https://www.youtube.com/embed/9UpPo20c1w8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br></p>
 
 
-* **Red Canary Atomic Friday Sept 2020** 
+Red Canary Atomic Friday Sept 2020
+----------------------------------
 
 Assessing detection coverage via adversary simulation
 
@@ -37,7 +41,8 @@ Assessing detection coverage via adversary simulation
 
    <p><iframe width="560" height="315" src="https://www.youtube.com/embed/HHy00gGFZpI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br></p>
 
-* **BlackHat 2020 Arsenal**
+BlackHat 2020 Arsenal
+---------------------
 
 PurpleSharp: Adversasry Simulation for the Blue Team
 
@@ -46,7 +51,8 @@ PurpleSharp: Adversasry Simulation for the Blue Team
    <p><iframe width="560" height="315" src="https://www.youtube.com/embed/yaeNwdElYaQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br></p>
 
 
-* **Blue Team Village at DEF CON 28 (2019)**
+Blue Team Village at DEF CON 28 (2019)
+--------------------------------------
 
 Purple On My Mind: Cost Effective Automated Adversary Simulation
 
@@ -55,7 +61,8 @@ Purple On My Mind: Cost Effective Automated Adversary Simulation
    <p><iframe width="560" height="315" src="https://www.youtube.com/embed/XUxMj-eR0A0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br></p>
 
 
-* **Derbycon 9.0 (2019)**
+Derbycon 9.0 (2019)
+-------------------
 
 I sim(ulate), therefore i catch: enhancing detection engineering with adversary simulation
 
