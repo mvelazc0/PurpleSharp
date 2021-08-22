@@ -48,11 +48,13 @@ life cycle: execution, persistence, privilege escalation, credential access, lat
 .. _47 unique ATT&CK techniques: https://mitre-attack.github.io/attack-navigator/enterprise/#layerURL=https://raw.githubusercontent.com/mvelazc0/PurpleSharp/master/PurpleSharp/Json/PurpleSharp_navigator.json
 
 PurpleSharp was first presented at `Derbycon IX`_ on September 2019.
-An updated version was released on August 6th 2020 as part of `BlackHat Arsenal 2020`_.
+An updated version was released on August 6th 2020 as part of `BlackHat Arsenal 2020`_. The latest version was released on August 2021 as part of `BlackHat Arsenal 2021`_.
 
 .. _Derbycon IX: https://www.youtube.com/watch?v=7TVp4g4hkpg
 
 .. _Blackhat Arsenal 2020: https://www.youtube.com/watch?v=yaeNwdElYaQ
+
+.. _Blackhat Arsenal 2021: https://www.youtube.com/watch?v=jvpVgJQPoXw
 
 Visit the `Demos <demos/demos.html>`_ section to see PurpleSharp in action.
 
