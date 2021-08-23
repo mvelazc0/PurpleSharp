@@ -1,6 +1,14 @@
 
-Parameter Overview
-^^^^^^^^^^^^^^^^^^^
+Command Line Parameter Overview
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. warning::
+    Using command line parameters to execute simulations with PurpleSharp does not leverage all available features and is no longer maintained.
+
+    Command line parameters do still work but they should only be used for simple simulations and/or troubleshooting purposes.
+
+    Current development is focused on using JSON files to describe simulations playbooks.
+
 
 ******************************
 Required Simulation Parameters

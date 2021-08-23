@@ -10,8 +10,9 @@
    :hidden:
    :caption: Using PurpleSharp
 
-   Cheat Sheet <using-purplesharp/cheatsheet>
-   Commandline Parameter Overview <using-purplesharp/parameters>
+   Simulation Deployment <using-purplesharp/deployment>
+   [Outdated] Command Line Cheat Sheet <using-purplesharp/cheatsheet>
+   [Outdated] Command Line Parameter Overview <using-purplesharp/parameters>
 
 .. toctree::
    :maxdepth: 2
