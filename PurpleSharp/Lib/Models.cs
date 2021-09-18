@@ -82,7 +82,7 @@ namespace PurpleSharp.Lib
         public string password { get; set; }
         public string domain_controller { get; set; }
         public int sleep { get; set; }
-        public string type { get; set; }
+        public string type { get; set; } = "local";
         public List<SimulationPlaybook> playbooks { get; set; }
     }
     public class SimulationPlaybook
@@ -109,6 +109,7 @@ namespace PurpleSharp.Lib
     public class PlaybookTask
     {
         // Generic variables
+        public string tactic { get; set; } = "";
         public string technique_id { get; set; }
         public int variation { get; set; } = 1;
         public int task_sleep { get; set; } = 0;
@@ -119,6 +120,7 @@ namespace PurpleSharp.Lib
         public string spray_password { get; set; } = "Passw0rd1";
 
         // User target variables
+        // User by Password Spraying & Kerberoasting
         public int user_target_type { get; set; } = 1;
         public int user_target_total { get; set; } = 5;
         public string[] user_targets { get; set; }
@@ -133,6 +135,19 @@ namespace PurpleSharp.Lib
 
         // Network Service Scanning
         public int[] ports { get; set; } = { 135, 139, 443, 445, 1433, 3306, 3389 };
+
+        // Remote Service Creation
+        public string serviceName { get; set; } ="PurpleSharp Updater";
+        public string servicePath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
+        // WinRM remote execution and WMI remote execution
+        public string command { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
+        // Creating local and remote scheduled tasks
+        public string taskName { get; set; } = @"PurpleSharp Updater";
+        public string taskPath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
+
 
         public PlaybookTask()
         {

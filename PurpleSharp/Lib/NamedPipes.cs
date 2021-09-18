@@ -192,24 +192,24 @@ namespace PurpleSharp.Lib
                 PipeSecurity ps = new PipeSecurity();
                 ps.SetAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite, AccessControlType.Allow));
 
-                logger.TimestampInfo("starting Simulator!");
+                //logger.TimestampInfo("starting Simulator!");
                 using (var pipeServer = new NamedPipeServerStream(npipe, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 4028, 4028, ps))
 
                 {
                     SimulationResponse sim_response;
-                    logger.TimestampInfo("Waiting for client connection...");
+                    //logger.TimestampInfo("Waiting for client connection...");
                     pipeServer.WaitForConnection();
-                    logger.TimestampInfo("Client connected.");
+                    //logger.TimestampInfo("Client connected.");
                     var messageBytes = ReadMessage(pipeServer);
                     var line = Encoding.UTF8.GetString(messageBytes);
-                    logger.TimestampInfo("Received from client: " + line);
+                    //logger.TimestampInfo("Received from client: " + line);
                     SimulationRequest sim_request = JsonConvert.DeserializeObject<SimulationRequest>(line);
 
                     playbook = sim_request.playbook;
                     sim_response = new SimulationResponse("ACK");
                     byte[] bytes_sim_response = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(sim_response));
                     pipeServer.Write(bytes_sim_response, 0, bytes_sim_response.Length);
-                    logger.TimestampInfo("Replied to client: " + Encoding.UTF8.GetString(bytes_sim_response));
+                    //logger.TimestampInfo("Replied to client: " + Encoding.UTF8.GetString(bytes_sim_response));
                     pipeServer.Disconnect();
                     return playbook;
                 }

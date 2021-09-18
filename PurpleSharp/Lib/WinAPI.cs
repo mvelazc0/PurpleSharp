@@ -159,6 +159,11 @@ public static class WinAPI
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool DeleteService(IntPtr serviceHandle);
 
+    [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern int QueryServiceConfig(IntPtr hService, IntPtr queryServiceConfig, int bufferSize, ref int bytesNeeded);
+
+    [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool ChangeServiceConfig(IntPtr hService, uint dwServiceType, int dwStartType, int dwErrorControl, string lpBinaryPathName, string lpLoadOrderGroup, string lpdwTagId, string lpDependencies, string lpServiceStartName, string lpPassword, string lpDisplayName);
 
 
     [DllImport("advapi32.dll", SetLastError = true)]
