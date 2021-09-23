@@ -41,7 +41,9 @@ PurpleSharp can be built with Visual Studio Community 2019 or 2020.
 
 ### Simulate
 
-The binary is all you need to start simulating attacks. Check out the [Active Directory Purple Team Playbook](https://github.com/mvelazc0/PurpleAD/) which is a repository of ready-to-use JSON playbooks for PurpleSharp.
+The PurpleSharp assembly is all you need to start simulating attacks. 
+
+For simulation ideas, check out the [Active Directory Purple Team Playbook](https://github.com/mvelazc0/PurpleAD/), a repository of ready-to-use JSON playbooks for PurpleSharp.
 
 ## Documentation
 
