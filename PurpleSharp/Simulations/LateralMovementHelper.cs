@@ -418,6 +418,23 @@ namespace PurpleSharp.Simulations
             }
 
         }
+
+        public static void WmiRemoteCodeExecutionPowerShell(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
+            string cleanPws = String.Format("Invoke-WMIMethod -Class Win32_Process -Name Create –ArgumentList {0} –ComputerName {1}", playbook_task.command, target);
+            logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+            var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+            string results = ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+            if (results.Contains("AccessDenied")) throw new Exception();
+
+
+        }
+
         private static string DateTimetoUTC(DateTime dateParam)
         {
             string buffer = dateParam.ToString("********HHmmss.ffffff");
