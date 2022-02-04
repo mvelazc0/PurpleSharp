@@ -94,12 +94,14 @@ namespace PurpleSharp.Simulations
                 else
                 {
                     logger.TimestampInfo(String.Format("The created local user {0} was not deleted as part of the simulation", username));
+                    
+
                 }
 
             }
             else
-            {   
-                logger.TimestampInfo(String.Format("Could not create local user {0}. Error code: {1} ", username, result.ToString()));
+            {
+                throw new Exception(String.Format("Could not create local user {0}. Error code: {1} ", username, result.ToString()));
             }
 
             //#TODO Look addmin group with LookupAccountSid: https://www.pinvoke.net/default.aspx/netapi32.netlocalgroupaddmembers

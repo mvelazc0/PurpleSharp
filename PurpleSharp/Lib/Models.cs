@@ -158,7 +158,7 @@ namespace PurpleSharp.Lib
             technique_id = tech;
             variation = var;
             task_sleep = t_sleep;
-            cleanup = cleanup;
+            cleanup = cl;
         }
     }
 
