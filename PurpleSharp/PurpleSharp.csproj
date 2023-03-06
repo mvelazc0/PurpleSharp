@@ -86,6 +86,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Lib\Techniques.cs" />
     <Compile Include="Lib\Impersonator.cs" />
     <Compile Include="Lib\Json.cs" />
     <Compile Include="Lib\Logger.cs" />
