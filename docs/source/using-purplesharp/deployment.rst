@@ -13,7 +13,7 @@ Below is an example of locally running three **Process Injection** techniques us
 
 ::
 
-   C:\> PurpleSharp.exe /t T1055.002,T1055.003,T1055.004 /pbsleep 60 
+   C:\> PurpleSharp.exe /t T1055.002,T1055.003,T1055.004
 
 .. _T1055.002: https://attack.mitre.org/techniques/T1055/002/
 
@@ -29,14 +29,15 @@ Remote
 ------
 
 PurpleSharp can be also used to deploy simulation playbooks on remote endpoints. This type of deployment can be used to test
-the detection and prevention controls on a remote endpoint that may be sitting across the globe. The core requirements are to have
-network connectivity and administrative credentials on the remote host.
+the detection and prevention controls on a remote endpoint that may be sitting across the globe. 
+
+.. note:: PurpleSharp leverages native Windows features like SMB and RPC to deploy remote simulations. To work properly, the core requirements are to have network connectivity and administrative credentials on the remote host. 
 
 Below is an example of using the command line to deploy a remote simulation:
 
 ::
 
-   C:\> PurpleSharp.exe /rhost win10-1 /ruser psharo /rpwd Passw0rd1 /d hacklabz.com /t T059.001
+   C:\> PurpleSharp.exe /rhost win10-1 /ruser psharp /rpwd Passw0rd1 /d hacklabz.com /t T059.001
 
 .. raw:: html
 

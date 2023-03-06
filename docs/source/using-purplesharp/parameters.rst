@@ -3,12 +3,8 @@ Command Line Parameter Overview
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. warning::
-    Using command line parameters to execute simulations with PurpleSharp does not leverage all available features and is no longer maintained.
-
-    Command line parameters do still work but they should only be used for simple simulations and/or troubleshooting purposes.
-
-    Current development is focused on using JSON files to describe simulations playbooks.
-
+    Using command line parameters to execute simulations with PurpleSharp does not leverage all available features.
+    If you are looking to customize the simulations with more flexibility, you should use JSON playbooks.
 
 ******************************
 Required Simulation Parameters
@@ -36,7 +32,11 @@ Technique(s) (/t)
 
 Defines the MITRE ATT&CK Framework technique id or ids to use in the simulation.
 
-.. note:: When using more than one technique, use a comma to separate them and no space between them: **/t T1059.001,T1059.002,T1059.003**
+.. note:: When using more than one technique, use a comma to separate them and **no space** between them.
+
+.. code-block:: powershell
+
+    PurpleSharp.exe /t T1055.002,T1055.003,T1055.004
 
 ******************************
 Optional Simulation Parameters
@@ -113,7 +113,9 @@ PurpleSharp can execute reconoissance tasks on remote hosts with the goal of pro
 
 - **all**: This option will execute all of the above tasks.
 
-.. note:: This parameter is used in combination with others: **PurpleSharp.exe /scout all /rhost host /ruser user /d domain**
+.. code-block:: powershell
+
+    PurpleSharp.exe PurpleSharp.exe /scout all /rhost host /ruser user /d domain
 
 ATT&CK Navigator (/navigator)
 -----------------------------
@@ -124,16 +126,26 @@ PurpleSharp integrates with `MITRE's ATT&CK Navigator`_ project.
 
 .. _here: https://mitre-attack.github.io/attack-navigator/enterprise/#layerURL=https://raw.githubusercontent.com/mvelazc0/PurpleSharp/master/PurpleSharp/Json/PurpleSharp_navigator.json
 
-.. note:: **PurpleSharp.exe /navigator export**
+.. code-block:: powershell
+
+    PurpleSharp.exe /navigator export
 
 - **import**: With this action PurpleSharp will take a ATT&CK Navigator layer file as a parameter and create a JSON simulation playbook with all the supported techniques. 
 
 .. _MITRE's ATT&CK Navigator: https://mitre-attack.github.io/attack-navigator/enterprise/
 
-.. note:: **PurpleSharp.exe /navigator import APT1.json**
+
+.. code-block:: powershell
+
+    PurpleSharp.exe /navigator import APT1.json
+
 
 
 Playbook (/pb)
 --------------
 
 This parameter defines the JSON Playbook to use as an input for the simulation.
+
+.. code-block:: powershell
+
+    PurpleSharp.exe /pb SimulationPlaybook.json

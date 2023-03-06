@@ -11,8 +11,8 @@
    :caption: Using PurpleSharp
 
    Simulation Deployment <using-purplesharp/deployment>
-   [Outdated] Command Line Cheat Sheet <using-purplesharp/cheatsheet>
-   [Outdated] Command Line Parameter Overview <using-purplesharp/parameters>
+   Command Line Cheat Sheet <using-purplesharp/cheatsheet>
+   Command Line Parameter Overview <using-purplesharp/parameters>
 
 .. toctree::
    :maxdepth: 2
@@ -20,6 +20,14 @@
    :caption: Supported Techniques
 
    Techniques <techniques/techniques>
+   Execution <techniques/execution>
+   Persitence <techniques/persistence>
+   Privilege Escalation <techniques/privilege_escalation>
+   Defense Evasion <techniques/defense_evasion>
+   Credential Access <techniques/credential_access>
+   Discovery <techniques/discovery>
+   Lateral Movement <techniques/lateral_movement>
+
 
 .. toctree::
    :maxdepth: 2
@@ -47,6 +55,11 @@ life cycle: execution, persistence, privilege escalation, credential access, lat
 .. _PurpleSharp: https://github.com/mvelazc0/PurpleSharp
 
 .. _47 unique ATT&CK techniques: https://mitre-attack.github.io/attack-navigator/enterprise/#layerURL=https://raw.githubusercontent.com/mvelazc0/PurpleSharp/master/PurpleSharp/Json/PurpleSharp_navigator.json
+
+
+.. image:: /images/mitre-layer.png
+   :target: https://mitre-attack.github.io/attack-navigator/#layerURL=https://raw.githubusercontent.com/mvelazc0/PurpleSharp/master/PurpleSharp/Json/PurpleSharp_navigator.json
+
 
 PurpleSharp was first presented at `Derbycon IX`_ on September 2019.
 An updated version was released on August 6th 2020 as part of `BlackHat Arsenal 2020`_. The latest version was released on August 2021 as part of `BlackHat Arsenal 2021`_.
@@ -85,6 +98,15 @@ Download Latest Release
 `Download`_ the latest release binary ready to be used to execute TTP simulations.
 
 .. _Download: https://github.com/mvelazc0/PurpleSharp/releases
+
+Simulate 
+~~~~~~~~
+
+The PurpleSharp assembly is all you need to start simulating attacks.
+
+For simulation ideas, check out the `Active Directory Purple Team Playbook`_, a repository of ready-to-use JSON playbooks for PurpleSharp.
+
+.. _Active Directory Purple Team Playbook: https://github.com/mvelazc0/PurpleAD/
 
 Authors
 ------- 
