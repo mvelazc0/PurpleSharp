@@ -1,6 +1,6 @@
 
-Command Line Parameter Overview
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Command Line Parameters
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. warning::
     Using command line parameters to execute simulations with PurpleSharp does not leverage all available features.

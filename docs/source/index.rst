@@ -12,7 +12,8 @@
 
    Simulation Deployment <using-purplesharp/deployment>
    Command Line Cheat Sheet <using-purplesharp/cheatsheet>
-   Command Line Parameter Overview <using-purplesharp/parameters>
+   Command Line Parameters <using-purplesharp/parameters>
+   JSON Playbooks <using-purplesharp/json>
 
 .. toctree::
    :maxdepth: 2
