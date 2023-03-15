@@ -81,7 +81,7 @@ namespace PurpleSharp.Lib
                             taskresult = new PlaybookTaskResult();
                             debugmsgs = new List<TaskDebugMsg>();
                         }
-                        else if (lines[k].Contains("Playbook Finished")) 
+                        else if (lines[k].Contains("Simulation Playbook Finished")) 
                         {
                             finished = true;
                         }
