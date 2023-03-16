@@ -13,7 +13,7 @@
    Simulation Deployment <using-purplesharp/deployment>
    Command Line Cheat Sheet <using-purplesharp/cheatsheet>
    Command Line Parameters <using-purplesharp/parameters>
-   JSON Playbooks <using-purplesharp/json>
+   JSON Playbooks <using-purplesharp/json_playbooks>
 
 .. toctree::
    :maxdepth: 2
@@ -57,9 +57,12 @@ life cycle: execution, persistence, privilege escalation, credential access, lat
 
 .. _47 unique ATT&CK techniques: https://mitre-attack.github.io/attack-navigator/enterprise/#layerURL=https://raw.githubusercontent.com/mvelazc0/PurpleSharp/master/PurpleSharp/Json/PurpleSharp_navigator.json
 
+|
 
 .. image:: /images/mitre-layer.png
    :target: https://mitre-attack.github.io/attack-navigator/#layerURL=https://raw.githubusercontent.com/mvelazc0/PurpleSharp/master/PurpleSharp/Json/PurpleSharp_navigator.json
+
+|
 
 
 PurpleSharp was first presented at `Derbycon IX`_ on September 2019.
@@ -114,7 +117,7 @@ Authors
 
 - Mauricio Velazco - `@mvelazco`_
 
-.. _@mvelazco: www.google.com
+.. _@mvelazco: https://twitter.com/mvelazco
 
 
 Acknowledgments

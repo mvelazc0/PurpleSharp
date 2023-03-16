@@ -4,7 +4,11 @@ Command Line Parameters
 
 .. warning::
     Using command line parameters to execute simulations with PurpleSharp does not leverage all available features.
-    If you are looking to customize the simulations with more flexibility, you should use JSON playbooks.
+    If you are looking to customize the simulations with more flexibility, you should use `JSON playbooks`_.
+
+
+.. _JSON playbooks: json_playbooks.html
+
 
 ******************************
 Required Simulation Parameters
