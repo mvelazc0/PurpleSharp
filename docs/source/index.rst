@@ -20,7 +20,6 @@
    :hidden:
    :caption: Supported Techniques
 
-   Techniques <techniques/techniques>
    Execution <techniques/execution>
    Persistence <techniques/persistence>
    Privilege Escalation <techniques/privilege_escalation>
