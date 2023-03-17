@@ -67,7 +67,7 @@ namespace PurpleSharp
                     {
                         string result = reader.ReadToEnd();
                         SimulationExercise engagement = Json.ReadSimulationPlaybook(result);
-                        ExecuteJSONSimulationPlaybok(engagement, log, pb_file, scout_np, simulator_np);
+                        ExecuteJSONSimulationPlaybok(engagement, log, "Playbook.json", scout_np, simulator_np);
                         return;
                     }
                 }
