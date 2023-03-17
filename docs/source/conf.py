@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'PurpleSharp'
-copyright = '2020, Mauricio Velazco'
+copyright = '2023, Mauricio Velazco'
 author = 'Mauricio Velazco'
 
 
