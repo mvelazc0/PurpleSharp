@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PurpleSharp.Lib;
+using System;
 using System.Management;
 using System.Threading;
 
@@ -7,15 +8,15 @@ namespace PurpleSharp.Simulations
 {
     class Persistence
     {
-        public static void CreateLocalAccountApi(string log, bool cleanup)
+        public static void CreateLocalAccountApi(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1136.001");
             logger.TimestampInfo("Using the Win32 API NetUserAdd function to execute the technique");
             try
             {
-                PersistenceHelper.CreateUserApi("haxor", logger, cleanup);
+                PersistenceHelper.CreateUserApi(playbook_task.user, playbook_task.password, logger, playbook_task.cleanup);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -24,26 +25,24 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void CreateLocalAccountCmd(string log, bool cleanup)
+        public static void CreateLocalAccountCmd(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1136.001");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
-                string username = "haxor";
-                string pwd = "Passw0rd123El7";
-                ExecutionHelper.StartProcessApi("", String.Format("net user {0} {1} /add", username, pwd), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("net user {0} {1} /add", playbook_task.user, playbook_task.password), logger);
                 Thread.Sleep(2000);
-                if (cleanup)
+                if (playbook_task.cleanup)
                 {
-                    ExecutionHelper.StartProcessApi("", String.Format("net user {0} /delete", username), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format("net user {0} /delete", playbook_task.user), logger);
                 }
                 else
                 {
-                    logger.TimestampInfo(String.Format("The created local user {0} was not deleted as part of the simulation", username));
+                    logger.TimestampInfo(String.Format("The created local user {0} was not deleted as part of the simulation", playbook_task.user));
                 }
 
 

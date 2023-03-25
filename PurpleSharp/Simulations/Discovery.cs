@@ -406,7 +406,7 @@ namespace PurpleSharp.Simulations
         public static void PasswordPolicyDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1201");
             logger.TimestampInfo("Using the command line to execute the technique");
 

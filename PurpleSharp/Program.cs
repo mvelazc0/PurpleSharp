@@ -978,8 +978,8 @@ namespace PurpleSharp
                         break;
 
                     case "T1136.001":
-                        if (playbook_task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, playbook_task.cleanup);
-                        else Simulations.Persistence.CreateLocalAccountCmd(log, playbook_task.cleanup);
+                        if (playbook_task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(playbook_task, log);
+                        else Simulations.Persistence.CreateLocalAccountCmd(playbook_task, log);
                         break;
 
                     case "T1543.003":
