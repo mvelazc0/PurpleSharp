@@ -40,7 +40,7 @@ namespace PurpleSharp.Simulations
                 if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", playbook_task.task_sleep));
                 foreach (Computer computer in target_hosts)
                 {
-                    ExecutionHelper.StartProcessApi("", String.Format("net view \\\\{0}", computer.IPv4), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format("net view \\\\{0} /all", computer.IPv4), logger);
                 }
                 logger.SimulationFinished();
             }
@@ -630,7 +630,7 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcessNET("cmd.exe", "/c net view", logger);
+                ExecutionHelper.StartProcessNET("cmd.exe", "/c net view /all /domain", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -653,6 +653,42 @@ namespace PurpleSharp.Simulations
                 var cleanPwsBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
                 ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
                 //ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void SystemLanguageDiscoveryCmd(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1614.001");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcessApi("","chcp >&2", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void SystemLanguageDiscoveryRegistry(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1614.001");
+            logger.TimestampInfo("Using the command line to execute the technique");
+
+            try
+            {
+                ExecutionHelper.StartProcessApi("", @"reg query HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Nls\Language", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

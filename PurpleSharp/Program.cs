@@ -1173,6 +1173,11 @@ namespace PurpleSharp
                         Simulations.Discovery.SystemTimeDiscovery(log);
                         break;
 
+                    case "T1614.001":
+                        if (playbook_task.variation == 1) Simulations.Discovery.SystemLanguageDiscoveryCmd( log);
+                        else Simulations.Discovery.SystemLanguageDiscoveryRegistry(log);
+                        break;
+
                     ////  Lateral Movement //// 
 
                     //T1021.006 - Windows Remote Management
