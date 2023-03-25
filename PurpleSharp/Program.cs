@@ -656,7 +656,6 @@ namespace PurpleSharp
                 }
             }
         }
-
         public static void ExecuteJSONSimulationPlaybok(SimulationExercise engagement, string log, string pb_file, string scout_np, string simulator_np)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -945,8 +944,9 @@ namespace PurpleSharp
                         break;
 
                     case "T1059.001":
-                        if (playbook_task.variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
-                        else Simulations.Execution.ExecutePowershellNET(log);
+                        if (playbook_task.variation == 1) Simulations.Execution.ExecutePowerShellCmd(playbook_task, log);
+                        else if (playbook_task.variation == 2) Simulations.Execution.ExecutePowerShellCmdEncoded(playbook_task, log);
+                        else Simulations.Execution.ExecutePowerShellNET(playbook_task, log);
                         break;
 
                     case "T1059.003":
@@ -1029,11 +1029,11 @@ namespace PurpleSharp
                         break;
 
                     case "T1197":
-                        Simulations.DefenseEvasion.BitsJobs(log);
+                        Simulations.DefenseEvasion.BitsJobs(playbook_task, log);
                         break;
 
                     case "T1218.011":
-                        Simulations.DefenseEvasion.Rundll32(log);
+                        Simulations.DefenseEvasion.Rundll32(playbook_task, log);
                         break;
 
                     case "T1070.001":
@@ -1189,6 +1189,14 @@ namespace PurpleSharp
 
                     // Command and Control
 
+                    // Ingress Tool Transfer
+
+                    case "T1105":
+                        if (playbook_task.variation == 1) Simulations.CommandAndControl.DownloadFilePowerShell(playbook_task, log);
+                        else if (playbook_task.variation == 2) Simulations.CommandAndControl.DownloadFileBitsAdmin(playbook_task, log);
+                        else Simulations.CommandAndControl.DownloadFileCertUtil(playbook_task, log);
+                        break;
+
                     // Exfiltration
 
                     // Impact
@@ -1202,6 +1210,10 @@ namespace PurpleSharp
                     default:
                         logger.TimestampInfo("Technique \"" + playbook_task.technique_id + "\" not supported or unknown.");
                         break;
+
+
+
+
 
                 }
             }
@@ -1236,7 +1248,7 @@ namespace PurpleSharp
             {
                 ExecutePlaybookTask(task, log);
                 if (playbook.playbook_sleep > 0 && task != lastTask ) Thread.Sleep(1000 * playbook.playbook_sleep);
-                if (task == lastTask) logger.TimestampInfo("Simulation Playbook Finished");
+                if (task == lastTask) logger.TimestampInfo("Simulation PlaybookT1543.003 Finished");
             }
         }
 

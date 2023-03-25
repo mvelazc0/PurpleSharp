@@ -39,6 +39,9 @@ namespace PurpleSharp.Simulations
             bool retValue;
             Structs.PROCESS_INFORMATION pInfo = new Structs.PROCESS_INFORMATION();
             Structs.STARTUPINFO sInfo = new Structs.STARTUPINFO();
+            // avoid stdout to be printed
+            sInfo.dwFlags = 0x00000100 | 0x00000001;
+
             Structs.SECURITY_ATTRIBUTES pSec = new Structs.SECURITY_ATTRIBUTES();
             Structs.SECURITY_ATTRIBUTES tSec = new Structs.SECURITY_ATTRIBUTES();
             pSec.nLength = Marshal.SizeOf(pSec);

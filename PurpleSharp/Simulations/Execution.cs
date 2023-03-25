@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PurpleSharp.Lib;
+using System;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 
@@ -24,37 +25,52 @@ namespace PurpleSharp.Simulations
             }
 
         }
-        static public void ExecutePowershellCmd(string log)
+        static public void ExecutePowerShellCmd(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1059.001");
             logger.TimestampInfo("Using the command line to execute the technique");
             try
             {
-                string encodedPwd = "UwB0AGEAcgB0AC0AUwBsAGUAZQBwACAALQBzACAAMgAwAA==";
-                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -command \"{0}\"", playbook_task.commandlet), logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
             {
                 logger.SimulationFailed(ex);
-            }
-            
+            } 
         }
 
-        static public void ExecutePowershellNET(string log)
+        static public void ExecutePowerShellCmdEncoded(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1059.001");
+            logger.TimestampInfo("Using the command line to execute the technique with Base64 encoding");
+            try
+            {
+                byte[] bytes = System.Text.Encoding.Unicode.GetBytes(playbook_task.commandlet);
+                string encodedPwd = Convert.ToBase64String(bytes);
+                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        static public void ExecutePowerShellNET(PlaybookTask playbook_task, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1059.001");
             logger.TimestampInfo("Using the System.Management.Automation .NET namespace to execute the technique");
             try
             {
                 PowerShell pstest = PowerShell.Create();
-                String script = "UwB0AGEAcgB0AC0AUwBsAGUAZQBwACAALQBzACAAMgAwAA==";
-                script = System.Text.Encoding.Unicode.GetString(System.Convert.FromBase64String(script));
-                pstest.AddScript(script);
+                pstest.AddScript(playbook_task.commandlet);
                 Collection<PSObject> output = null;
                 output = pstest.Invoke();
                 logger.TimestampInfo("Succesfully invoked a PowerShell script using .NET");
@@ -71,7 +87,7 @@ namespace PurpleSharp.Simulations
         static public void WindowsCommandShell(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Lib.Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1059.003");
             try
             {

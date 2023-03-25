@@ -98,6 +98,7 @@
     <Compile Include="Lib\Utils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Simulations\CommandAndControl.cs" />
     <Compile Include="Simulations\CredAccess.cs" />
     <Compile Include="Simulations\CredAccessHelper.cs" />
     <Compile Include="Simulations\DefenseEvasion.cs" />
