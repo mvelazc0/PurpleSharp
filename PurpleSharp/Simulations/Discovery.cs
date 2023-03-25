@@ -322,16 +322,39 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        static public void FileAndDirectoryDiscovery(string log)
+        static public void LocalFileAndDirectoryDiscovery(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1083");
+            logger.TimestampInfo("Using the command line to execute the technique locally");
 
             try
             {
                 ExecutionHelper.StartProcessApi("", @"dir c:\ >> %temp%\download", logger);
                 ExecutionHelper.StartProcessApi("", @"dir C:\Users\ >> %temp%\download", logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        static public void RemoteFileAndDirectoryDiscovery(PlaybookTask playbook_task, string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1083");
+            logger.TimestampInfo("Using the command line to execute the technique against a remote host");
+            try
+            {
+                List<Computer> target_hosts = Targets.GetHostTargets(playbook_task, logger);
+                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", playbook_task.task_sleep));
+                foreach (Computer computer in target_hosts)
+                {
+                    ExecutionHelper.StartProcessApi("", String.Format(@"dir \\\\{0} >> %temp%\download", computer.IPv4), logger);
+                }
                 logger.SimulationFinished();
             }
             catch (Exception ex)
