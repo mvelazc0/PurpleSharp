@@ -153,7 +153,7 @@ namespace PurpleSharp.Simulations
 
         }
 
-        public static void DomainAccountDiscoveryLdap(string log)
+        public static void DomainAccountDiscoveryLdap(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
@@ -161,7 +161,7 @@ namespace PurpleSharp.Simulations
             logger.TimestampInfo("Using LDAP to execute this technique");
             try
             {
-                DiscoveryHelper.LdapQueryForObjects(logger, 1);
+                DiscoveryHelper.LdapQueryForObjects(playbook_task, logger, 1);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -170,17 +170,29 @@ namespace PurpleSharp.Simulations
             }   
         }
 
-        public static void DomainAccountDiscoveryCmd(string log)
+        public static void DomainAccountDiscoveryCmd(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1087.002");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
-                //ExecutionHelper.StartProcessApi("", "net user /domain", logger);
-                ExecutionHelper.StartProcessNET("net.exe", "user /domain", logger);
+                if (playbook_task.users.Length == 0)
+                {
+                    //ExecutionHelper.StartProcessApi("", "net user /domain", logger);
+                    ExecutionHelper.StartProcessNET("net.exe", "user /domain", logger);
+                }
+                else
+                {
+                    foreach (string user in playbook_task.users)
+                    {
+                        ExecutionHelper.StartProcessNET("net.exe", String.Format("user {0} /domain", user), logger);
+
+                    }
+                }
+                 
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -279,6 +291,8 @@ namespace PurpleSharp.Simulations
             {
                 //ExecutionHelper.StartProcessApi("", "whoami", logger);
                 ExecutionHelper.StartProcessNET("cmd.exe", "/c whoami", logger);
+                ExecutionHelper.StartProcessNET("cmd.exe", "/c whoami /groups", logger);
+
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -431,7 +445,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 ExecutionHelper.StartProcessApi("", "net localgroup", logger);
-                ExecutionHelper.StartProcessApi("", "net localgroup \"Administrators\"", logger);
+                ExecutionHelper.StartProcessApi("", "net localgroup Administrators", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -510,7 +524,7 @@ namespace PurpleSharp.Simulations
         public static void DomaiGroupDiscoveryLdap(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1069.002");
             logger.TimestampInfo("Using LDAP to execute technique");
             try
@@ -520,14 +534,14 @@ namespace PurpleSharp.Simulations
                     foreach (string group in playbook_task.groups)
                     {
                         logger.TimestampInfo(String.Format("Querying LDAP for members of '{0}'", group));
-                        DiscoveryHelper.LdapQueryForObjects(logger, 2, "", group);
+                        DiscoveryHelper.LdapQueryForObjects(playbook_task, logger, 2, "", group);
                     }
                     logger.SimulationFinished();
                 }
                 else
                 {
                     logger.TimestampInfo("Querying LDAP for all groups");
-                    DiscoveryHelper.LdapQueryForObjects(logger, 2);
+                    DiscoveryHelper.LdapQueryForObjects(playbook_task, logger, 2);
                     logger.SimulationFinished();
                 }
 
@@ -591,7 +605,7 @@ namespace PurpleSharp.Simulations
             {
                 //ExecutionHelper.StartProcessApi("", "systeminfo", logger);
                 //ExecutionHelper.StartProcessApi("", "net config workstation", logger);
-                ExecutionHelper.StartProcessNET("cmd.exe /c", "systeminfo", logger);
+                ExecutionHelper.StartProcessNET("cmd.exe", "/c systeminfo", logger);
                 //ExecutionHelper.StartProcessNET("net.exe", "config workstation", logger);
 
                 logger.SimulationFinished();
@@ -630,7 +644,7 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                ExecutionHelper.StartProcessNET("cmd.exe", "/c net view /all /domain", logger);
+                ExecutionHelper.StartProcessNET("cmd.exe", "/c net group \"Domain Computers\" /domain", logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

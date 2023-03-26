@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.IO;
 using System.Reflection;
 
 namespace PurpleSharp
@@ -950,7 +949,7 @@ namespace PurpleSharp
                         break;
 
                     case "T1059.003":
-                        Simulations.Execution.WindowsCommandShell(log);
+                        Simulations.Execution.WindowsCommandShell(playbook_task, log);
                         break;
 
 
@@ -1123,7 +1122,7 @@ namespace PurpleSharp
                     case "T1087.002":
                         if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(log);
                         else if (playbook_task.variation == 2) Simulations.Discovery.DomainAccountDiscoveryPowerShell(log);
-                        else Simulations.Discovery.DomainAccountDiscoveryLdap(log);
+                        else Simulations.Discovery.DomainAccountDiscoveryLdap(playbook_task, log);
                         break;
 
                     case "T1007":

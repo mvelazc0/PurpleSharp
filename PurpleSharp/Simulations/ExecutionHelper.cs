@@ -70,10 +70,12 @@ namespace PurpleSharp.Simulations
                 process.Start();
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + process.Id));
 
+                /*
                 string standard_output;
                 string error_output;
                 string final_output="";
                 int i = 0;
+                
                 while ((standard_output = process.StandardOutput.ReadLine()) != null && i < 10)
                 {
                     if (!standard_output.Trim().Equals(""))
@@ -96,8 +98,9 @@ namespace PurpleSharp.Simulations
                         //break;
                     }
                 }
-                process.WaitForExit();
-                return final_output;
+                */
+                //process.WaitForExit();
+                return "";
 
             }
         }

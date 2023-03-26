@@ -84,14 +84,14 @@ namespace PurpleSharp.Simulations
 
         }
 
-        static public void WindowsCommandShell(string log)
+        static public void WindowsCommandShell(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1059.003");
             try
             {
-                ExecutionHelper.StartProcessApi("", "cmd.exe /C whoami", logger);
+                ExecutionHelper.StartProcessApi("", String.Format("cmd.exe /C {0}",playbook_task.command), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
