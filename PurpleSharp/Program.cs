@@ -673,18 +673,57 @@ namespace PurpleSharp
                         playbookResults.taskresults = new List<PlaybookTaskResult>();
                         playbookResults.name = playbook.name;
                         playbookResults.host = playbook.remote_host;
-                        logger.TimestampInfo("Running Playbook " + playbook.name);
-                        PlaybookTask lastTask = playbook.tasks.Last();
-                        foreach (PlaybookTask task in playbook.tasks)
+
+
+                        if (playbook.techs == 0)
                         {
-                            ExecutePlaybookTask(task, log);
-                            if (playbook.playbook_sleep > 0 && task != lastTask)
+                            logger.TimestampInfo(String.Format("Running all techniques from Playbook {0}", playbook.name));
+                            PlaybookTask lastTask = playbook.tasks.Last();
+                            foreach (PlaybookTask task in playbook.tasks)
                             {
-                                logger.TimestampInfo(String.Format("Sleeping {0} seconds until next task...", playbook.playbook_sleep));
-                                Thread.Sleep(1000 * playbook.playbook_sleep);
+                                ExecutePlaybookTask(task, log);
+                                if (playbook.playbook_sleep > 0 && task != lastTask)
+                                {
+                                    logger.TimestampInfo(String.Format("Sleeping {0} seconds until next task...", playbook.playbook_sleep));
+                                    Thread.Sleep(1000 * playbook.playbook_sleep);
+                                }
                             }
+                            logger.TimestampInfo("Simulation Playbook Finished");
+
                         }
-                        logger.TimestampInfo("Simulation Playbook Finished");
+                        // run a random subset of the techniques
+                        else
+                        {
+                            List<PlaybookTask> picked_tasks = new List<PlaybookTask>();
+                            logger.TimestampInfo(String.Format("Running {0} random techniques from Playbook {1}",playbook.techs, playbook.name));
+                            //var random = new Random();
+                            var random = new Random(Guid.NewGuid().GetHashCode());
+                            for (int i = 0; i< playbook.techs; i++)
+                            {
+                                int index = random.Next(playbook.tasks.Count);
+                                if (picked_tasks.Contains(playbook.tasks[index]))
+                                {
+                                    i -= 1;
+                                }
+                                else 
+                                {
+                                    picked_tasks.Add(playbook.tasks[index]);
+                                }
+                            }
+                            PlaybookTask lastTask = picked_tasks.Last();
+                            foreach (PlaybookTask task in picked_tasks)
+                            {
+                                ExecutePlaybookTask(task, log);
+                                if (playbook.playbook_sleep > 0 && task != lastTask)
+                                {
+                                    logger.TimestampInfo(String.Format("Sleeping {0} seconds until next task...", playbook.playbook_sleep));
+                                    Thread.Sleep(1000 * playbook.playbook_sleep);
+                                }
+                            }
+                            logger.TimestampInfo("Simulation Playbook Finished");
+
+                        }
+
                         if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
                         {
                             Console.WriteLine();
@@ -1120,7 +1159,7 @@ namespace PurpleSharp
                         break;
 
                     case "T1087.002":
-                        if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(log);
+                        if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(playbook_task, log);
                         else if (playbook_task.variation == 2) Simulations.Discovery.DomainAccountDiscoveryPowerShell(log);
                         else Simulations.Discovery.DomainAccountDiscoveryLdap(playbook_task, log);
                         break;
@@ -1253,7 +1292,7 @@ namespace PurpleSharp
             {
                 ExecutePlaybookTask(task, log);
                 if (playbook.playbook_sleep > 0 && task != lastTask ) Thread.Sleep(1000 * playbook.playbook_sleep);
-                if (task == lastTask) logger.TimestampInfo("Simulation PlaybookT1543.003 Finished");
+                if (task == lastTask) logger.TimestampInfo("Simulation Playbook Finished");
             }
         }
 

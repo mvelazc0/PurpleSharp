@@ -95,6 +95,8 @@ namespace PurpleSharp.Lib
         public string remote_host { get; set; }
         public string opsec { get; set; } = "ppid";
         public bool enabled { get; set; } = true;
+        
+        public int techs { get; set; } = 0;
         public List<PlaybookTask> tasks { get; set; }
         public SimulationPlaybook(int pbsleep)
         {
