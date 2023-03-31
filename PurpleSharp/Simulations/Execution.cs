@@ -52,7 +52,7 @@ namespace PurpleSharp.Simulations
             {
                 byte[] bytes = System.Text.Encoding.Unicode.GetBytes(playbook_task.commandlet);
                 string encodedPwd = Convert.ToBase64String(bytes);
-                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", encodedPwd), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -exec bypass -enc {0}", encodedPwd), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -92,6 +92,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 ExecutionHelper.StartProcessApi("", String.Format("cmd.exe /C {0}",playbook_task.command), logger);
+                //ExecutionHelper.StartProcessApi("", String.Format("{0}", playbook_task.command), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

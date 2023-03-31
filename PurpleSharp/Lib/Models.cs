@@ -156,7 +156,7 @@ namespace PurpleSharp.Lib
         public string dllPath { get; set; } = @"C:\Windows\twain_64.dll";
         public string exportName { get; set; } = @"System";
 
-        // Used by rundll32.exe, regsvr32.exe and others
+        // Used by regsvr32.exe and others
         public string url { get; set; } = @"http://evil.com/image.png";
 
         // Used by PowerShell T1059.001
@@ -172,7 +172,8 @@ namespace PurpleSharp.Lib
         // Used by T1082.002
         public string ldapQuery { get; set; } = @"(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
 
-
+        // Used by T1055.002
+        public string process_name { get; set; } = @"";
 
         public PlaybookTask()
         {

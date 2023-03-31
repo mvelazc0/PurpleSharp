@@ -54,7 +54,7 @@ namespace PurpleSharp.Simulations
             }
         }
 
-        public static void CreateScheduledTaskCmd(string log, bool cleanup)
+        public static void CreateScheduledTaskCmd(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Lib.Logger logger = new Lib.Logger(currentPath + log);
@@ -63,17 +63,15 @@ namespace PurpleSharp.Simulations
 
             try
             {
-                string taskName = "BadScheduledTask";
-                string binpath = @"C:\Windows\Temp\xyz12345.exe";
-                ExecutionHelper.StartProcessApi("", String.Format(@"SCHTASKS /CREATE /SC DAILY /TN {0} /TR ""{1}"" /ST 13:00", taskName, binpath), logger);
-                if (cleanup)
+                ExecutionHelper.StartProcessApi("", String.Format(@"SCHTASKS /CREATE /SC DAILY /TN {0} /TR ""{1}"" /ST 13:00", playbook_task.taskName, playbook_task.taskPath), logger);
+                if (playbook_task.cleanup)
                 {
-                    ExecutionHelper.StartProcessApi("", String.Format(@"SCHTASKS /DELETE /F /TN {0}", taskName, binpath), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format(@"SCHTASKS /DELETE /F /TN {0}", playbook_task.taskName), logger);
                     Thread.Sleep(3000);
                 }
                 else
                 {
-                    logger.TimestampInfo(@"The created Scheduled Task " + taskName + " was not deleted as part of the simulation");
+                    logger.TimestampInfo(@"The created Scheduled Task " + playbook_task.taskName + " was not deleted as part of the simulation");
                 }
                 logger.SimulationFinished();
             }

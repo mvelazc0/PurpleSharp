@@ -367,7 +367,7 @@ namespace PurpleSharp.Simulations
                 if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", playbook_task.task_sleep));
                 foreach (Computer computer in target_hosts)
                 {
-                    ExecutionHelper.StartProcessApi("", String.Format(@"dir \\\\{0} >> %temp%\download", computer.IPv4), logger);
+                    ExecutionHelper.StartProcessApi("", String.Format(@"dir \\\\{0}\c$ >> %temp%\download", computer.IPv4), logger);
                 }
                 logger.SimulationFinished();
             }
@@ -664,8 +664,10 @@ namespace PurpleSharp.Simulations
             {
                 string cleanPws = String.Format("Get-ADComputer -Filter  {{enabled -eq $true}} | Select-Object Name, DNSHostName, OperatingSystem, LastLogonDate");
                 logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+                //var cleanPwsBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+                //ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
                 var cleanPwsBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
-                ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
+                ExecutionHelper.StartProcessNET("powershell.exe", String.Format("{0}", cleanPws), logger);
                 //ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -enc {0}", Convert.ToBase64String(cleanPwsBytes)), logger);
                 logger.SimulationFinished();
             }

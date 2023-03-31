@@ -991,7 +991,6 @@ namespace PurpleSharp
                         Simulations.Execution.WindowsCommandShell(playbook_task, log);
                         break;
 
-
                     case "T1059.005":
                         Simulations.Execution.VisualBasic(log);
                         break;
@@ -1012,7 +1011,7 @@ namespace PurpleSharp
                     //T1053.005 - Scheduled Task
 
                     case "T1053.005":
-                        Simulations.Persistence.CreateScheduledTaskCmd(log, playbook_task.cleanup);
+                        Simulations.Persistence.CreateScheduledTaskCmd(playbook_task, log);
                         break;
 
                     case "T1136.001":
@@ -1043,7 +1042,7 @@ namespace PurpleSharp
                     //// Defense Evasion ////
 
                     case "T1218.010":
-                        Simulations.DefenseEvasion.Regsvr32(log);
+                        Simulations.DefenseEvasion.Regsvr32(playbook_task, log);
                         break;
 
                     case "T1218.009":
@@ -1085,7 +1084,7 @@ namespace PurpleSharp
                         break;
 
                     case "T1055.002":
-                        Simulations.DefenseEvasion.PortableExecutableInjection(log);
+                        Simulations.DefenseEvasion.PortableExecutableInjection(playbook_task, log);
                         break;
 
                     case "T1055.003":
@@ -1098,6 +1097,14 @@ namespace PurpleSharp
 
                     case "T1134.004":
                         Simulations.DefenseEvasion.ParentPidSpoofing(log);
+                        break;
+
+                    case "T1564.002":
+                        Simulations.DefenseEvasion.HideUserCmd(playbook_task, log);
+                        break;
+
+                    case "T1562.001":
+                        Simulations.DefenseEvasion.DisableDefenderPws(playbook_task, log);
                         break;
 
                     //T1218.010 - Regsvr32
@@ -1119,7 +1126,8 @@ namespace PurpleSharp
 
                     //T1003.001 - LSASS Memory
                     case "T1003.001":
-                        Simulations.CredAccess.LsassMemoryDump(log);
+                        if (playbook_task.variation == 1) Simulations.CredAccess.LsassMemoryDumpWinApi(log);
+                        else if (playbook_task.variation == 2) Simulations.CredAccess.LsassMemoryDumpRundll32(log);
                         break;
 
                     ////  Discovery //// 
@@ -1239,6 +1247,7 @@ namespace PurpleSharp
                         if (playbook_task.variation == 1) Simulations.CommandAndControl.DownloadFilePowerShell(playbook_task, log);
                         else if (playbook_task.variation == 2) Simulations.CommandAndControl.DownloadFileBitsAdmin(playbook_task, log);
                         else Simulations.CommandAndControl.DownloadFileCertUtil(playbook_task, log);
+                        Thread.Sleep(1000 * 5);
                         break;
 
                     // Exfiltration
