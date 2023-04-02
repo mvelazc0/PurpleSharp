@@ -31,6 +31,7 @@ namespace PurpleSharp.Lib
                 string strip = "";
 
                 if (lines[i].Contains("Running Playbook"))
+                //if (lines[i].Contains("techniques from Playbook"))
                 {
                     SimulationPlaybookResult playbookresult = new SimulationPlaybookResult();
                     List<PlaybookTaskResult> taskresults = new List<PlaybookTaskResult>();
@@ -39,6 +40,7 @@ namespace PurpleSharp.Lib
                     List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
 
                     strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("Running Playbook", "").Trim();
+                    //strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("techniques from Playbook", "").Trim();
                     playbookresult.name = strip;
                     bool finished = false;
                     int skipped = 0;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PurpleSharp.Simulations
@@ -25,6 +26,7 @@ namespace PurpleSharp.Simulations
                 string fileName = Path.GetFileName(uri.LocalPath);
                 string pws_download = String.Format("(New-object System.net.Webclient).DownloadFile('{0}','{1}\\{2}')", playbook_task.url, currentPath, fileName);
                 ExecutionHelper.StartProcessApi("", String.Format("powershell.exe -command \"{0}\"", pws_download), logger);
+                Thread.Sleep(1000 * playbook_task.task_sleep);
                 logger.SimulationFinished();
             }
             catch (Exception ex)
@@ -47,6 +49,8 @@ namespace PurpleSharp.Simulations
                 string fileName = Path.GetFileName(uri.LocalPath);
                 string bitsadmin_cmd = String.Format("bitsadmin /transfer debjob /download /priority normal {0} {1}\\{2}", playbook_task.url, currentPath, fileName);
                 ExecutionHelper.StartProcessApi("", String.Format(bitsadmin_cmd), logger);
+                Thread.Sleep(1000 * playbook_task.task_sleep);
+                logger.SimulationFinished();
             }
             catch (Exception ex)
             {
@@ -67,6 +71,8 @@ namespace PurpleSharp.Simulations
                 string fileName = Path.GetFileName(uri.LocalPath);
                 string certutil_cmd = String.Format("certutil.exe -urlcache -f {0} {1}", playbook_task.url, fileName);
                 ExecutionHelper.StartProcessApi("", String.Format(certutil_cmd), logger);
+                Thread.Sleep(1000 * playbook_task.task_sleep);
+                logger.SimulationFinished();
             }
             catch (Exception ex)
             {

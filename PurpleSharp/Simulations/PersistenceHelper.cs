@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using PurpleSharp.Lib;
 using System;
 using System.Runtime.InteropServices;
 
@@ -169,7 +170,7 @@ namespace PurpleSharp.Simulations
             return serviceHandleCreated != IntPtr.Zero;
         }
 
-        public static void CreateServiceApi(string log, Lib.Logger logger, bool cleanup)
+        public static void CreateServiceApi(PlaybookTask playbook_task, Logger logger)
         {
 
             var scmHandle = WinAPI.OpenSCManager(null, null, Structs.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
@@ -182,30 +183,27 @@ namespace PurpleSharp.Simulations
                 return;
 
             }
-            string servicePath = @"C:\Windows\Temp\superlegit.exe";      // A path to some running service now
-            string serviceName = "UpdaterService";
-            string serviceDispName = "Super Legit Update Service";
 
             IntPtr svcHandleCreated = IntPtr.Zero;
             int createdErr = 0;
-            bool created = CreateService(scmHandle, servicePath, serviceName, serviceDispName, out svcHandleCreated, out createdErr);
+            bool created = CreateService(scmHandle, playbook_task.servicePath, playbook_task.serviceName, playbook_task.serviceDisplayname, out svcHandleCreated, out createdErr);
 
             if (created)
             {
                 //DateTime dtime = DateTime.Now;
-                logger.TimestampInfo(String.Format("Successfully created Service: {0} ImagePath: {1} using CreateService", serviceName, servicePath));
+                logger.TimestampInfo(String.Format("Successfully created Service: {0} ImagePath: {1} using CreateService", playbook_task.serviceName, playbook_task.servicePath));
                 //Console.WriteLine("{0}[{1}] Successfully created a service on {2}", "".PadLeft(4), dtime.ToString("MM/dd/yyyy HH:mm:ss"), computer.Fqdn);
 
-                if (cleanup)
+                if (playbook_task.cleanup)
                 {
-                    IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
+                    IntPtr svcHandleOpened = WinAPI.OpenService(scmHandle, playbook_task.serviceName, Structs.SERVICE_ACCESS.SERVICE_ALL_ACCESS);
                     bool deletedService = WinAPI.DeleteService(svcHandleOpened);
-                    logger.TimestampInfo(String.Format("Deleted Service: {0} ImagePath: {1} with DeleteService", serviceName, servicePath));
+                    logger.TimestampInfo(String.Format("Deleted Service: {0} ImagePath: {1} with DeleteService", playbook_task.serviceName, playbook_task.servicePath));
                     WinAPI.CloseServiceHandle(svcHandleOpened);
                 }
                 else
                 {
-                    logger.TimestampInfo(String.Format("The created Service: {0} ImagePath: {1} was not deleted as part of the simulation", serviceName, servicePath));
+                    logger.TimestampInfo(String.Format("The created Service: {0} ImagePath: {1} was not deleted as part of the simulation", playbook_task.serviceName, playbook_task.servicePath));
                 }
 
             }

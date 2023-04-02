@@ -141,9 +141,10 @@ namespace PurpleSharp.Lib
         // Used by T1046 Network Service Scanning
         public int[] ports { get; set; } = { 135, 139, 443, 445, 1433, 3306, 3389 };
 
-        // Used by Remote Service Creation T1569.002
+        // Used by Remote Service Creation T1569.002, T1543.003
         public string serviceName { get; set; } ="PurpleSharp Updater";
         public string servicePath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+        public string serviceDisplayname { get; set; } = @"PurpleSharp Updater";
 
         // Used by T1021.006 WinRM remote execution and T1047 WMI remote execution
         public string payload { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
@@ -174,6 +175,14 @@ namespace PurpleSharp.Lib
 
         // Used by T1055.002
         public string process_name { get; set; } = @"";
+
+        // Used by T1570, T1059.005, T1059.007
+        public string file_path { get; set; } = @"";
+
+        public string remote_path { get; set; } = @"";
+
+
+
 
         public PlaybookTask()
         {

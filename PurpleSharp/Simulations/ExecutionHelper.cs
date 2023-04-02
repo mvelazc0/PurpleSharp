@@ -32,7 +32,7 @@ namespace PurpleSharp.Simulations
             else if (retValue != false && cleanup == false ) logger.TimestampInfo("Could not start process!");
         }
 
-        public static void StartProcessApi(string binary, string cmdline, Lib.Logger logger)
+        public static void StartProcessApi(string binary, string cmdline, Logger logger)
         {
             
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
@@ -53,7 +53,15 @@ namespace PurpleSharp.Simulations
             {
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + pInfo.dwProcessId));
             }
-            else logger.TimestampInfo("Could not start process!");
+            else
+            {
+                logger.TimestampInfo("Could not start process!");
+                logger.TimestampInfo(String.Format("Error Code: {0}", retValue));
+                
+
+            }
+
+
         }
 
         public static string StartProcessNET(string binary, string cmdline, Logger logger)

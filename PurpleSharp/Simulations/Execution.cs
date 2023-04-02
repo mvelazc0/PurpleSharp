@@ -102,15 +102,15 @@ namespace PurpleSharp.Simulations
 
         }
 
-        static public void ServiceExecution(string log)
+        static public void ServiceExecution(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1569.002");
             try
             {
-                ExecutionHelper.StartProcessApi("", "net start UpdaterService", logger);
-                ExecutionHelper.StartProcessApi("", "sc start UpdaterService", logger);
+                ExecutionHelper.StartProcessApi("", String.Format("net start {0}", playbook_task.serviceName ), logger);
+                //ExecutionHelper.StartProcessApi("", String.Format("sc start {0}", playbook_task.serviceName), logger);
 
                 logger.SimulationFinished();
             }
@@ -121,16 +121,15 @@ namespace PurpleSharp.Simulations
 
         }
 
-        static public void VisualBasic(string log)
+        static public void VisualBasic(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1059.005");
             
             try
             {
-                string file = "invoice0420.vbs";
-                ExecutionHelper.StartProcessApi("", String.Format("wscript.exe {0}", file), logger);
+                ExecutionHelper.StartProcessApi("", String.Format("wscript.exe {0}", playbook_task.file_path), logger);
                 logger.SimulationFinished();
             }
             catch (Exception ex)

@@ -364,7 +364,7 @@ namespace PurpleSharp.Simulations
             try
             {
                 List<Computer> target_hosts = Targets.GetHostTargets(playbook_task, logger);
-                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each network scan", playbook_task.task_sleep));
+                if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between each directory discovery", playbook_task.task_sleep));
                 foreach (Computer computer in target_hosts)
                 {
                     ExecutionHelper.StartProcessApi("", String.Format(@"dir \\\\{0}\c$ >> %temp%\download", computer.IPv4), logger);

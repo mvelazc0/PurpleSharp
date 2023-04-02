@@ -133,16 +133,16 @@ namespace PurpleSharp.Simulations
             
         }
 
-        public static void CreateWindowsServiceApi(string log, bool cleanup)
+        public static void CreateWindowsServiceApi(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1543.003");
             logger.TimestampInfo("Using the Win32 API CreateService function to execute the technique");
 
             try
             {
-                PersistenceHelper.CreateServiceApi(log, logger, cleanup);
+                PersistenceHelper.CreateServiceApi(playbook_task, logger);
                 logger.SimulationFinished();
             }
             catch(Exception ex)
@@ -152,21 +152,19 @@ namespace PurpleSharp.Simulations
 
             
         }
-        public static void CreateWindowsServiceCmd(string log, bool cleanup)
+        public static void CreateWindowsServiceCmd(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1543.003");
             logger.TimestampInfo("Using the command line to execute the technique");
 
             try
             {
-                string serviceName = "UpdaterService";
-                string servicePath = @"C:\Windows\Temp\superlegit.exe";
-                ExecutionHelper.StartProcessApi("", String.Format(@"sc create {0} binpath= {1} type= own start= auto", serviceName, servicePath), logger);
+                ExecutionHelper.StartProcessApi("", String.Format(@"sc create {0} binpath= {1} type= own start= auto", playbook_task.serviceName, playbook_task.servicePath), logger);
                 Thread.Sleep(3000);
-                if (cleanup) ExecutionHelper.StartProcessApi("", String.Format(@"sc delete {0}", serviceName), logger);
-                else logger.TimestampInfo(String.Format("The created Service: {0} ImagePath: {1} was not deleted as part of the simulation", serviceName, servicePath));
+                if (playbook_task.cleanup) ExecutionHelper.StartProcessApi("", String.Format(@"sc delete {0}", playbook_task.serviceName), logger);
+                else logger.TimestampInfo(String.Format("The created Service: {0} ImagePath: {1} was not deleted as part of the simulation", playbook_task.serviceName, playbook_task.servicePath));
             }
             catch(Exception ex)
             {

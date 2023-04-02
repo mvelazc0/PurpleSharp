@@ -677,7 +677,7 @@ namespace PurpleSharp
 
                         if (playbook.techs == 0)
                         {
-                            logger.TimestampInfo(String.Format("Running all techniques from Playbook {0}", playbook.name));
+                            logger.TimestampInfo(String.Format("Running Playbook {0}", playbook.name));
                             PlaybookTask lastTask = playbook.tasks.Last();
                             foreach (PlaybookTask task in playbook.tasks)
                             {
@@ -695,7 +695,7 @@ namespace PurpleSharp
                         else
                         {
                             List<PlaybookTask> picked_tasks = new List<PlaybookTask>();
-                            logger.TimestampInfo(String.Format("Running {0} random techniques from Playbook {1}",playbook.techs, playbook.name));
+                            logger.TimestampInfo(String.Format("Running Playbook {1}", playbook.techs, playbook.name));
                             //var random = new Random();
                             var random = new Random(Guid.NewGuid().GetHashCode());
                             for (int i = 0; i< playbook.techs; i++)
@@ -738,6 +738,8 @@ namespace PurpleSharp
                 SimulationExerciseResult simulationresults = Json.GetSimulationExerciseResult(results);
                 Json.WriteJsonSimulationResults(simulationresults, output_file);
                 logger.TimestampInfo("DONE. Open " + output_file);
+                File.Delete(log);
+
                 return;
             }
 
@@ -992,7 +994,7 @@ namespace PurpleSharp
                         break;
 
                     case "T1059.005":
-                        Simulations.Execution.VisualBasic(log);
+                        Simulations.Execution.VisualBasic(playbook_task, log);
                         break;
 
                     case "T1059.007":
@@ -1000,7 +1002,7 @@ namespace PurpleSharp
                         break;
 
                     case "T1569.002":
-                        Simulations.Execution.ServiceExecution(log);
+                        Simulations.Execution.ServiceExecution(playbook_task, log);
                         break;
 
 
@@ -1020,8 +1022,8 @@ namespace PurpleSharp
                         break;
 
                     case "T1543.003":
-                        if (playbook_task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(log, playbook_task.cleanup);
-                        else Simulations.Persistence.CreateWindowsServiceCmd(log, playbook_task.cleanup);
+                        if (playbook_task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(playbook_task, log);
+                        else Simulations.Persistence.CreateWindowsServiceCmd(playbook_task, log);
                         break;
 
                     case "T1547.001":
@@ -1237,6 +1239,13 @@ namespace PurpleSharp
                         else if (playbook_task.variation == 2) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
                         else if (playbook_task.variation == 3) Simulations.LateralMovement.ModifyRemoteServiceOnHosts(playbook_task, log);
                         break;
+
+                    // T1570
+                    case "T1570":
+                        Simulations.LateralMovement.ToolsTransferCmdline(playbook_task, log);
+                        break;
+
+
                     // Collection
 
                     // Command and Control
@@ -1247,7 +1256,6 @@ namespace PurpleSharp
                         if (playbook_task.variation == 1) Simulations.CommandAndControl.DownloadFilePowerShell(playbook_task, log);
                         else if (playbook_task.variation == 2) Simulations.CommandAndControl.DownloadFileBitsAdmin(playbook_task, log);
                         else Simulations.CommandAndControl.DownloadFileCertUtil(playbook_task, log);
-                        Thread.Sleep(1000 * 5);
                         break;
 
                     // Exfiltration
@@ -1263,10 +1271,6 @@ namespace PurpleSharp
                     default:
                         logger.TimestampInfo("Technique \"" + playbook_task.technique_id + "\" not supported or unknown.");
                         break;
-
-
-
-
 
                 }
             }
