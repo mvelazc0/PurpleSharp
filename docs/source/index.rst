@@ -22,7 +22,6 @@
 
    Execution <techniques/execution>
    Persistence <techniques/persistence>
-   Privilege Escalation <techniques/privilege_escalation>
    Defense Evasion <techniques/defense_evasion>
    Credential Access <techniques/credential_access>
    Discovery <techniques/discovery>
