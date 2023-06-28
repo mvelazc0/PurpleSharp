@@ -1,6 +1,7 @@
 # PurpleSharp
 [![Open_Threat_Research Community](https://img.shields.io/badge/Open_Threat_Research-Community-brightgreen.svg)](https://twitter.com/OTR_Community)
 [![BlackHat Arsenal 2021](https://raw.githubusercontent.com/toolswatch/badges/master/arsenal/usa/2021.svg)](https://www.blackhat.com/us-21/arsenal/schedule/#purplesharp--active-directory-attack-simulations-24011)
+[![BlackHat Arsenal 2023](https://raw.githubusercontent.com/toolswatch/badges/master/arsenal/asia/2023.svg)](https://www.blackhat.com/asia-23/arsenal/schedule/index.html#purplesharp-automated-adversary-simulation-31336)
 
 <p align="center">
   <img src="https://github.com/mvelazc0/PurpleSharp/blob/docs/docs/source/images/new-logo2.png?raw=true" width="75%" height="75%" alt="PurpleSharp Logo"/>
