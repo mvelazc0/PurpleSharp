@@ -108,7 +108,7 @@ namespace PurpleSharp.Lib
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 logger.TimestampInfo(String.Format("Error obtaining service ticket and hash for SPN {0} ({1})", spn, samaccountname));
 

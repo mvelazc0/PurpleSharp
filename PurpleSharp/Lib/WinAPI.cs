@@ -87,6 +87,10 @@ public static class WinAPI
     [DllImport("advapi32.dll", EntryPoint = "DuplicateTokenEx")]
     public extern static bool DuplicateTokenEx(IntPtr ExistingTokenHandle, uint dwDesiredAccess, ref Structs.SECURITY_ATTRIBUTES lpThreadAttributes, int TokenType, int ImpersonationLevel, ref IntPtr DuplicateTokenHandle);
 
+
+    [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool CreateProcessWithTokenW(IntPtr hToken, int dwLogonFlags, string lpApplicationName, string lpCommandLine, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, ref Structs.STARTUPINFO lpStartupInfo, out Structs.PROCESS_INFORMATION lpProcessInformation);
+
     [DllImport("advapi32.dll", EntryPoint = "CreateProcessAsUser", SetLastError = true, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
     public extern static bool CreateProcessAsUser(IntPtr hToken, String lpApplicationName, String lpCommandLine, ref Structs.SECURITY_ATTRIBUTES lpProcessAttributes,
     ref Structs.SECURITY_ATTRIBUTES lpThreadAttributes, bool bInheritHandle, int dwCreationFlags, IntPtr lpEnvironment,

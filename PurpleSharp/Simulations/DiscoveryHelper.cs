@@ -116,7 +116,7 @@ namespace PurpleSharp.Simulations
             DateTime dtime = DateTime.Now;
         }
 
-        public static void LdapQueryForObjects(Logger logger, int type=1, string user = "", string group = "")
+        public static void LdapQueryForObjects(PlaybookTask playbook_task, Logger logger, int type=1, string user = "", string group = "")
         {
             try
             {
@@ -126,14 +126,14 @@ namespace PurpleSharp.Simulations
                 DirectoryEntry searchRoot = new DirectoryEntry("LDAP://" + dc);
                 DirectorySearcher search = new DirectorySearcher();
                 search = new DirectorySearcher(searchRoot);
-
-                //users
                 if (type == 1)
                 {
-                    search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+                    search.Filter = String.Format("{0}", playbook_task.ldapQuery); 
+                    //search.Filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
                     search.PropertiesToLoad.Add("samaccountname");
                     search.PropertiesToLoad.Add("displayname");
                 }
+                // query for custom group name
                 else if (type == 2)
                 {
                     if (group.Equals(""))

