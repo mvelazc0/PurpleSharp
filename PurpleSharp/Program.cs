@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Reflection;
 
 namespace PurpleSharp
 {
@@ -51,41 +52,34 @@ namespace PurpleSharp
             scout_np = "scoutpipe";
             simulator_np="simpipe";
 
-            /*
-            string[] execution = new string[] { "T1053", "T1053.005", "T1059", "T1059.001", "T1059.003", "T1059.005", "T1059.007", "T1569", "T1569.002" };
-            string[] persistence = new string[] { "T1053", "T1053.005", "T1136", "T1136.001", "T1197", "T1543", "T1543.003", "T1546", "T1546.003", "T1547", "T1547.001" };
-            string[] privilege_escalation = new string[] { "T1053.005", "T1134", "T1134.004" , "T1543.003", "T1547.001", "T1546.003", "T1055", "T1055.002", "T1055.004"};
-            string[] defense_evasion = new string[] { "T1055.002", "T1055.003", "T1055.004", "T1070", "T1070.001", "T1218", "T1218.003", "T1218.010", "T1218.004", "T1218.005", "T1218.009", "T1218.011", "T1140", "T1197", "T1134", "T1134.004", "T1220" };
-            string[] credential_access = new string[] { "T1003", "T1003.001", "T1110", "T1110.003", "T1558", "T1558.003"};
-            string[] discovery = new string[] { "T1135", "T1046", "T1087", "T1087.001", "T1087.002", "T1007", "T1033", "T1049", "T1016", "T1018", "T1083", "T1482", "T1201","T1069", "T1069.001", "T1069.002", "T1012", "T1518", "T1518.001", "T1082", "T1124" };
-            string[] lateral_movement = new string[] { "T1021", "T1021.002", "T1021.006", "T1047" };
-            string[] supported_techniques = execution.Union(persistence).Union(privilege_escalation).Union(defense_evasion).Union(credential_access).Union(discovery).Union(lateral_movement).ToArray();
-            */
-            //should move this to sqlite, an embedded resource or an external JSON file.
-            string[] execution_techniques = new string[] { "T1053", "T1059", "T1569"};
-            string[] execution_subtechniques = new string[] { "T1053.005","T1059.001", "T1059.003", "T1059.005", "T1059.007", "T1569.002" };
-            string[] persistence_techniques = new string[] { "T1053", "T1136", "T1197", "T1543", "T1546", "T1547"};
-            string[] persistence_subtechniques = new string[] { "T1053.005", "T1136.001", "T1543.003", "T1546.003", "T1547.001" };
-            string[] privilege_escalation_techniques = new string[] {"T1134", "T1055", };
-            string[] privilege_escalation_subtechniques = new string[] { "T1053.005", "T1134.004", "T1543.003", "T1547.001", "T1546.003", "T1055.002", "T1055.004" };
-            string[] defense_evasion_techniques = new string[] { "T1055", "T1070", "T1218", "T1140", "T1197", "T1134","T1220" };
-            string[] defense_evasion_subtechniques = new string[] { "T1055.002", "T1055.003", "T1055.004", "T1070.001", "T1218.003", "T1218.010", "T1218.004", "T1218.005", "T1218.009", "T1218.011", "T1134.004"};
-            string[] credential_access_techniques = new string[] { "T1003", "T1110", "T1558"};
-            string[] credential_access_subtechniques = new string[] {"T1003.001", "T1110.003", "T1558.003" };
-            string[] discovery_techniques = new string[] { "T1135", "T1046", "T1087", "T1007", "T1033", "T1049", "T1016", "T1018", "T1083", "T1482", "T1201", "T1069", "T1012", "T1518", "T1082", "T1124" };
-            string[] discovery_subtechniques = new string[] { "T1087.001", "T1087.002", "T1007", "T1069.001", "T1069.002", "T1518.001" };
-            string[] lateral_movement_techniques = new string[] { "T1021", "T1047" };
-            string[] lateral_movement_subtechniques = new string[] {  "T1021.002", "T1021.006" };
-            string[] supported_techniques = execution_techniques.Union(persistence_techniques).Union(privilege_escalation_techniques).Union(defense_evasion_techniques).Union(credential_access_techniques).Union(discovery_techniques).Union(lateral_movement_techniques).ToArray();
-            string[] supported_subtechniques = execution_subtechniques.Union(persistence_subtechniques).Union(privilege_escalation_subtechniques).Union(defense_evasion_subtechniques).Union(credential_access_subtechniques).Union(discovery_subtechniques).Union(lateral_movement_subtechniques).ToArray();
-
-
-
             if (args.Length == 0)
             {
-                Usage();
-                return;
+
+                // Check a JSON playbook exists in the embedded resources
+                try
+                {
+                    var assembly = Assembly.GetExecutingAssembly();
+                    var resourceName = "PurpleSharp.Playbook.json";
+
+                    using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        string result = reader.ReadToEnd();
+                        SimulationExercise engagement = Json.ReadSimulationPlaybook(result);
+                        ExecuteJSONSimulationPlaybok(engagement, log, "Playbook.json", scout_np, simulator_np);
+                        return;
+                    }
+                }
+
+                catch (Exception)
+                {
+                    Usage();
+                    return;
+                }
+
             }
+
+            // Read parameters
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -214,10 +208,10 @@ namespace PurpleSharp
                 {
                     try
                     {
-                        Console.WriteLine("[+] PurpleSharp supports " + supported_subtechniques.Distinct().Count() + " unique ATT&CK subtechniques" + " and "+supported_techniques.Distinct().Count() +" unique ATT&CK techniques.");
+                        Console.WriteLine("[+] PurpleSharp supports " + Techniques.supported_subtechniques.Distinct().Count() + " unique ATT&CK subtechniques" + " and "+ Techniques.supported_techniques.Distinct().Count() +" unique ATT&CK techniques.");
                         Console.WriteLine("[+] Generating an ATT&CK Navigator layer...");
                         //Json.ExportAttackLayer(supported_techniques.Distinct().ToArray());
-                        Json.ExportAttackLayer(supported_techniques.Union(supported_subtechniques).ToArray());
+                        Json.ExportAttackLayer(Techniques.supported_techniques.Union(Techniques.supported_subtechniques).ToArray(), Techniques.unsupported_techniques);
                         Console.WriteLine("[!] Open PurpleSharp_Navigator.json on https://mitre-attack.github.io/attack-navigator");
                         return;
                     }
@@ -235,7 +229,7 @@ namespace PurpleSharp
                     NavigatorLayer layer = Json.ReadNavigatorLayer(json);
                     Console.WriteLine("[!] Loaded attack navigator '{0}'", layer.name);
                     Console.WriteLine("[+] Converting ATT&CK navigator Json...");
-                    SimulationExercise engagement = Json.ConvertNavigatorToSimulationExercise(layer, supported_techniques.Distinct().ToArray(), supported_subtechniques.Distinct().ToArray());
+                    SimulationExercise engagement = Json.ConvertNavigatorToSimulationExercise(layer, Techniques.supported_techniques.Distinct().ToArray(), Techniques.supported_subtechniques.Distinct().ToArray());
                     Json.CreateSimulationExercise(engagement);
                     Console.WriteLine("[!] Done");
                     Console.WriteLine("[+] Open simulation.json");
@@ -319,117 +313,7 @@ namespace PurpleSharp
 
                 if (engagement != null)
                 {
-                    if (engagement.type.Equals("local"))
-                    {
-                        logger.TimestampInfo(String.Format("PurpleSharp will execute up to {0} playbook(s) locally", engagement.playbooks.Count));
-                        SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
-                        string results ="";
-                        foreach (SimulationPlaybook playbook in engagement.playbooks)
-                        {
-                            if (playbook.enabled)
-                            {
-                                SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
-                                playbookResults.taskresults = new List<PlaybookTaskResult>();
-                                playbookResults.name = playbook.name;
-                                playbookResults.host = playbook.remote_host;
-                                logger.TimestampInfo("Running Playbook " + playbook.name);
-                                PlaybookTask lastTask = playbook.tasks.Last();
-                                foreach (PlaybookTask task in playbook.tasks)
-                                {
-                                    ExecutePlaybookTask(task, log);
-                                    if (playbook.playbook_sleep > 0 && task != lastTask)
-                                    {
-                                        logger.TimestampInfo(String.Format("Sleeping {0} seconds until next task...", playbook.playbook_sleep));
-                                        Thread.Sleep(1000 * playbook.playbook_sleep);
-                                    }
-                                }
-                                logger.TimestampInfo("Playbook Finished");
-                                if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
-                                {
-                                    Console.WriteLine();
-                                    logger.TimestampInfo(String.Format("Sleeping {0} seconds until next playbook...", engagement.sleep));
-                                    Thread.Sleep(1000 * engagement.sleep );
-                                }
-                            }
-                        }
-                        logger.TimestampInfo("Writting JSON results...");
-                        results = File.ReadAllText(log);
-                        string output_file = pb_file.Replace(".json", "") + "_results.json";
-                        SimulationExerciseResult simulationresults = Json.GetSimulationExerciseResult(results);
-                        Json.WriteJsonSimulationResults(simulationresults, output_file);
-                        logger.TimestampInfo("DONE. Open " + output_file);
-                    }
-
-                    else if (engagement.type.Equals("remote"))
-                    { 
-                        Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
-                        engagement.password = Utils.GetPassword();
-                        logger.TimestampInfo(String.Format("PurpleSharp will executeup to {0} playbook(s) remotely", engagement.playbooks.Count));
-
-                        SimulationExerciseResult engagementResults = new SimulationExerciseResult();
-                        engagementResults.playbookresults = new List<SimulationPlaybookResult>();
-                        SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
-
-                        foreach (SimulationPlaybook playbook in engagement.playbooks)
-                        {
-                            if (playbook.enabled)
-                            {
-                                SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
-                                playbookResults.taskresults = new List<PlaybookTaskResult>();
-                                playbookResults.name = playbook.name;
-                                playbookResults.host = playbook.remote_host;
-                                logger.TimestampInfo(String.Format("Running Playbook {0}", playbook.name));
-
-                                PlaybookTask lastTask = playbook.tasks.Last();
-                                List<string> techs = new List<string>();
-                                foreach (PlaybookTask task in playbook.tasks)
-                                {
-                                    techs.Add(task.technique_id);
-                                }
-                                string techs2 = String.Join(",", techs);
-                                if (playbook.remote_host.Equals("random"))
-                                {
-                                    List<Computer> targets = Ldap.GetADComputers(10, logger, engagement.domain_controller, engagement.username, engagement.password);
-                                    if (targets.Count > 0)
-                                    {
-                                        Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
-                                        var random = new Random();
-                                        int index = random.Next(targets.Count);
-                                        logger.TimestampInfo(String.Format("Picked random host for simulation {0}",targets[index].Fqdn));
-                                        logger.TimestampInfo(String.Format("Executing techniques {0} against {1}", techs2, targets[index].Fqdn));
-                                        playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, simulator_np, log);
-                                        //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass, scout_np, playbook, log, false);
-                                        if (playbookResults == null) continue;
-                                        playbookResults.name = playbook.name;
-                                    }
-                                    else logger.TimestampInfo("Could not obtain targets for the simulation");
-
-                                }
-                                else
-                                {
-                                    logger.TimestampInfo(String.Format("Executing techniques {0} against {1}", techs2, playbook.remote_host));
-                                    playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, simulator_np, log);
-                                    //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass,scout_np, playbook, log, false);
-                                    if (playbookResults == null) continue;
-                                    playbookResults.name = playbook.name;
-                                }
-                                if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
-                                {
-                                    Console.WriteLine();
-                                    logger.TimestampInfo(String.Format("Sleeping {0} minutes until next playbook...", engagement.sleep));
-                                    Thread.Sleep(1000 * engagement.sleep * 60);
-                                }
-                                engagementResults.playbookresults.Add(playbookResults);
-                            }
-                        }
-
-                        logger.TimestampInfo("Writting JSON results...");
-                        string output_file = pb_file.Replace(".json", "") + "_results.json";
-                        Json.WriteJsonSimulationResults(engagementResults, output_file);
-                        logger.TimestampInfo("DONE. Open " + output_file);
-                        Console.WriteLine();
-                        return;
-                    }
+                    ExecuteJSONSimulationPlaybok(engagement, log, pb_file, scout_np, simulator_np);
                 }
                 else
                 {
@@ -505,7 +389,7 @@ namespace PurpleSharp
                 playbook.tasks = new List<PlaybookTask>();
                 if (techniques.Contains(","))
                 {
-                    string[] techs = techniques.Split(',');
+                    string[] techs = techniques.Replace(" ", String.Empty).Split(',');
                     for (int i = 0; i < techs.Length; i++)
                     {
                         PlaybookTask task = new PlaybookTask(techs[i], config_params.variation, config_params.task_sleep, config_params.cleanup);
@@ -676,7 +560,7 @@ namespace PurpleSharp
                         while (finished == false)
                         {
 
-                            if (results.Split('\n').Last().Contains("Playbook Finished"))
+                            if (results.Split('\n').Last().Contains("Simulation Playbook Finished"))
                             {
                                 //Console.WriteLine("[+] Obtaining the Simulator output...");
                                 Console.WriteLine("[+] Results:");
@@ -747,7 +631,7 @@ namespace PurpleSharp
                 while (finished == false)
                 {
 
-                    if (results.Split('\n').Last().Contains("Playbook Finished"))
+                    if (results.Split('\n').Last().Contains("Simulation Playbook Finished"))
                     {
                         Console.WriteLine("[+] Obtaining results...");
                         Console.WriteLine("[+] Results:");
@@ -770,6 +654,165 @@ namespace PurpleSharp
                     counter += 1;
                 }
             }
+        }
+        public static void ExecuteJSONSimulationPlaybok(SimulationExercise engagement, string log, string pb_file, string scout_np, string simulator_np)
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+
+            if (engagement.type.Equals("local"))
+            {
+                logger.TimestampInfo(String.Format("PurpleSharp will execute up to {0} playbook(s) locally", engagement.playbooks.Count));
+                SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
+                string results = "";
+                foreach (SimulationPlaybook playbook in engagement.playbooks)
+                {
+                    if (playbook.enabled)
+                    {
+                        SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
+                        playbookResults.taskresults = new List<PlaybookTaskResult>();
+                        playbookResults.name = playbook.name;
+                        playbookResults.host = playbook.remote_host;
+
+
+                        if (playbook.techs == 0)
+                        {
+                            logger.TimestampInfo(String.Format("Running Playbook {0}", playbook.name));
+                            PlaybookTask lastTask = playbook.tasks.Last();
+                            foreach (PlaybookTask task in playbook.tasks)
+                            {
+                                ExecutePlaybookTask(task, log);
+                                if (playbook.playbook_sleep > 0 && task != lastTask)
+                                {
+                                    logger.TimestampInfo(String.Format("Sleeping {0} seconds until next task...", playbook.playbook_sleep));
+                                    Thread.Sleep(1000 * playbook.playbook_sleep);
+                                }
+                            }
+                            logger.TimestampInfo("Simulation Playbook Finished");
+
+                        }
+                        // run a random subset of the techniques
+                        else
+                        {
+                            List<PlaybookTask> picked_tasks = new List<PlaybookTask>();
+                            logger.TimestampInfo(String.Format("Running Playbook {1}", playbook.techs, playbook.name));
+                            //var random = new Random();
+                            var random = new Random(Guid.NewGuid().GetHashCode());
+                            for (int i = 0; i< playbook.techs; i++)
+                            {
+                                int index = random.Next(playbook.tasks.Count);
+                                if (picked_tasks.Contains(playbook.tasks[index]))
+                                {
+                                    i -= 1;
+                                }
+                                else 
+                                {
+                                    picked_tasks.Add(playbook.tasks[index]);
+                                }
+                            }
+                            PlaybookTask lastTask = picked_tasks.Last();
+                            foreach (PlaybookTask task in picked_tasks)
+                            {
+                                ExecutePlaybookTask(task, log);
+                                if (playbook.playbook_sleep > 0 && task != lastTask)
+                                {
+                                    logger.TimestampInfo(String.Format("Sleeping {0} seconds until next task...", playbook.playbook_sleep));
+                                    Thread.Sleep(1000 * playbook.playbook_sleep);
+                                }
+                            }
+                            logger.TimestampInfo("Simulation Playbook Finished");
+
+                        }
+
+                        if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
+                        {
+                            Console.WriteLine();
+                            logger.TimestampInfo(String.Format("Sleeping {0} seconds until next playbook...", engagement.sleep));
+                            Thread.Sleep(1000 * engagement.sleep);
+                        }
+                    }
+                }
+                logger.TimestampInfo("Writting JSON results...");
+                results = File.ReadAllText(log);
+                string output_file = pb_file.Replace(".json", "") + "_results.json";
+                SimulationExerciseResult simulationresults = Json.GetSimulationExerciseResult(results);
+                Json.WriteJsonSimulationResults(simulationresults, output_file);
+                logger.TimestampInfo("DONE. Open " + output_file);
+                File.Delete(log);
+
+                return;
+            }
+
+            else if (engagement.type.Equals("remote"))
+            {
+                Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
+                engagement.password = Utils.GetPassword();
+                logger.TimestampInfo(String.Format("PurpleSharp will executeup to {0} playbook(s) remotely", engagement.playbooks.Count));
+
+                SimulationExerciseResult engagementResults = new SimulationExerciseResult();
+                engagementResults.playbookresults = new List<SimulationPlaybookResult>();
+                SimulationPlaybook lastPlaybook = engagement.playbooks.Last();
+
+                foreach (SimulationPlaybook playbook in engagement.playbooks)
+                {
+                    if (playbook.enabled)
+                    {
+                        SimulationPlaybookResult playbookResults = new SimulationPlaybookResult();
+                        playbookResults.taskresults = new List<PlaybookTaskResult>();
+                        playbookResults.name = playbook.name;
+                        playbookResults.host = playbook.remote_host;
+                        logger.TimestampInfo(String.Format("Running Playbook {0}", playbook.name));
+
+                        PlaybookTask lastTask = playbook.tasks.Last();
+                        List<string> techs = new List<string>();
+                        foreach (PlaybookTask task in playbook.tasks)
+                        {
+                            techs.Add(task.technique_id);
+                        }
+                        string techs2 = String.Join(",", techs);
+                        if (playbook.remote_host.Equals("random"))
+                        {
+                            List<Computer> targets = Ldap.GetADComputers(10, logger, engagement.domain_controller, engagement.username, engagement.password);
+                            if (targets.Count > 0)
+                            {
+                                Console.WriteLine("[+] Obtained {0} possible targets.", targets.Count);
+                                var random = new Random();
+                                int index = random.Next(targets.Count);
+                                logger.TimestampInfo(String.Format("Picked random host for simulation {0}", targets[index].Fqdn));
+                                logger.TimestampInfo(String.Format("Executing techniques {0} against {1}", techs2, targets[index].Fqdn));
+                                playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, simulator_np, log);
+                                //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass, scout_np, playbook, log, false);
+                                if (playbookResults == null) continue;
+                                playbookResults.name = playbook.name;
+                            }
+                            else logger.TimestampInfo("Could not obtain targets for the simulation");
+
+                        }
+                        else
+                        {
+                            logger.TimestampInfo(String.Format("Executing techniques {0} against {1}", techs2, playbook.remote_host));
+                            playbookResults = ExecuteRemoteTechniquesJsonSerialized(engagement, playbook, scout_np, simulator_np, log);
+                            //playbookResults = ExecuteRemoteTechniquesJsonSerialized(playbook.remote_host, engagement.domain, engagement.username, pass,scout_np, playbook, log, false);
+                            if (playbookResults == null) continue;
+                            playbookResults.name = playbook.name;
+                        }
+                        if (engagement.sleep > 0 && !playbook.Equals(lastPlaybook))
+                        {
+                            Console.WriteLine();
+                            logger.TimestampInfo(String.Format("Sleeping {0} minutes until next playbook...", engagement.sleep));
+                            Thread.Sleep(1000 * engagement.sleep * 60);
+                        }
+                        engagementResults.playbookresults.Add(playbookResults);
+                    }
+                }
+
+                logger.TimestampInfo("Writting JSON results...");
+                string output_file = pb_file.Replace(".json", "") + "_results.json";
+                Json.WriteJsonSimulationResults(engagementResults, output_file);
+                logger.TimestampInfo("DONE. Open " + output_file);
+                return;
+            }
+
         }
         public static SimulationPlaybookResult ExecuteRemoteTechniquesJsonSerialized(SimulationExercise exercise, SimulationPlaybook playbook, string scout_np, string simulator_np, string log)
         {
@@ -839,7 +882,7 @@ namespace PurpleSharp
                         string results = RemoteLauncher.readFile(playbook.remote_host, simfolder + log, exercise.username, exercise.password, exercise.domain);
                         while (finished == false)
                         {
-                            if (results.Split('\n').Last().Contains("Playbook Finished"))
+                            if (results.Split('\n').Last().Contains("Simulation Playbook Finished"))
                             {
                                 
                                 Console.WriteLine("[+] Results:");
@@ -891,7 +934,7 @@ namespace PurpleSharp
                 while (finished == false)
                 {
 
-                    if (results.Split('\n').Last().Contains("Playbook Finished"))
+                    if (results.Split('\n').Last().Contains("Simulation Playbook Finished"))
                     {
                         Console.WriteLine("[+] Obtaining results...");
                         Console.WriteLine("[+] Results:");
@@ -922,6 +965,9 @@ namespace PurpleSharp
         public static void ExecutePlaybookTask(PlaybookTask playbook_task, string log)
         {
 
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            Logger logger = new Logger(currentPath + log);
+
             // no specific tactic defined
             if (playbook_task.tactic.Equals(""))
             {
@@ -938,17 +984,17 @@ namespace PurpleSharp
                         break;
 
                     case "T1059.001":
-                        if (playbook_task.variation == 1) Simulations.Execution.ExecutePowershellCmd(log);
-                        else Simulations.Execution.ExecutePowershellNET(log);
+                        if (playbook_task.variation == 1) Simulations.Execution.ExecutePowerShellCmd(playbook_task, log);
+                        else if (playbook_task.variation == 2) Simulations.Execution.ExecutePowerShellCmdEncoded(playbook_task, log);
+                        else Simulations.Execution.ExecutePowerShellNET(playbook_task, log);
                         break;
 
                     case "T1059.003":
-                        Simulations.Execution.WindowsCommandShell(log);
+                        Simulations.Execution.WindowsCommandShell(playbook_task, log);
                         break;
 
-
                     case "T1059.005":
-                        Simulations.Execution.VisualBasic(log);
+                        Simulations.Execution.VisualBasic(playbook_task, log);
                         break;
 
                     case "T1059.007":
@@ -956,7 +1002,7 @@ namespace PurpleSharp
                         break;
 
                     case "T1569.002":
-                        Simulations.Execution.ServiceExecution(log);
+                        Simulations.Execution.ServiceExecution(playbook_task, log);
                         break;
 
 
@@ -967,17 +1013,17 @@ namespace PurpleSharp
                     //T1053.005 - Scheduled Task
 
                     case "T1053.005":
-                        Simulations.Persistence.CreateScheduledTaskCmd(log, playbook_task.cleanup);
+                        Simulations.Persistence.CreateScheduledTaskCmd(playbook_task, log);
                         break;
 
                     case "T1136.001":
-                        if (playbook_task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(log, playbook_task.cleanup);
-                        else Simulations.Persistence.CreateLocalAccountCmd(log, playbook_task.cleanup);
+                        if (playbook_task.variation == 1) Simulations.Persistence.CreateLocalAccountApi(playbook_task, log);
+                        else Simulations.Persistence.CreateLocalAccountCmd(playbook_task, log);
                         break;
 
                     case "T1543.003":
-                        if (playbook_task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(log, playbook_task.cleanup);
-                        else Simulations.Persistence.CreateWindowsServiceCmd(log, playbook_task.cleanup);
+                        if (playbook_task.variation == 1) Simulations.Persistence.CreateWindowsServiceApi(playbook_task, log);
+                        else Simulations.Persistence.CreateWindowsServiceCmd(playbook_task, log);
                         break;
 
                     case "T1547.001":
@@ -998,7 +1044,7 @@ namespace PurpleSharp
                     //// Defense Evasion ////
 
                     case "T1218.010":
-                        Simulations.DefenseEvasion.Regsvr32(log);
+                        Simulations.DefenseEvasion.Regsvr32(playbook_task, log);
                         break;
 
                     case "T1218.009":
@@ -1022,11 +1068,11 @@ namespace PurpleSharp
                         break;
 
                     case "T1197":
-                        Simulations.DefenseEvasion.BitsJobs(log);
+                        Simulations.DefenseEvasion.BitsJobs(playbook_task, log);
                         break;
 
                     case "T1218.011":
-                        Simulations.DefenseEvasion.Rundll32(log);
+                        Simulations.DefenseEvasion.Rundll32(playbook_task, log);
                         break;
 
                     case "T1070.001":
@@ -1040,7 +1086,7 @@ namespace PurpleSharp
                         break;
 
                     case "T1055.002":
-                        Simulations.DefenseEvasion.PortableExecutableInjection(log);
+                        Simulations.DefenseEvasion.PortableExecutableInjection(playbook_task, log);
                         break;
 
                     case "T1055.003":
@@ -1053,6 +1099,14 @@ namespace PurpleSharp
 
                     case "T1134.004":
                         Simulations.DefenseEvasion.ParentPidSpoofing(log);
+                        break;
+
+                    case "T1564.002":
+                        Simulations.DefenseEvasion.HideUserCmd(playbook_task, log);
+                        break;
+
+                    case "T1562.001":
+                        Simulations.DefenseEvasion.DisableDefenderPws(playbook_task, log);
                         break;
 
                     //T1218.010 - Regsvr32
@@ -1074,7 +1128,8 @@ namespace PurpleSharp
 
                     //T1003.001 - LSASS Memory
                     case "T1003.001":
-                        Simulations.CredAccess.LsassMemoryDump(log);
+                        if (playbook_task.variation == 1) Simulations.CredAccess.LsassMemoryDumpWinApi(log);
+                        else if (playbook_task.variation == 2) Simulations.CredAccess.LsassMemoryDumpRundll32(log);
                         break;
 
                     ////  Discovery //// 
@@ -1092,7 +1147,8 @@ namespace PurpleSharp
 
                     //T1083 File and Directory Discovery
                     case "T1083":
-                        Simulations.Discovery.FileAndDirectoryDiscovery(log);
+                        if (playbook_task.variation == 1) Simulations.Discovery.LocalFileAndDirectoryDiscovery(log);
+                        else Simulations.Discovery.RemoteFileAndDirectoryDiscovery(playbook_task, log);
                         break;
 
                     //T1135 - Network Share Discovery
@@ -1113,9 +1169,9 @@ namespace PurpleSharp
                         break;
 
                     case "T1087.002":
-                        if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(log);
+                        if (playbook_task.variation == 1) Simulations.Discovery.DomainAccountDiscoveryCmd(playbook_task, log);
                         else if (playbook_task.variation == 2) Simulations.Discovery.DomainAccountDiscoveryPowerShell(log);
-                        else Simulations.Discovery.DomainAccountDiscoveryLdap(log);
+                        else Simulations.Discovery.DomainAccountDiscoveryLdap(playbook_task, log);
                         break;
 
                     case "T1007":
@@ -1165,6 +1221,11 @@ namespace PurpleSharp
                         Simulations.Discovery.SystemTimeDiscovery(log);
                         break;
 
+                    case "T1614.001":
+                        if (playbook_task.variation == 1) Simulations.Discovery.SystemLanguageDiscoveryCmd( log);
+                        else Simulations.Discovery.SystemLanguageDiscoveryRegistry(log);
+                        break;
+
                     ////  Lateral Movement //// 
 
                     //T1021.006 - Windows Remote Management
@@ -1178,9 +1239,24 @@ namespace PurpleSharp
                         else if (playbook_task.variation == 2) Simulations.LateralMovement.CreateRemoteServiceOnHosts(playbook_task, log);
                         else if (playbook_task.variation == 3) Simulations.LateralMovement.ModifyRemoteServiceOnHosts(playbook_task, log);
                         break;
+
+                    // T1570
+                    case "T1570":
+                        Simulations.LateralMovement.ToolsTransferCmdline(playbook_task, log);
+                        break;
+
+
                     // Collection
 
                     // Command and Control
+
+                    // Ingress Tool Transfer
+
+                    case "T1105":
+                        if (playbook_task.variation == 1) Simulations.CommandAndControl.DownloadFilePowerShell(playbook_task, log);
+                        else if (playbook_task.variation == 2) Simulations.CommandAndControl.DownloadFileBitsAdmin(playbook_task, log);
+                        else Simulations.CommandAndControl.DownloadFileCertUtil(playbook_task, log);
+                        break;
 
                     // Exfiltration
 
@@ -1193,6 +1269,7 @@ namespace PurpleSharp
                         break;
 
                     default:
+                        logger.TimestampInfo("Technique \"" + playbook_task.technique_id + "\" not supported or unknown.");
                         break;
 
                 }
@@ -1223,11 +1300,12 @@ namespace PurpleSharp
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
             Logger logger = new Logger(currentPath + log);
             PlaybookTask lastTask = playbook.tasks.Last();
+            logger.TimestampInfo("Running Simulation Playbook");
             foreach (PlaybookTask task in playbook.tasks)
             {
                 ExecutePlaybookTask(task, log);
                 if (playbook.playbook_sleep > 0 && task != lastTask ) Thread.Sleep(1000 * playbook.playbook_sleep);
-                logger.TimestampInfo("Playbook Finished");
+                if (task == lastTask) logger.TimestampInfo("Simulation Playbook Finished");
             }
         }
 

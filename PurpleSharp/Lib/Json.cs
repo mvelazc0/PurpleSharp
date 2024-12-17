@@ -31,6 +31,7 @@ namespace PurpleSharp.Lib
                 string strip = "";
 
                 if (lines[i].Contains("Running Playbook"))
+                //if (lines[i].Contains("techniques from Playbook"))
                 {
                     SimulationPlaybookResult playbookresult = new SimulationPlaybookResult();
                     List<PlaybookTaskResult> taskresults = new List<PlaybookTaskResult>();
@@ -39,6 +40,7 @@ namespace PurpleSharp.Lib
                     List<TaskDebugMsg> debugmsgs = new List<TaskDebugMsg>();
 
                     strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("Running Playbook", "").Trim();
+                    //strip = lines[i].Substring(lines[i].LastIndexOf("]") + 1).Replace("techniques from Playbook", "").Trim();
                     playbookresult.name = strip;
                     bool finished = false;
                     int skipped = 0;
@@ -81,7 +83,7 @@ namespace PurpleSharp.Lib
                             taskresult = new PlaybookTaskResult();
                             debugmsgs = new List<TaskDebugMsg>();
                         }
-                        else if (lines[k].Contains("Playbook Finished")) 
+                        else if (lines[k].Contains("Simulation Playbook Finished")) 
                         {
                             finished = true;
                         }
@@ -247,11 +249,11 @@ namespace PurpleSharp.Lib
 
         }
 
-        public static void ExportAttackLayer(string[] techniques)
+        public static void ExportAttackLayer(string[] supported_techniques, string[] unsupported_techniques)
         {
 
             NavigatorLayer layer = new NavigatorLayer();
-            layer.version = "4.2";
+            layer.version = "4.4";
             layer.name = "PurpleSharp Coverage";
             layer.domain = "mitre-enterprise";
             layer.description = "Layer of techniques supported by PurpleSharp";
@@ -265,13 +267,24 @@ namespace PurpleSharp.Lib
 
             List<NavigatorTechnique> layertechniques = new List<NavigatorTechnique>();
 
-            foreach (string technique in techniques)
+            foreach (string sup_technique in supported_techniques)
             {
                 NavigatorTechnique tech = new NavigatorTechnique();
-                tech.techniqueID = technique;
+                tech.techniqueID = sup_technique;
                 tech.color = "#756bb1";
                 //tech.comment = "";
                 tech.enabled = true;
+                tech.score = 1;
+
+                layertechniques.Add(tech);
+            }
+            foreach (string unsup_technique in unsupported_techniques)
+            {
+                NavigatorTechnique tech = new NavigatorTechnique();
+                tech.techniqueID = unsup_technique;
+                tech.color = "#756bb1";
+                //tech.comment = "";
+                tech.enabled = false;
                 tech.score = 1;
 
                 layertechniques.Add(tech);

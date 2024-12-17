@@ -312,7 +312,7 @@ namespace PurpleSharp.Simulations
             else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
             else target = computer.IPv4;
 
-            string cleanPws = String.Format("Invoke-Command -ComputerName {0} -ScriptBlock {{ {1} }}", target, playbook_task.command);
+            string cleanPws = String.Format("Invoke-Command -ComputerName {0} -ScriptBlock {{ {1} }}", target, playbook_task.payload);
             logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
             var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
             string results = ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
@@ -338,10 +338,10 @@ namespace PurpleSharp.Simulations
                 using (var powershell = PowerShell.Create())
                 {
                     powershell.Runspace = runspace;
-                    powershell.AddScript(playbook_task.command);
+                    powershell.AddScript(playbook_task.payload);
                     var results = powershell.Invoke();
                     runspace.Close();
-                    logger.TimestampInfo(String.Format("Successfully executed {0} using WinRM on {1}", playbook_task.command, computer.ComputerName));
+                    logger.TimestampInfo(String.Format("Successfully executed {0} using WinRM on {1}", playbook_task.payload, computer.ComputerName));
 
                     /*
                     Console.WriteLine("Return command ");
@@ -382,11 +382,11 @@ namespace PurpleSharp.Simulations
             {
                 ConnectionOptions connectoptions = new ConnectionOptions();
 
-                var processToRun = new[] { playbook_task.command };
+                var processToRun = new[] { playbook_task.payload };
                 var wmiScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", target), connectoptions);
                 var wmiProcess = new ManagementClass(wmiScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
                 wmiProcess.InvokeMethod("Create", processToRun);
-                logger.TimestampInfo(String.Format("Successfully executed {0} using WMI's Win32_Process on {1}", playbook_task.command, target));
+                logger.TimestampInfo(String.Format("Successfully executed {0} using WMI's Win32_Process on {1}", playbook_task.payload, target));
             }
             catch (Exception ex)
             {
@@ -409,7 +409,7 @@ namespace PurpleSharp.Simulations
             else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
             else target = computer.IPv4;
 
-            string startProcess = string.Format(@"/node:""{0}"" process call create ""{1}"" ", target, playbook_task.command);
+            string startProcess = string.Format(@"/node:""{0}"" process call create ""{1}"" ", target, playbook_task.payload);
 
             string results = ExecutionHelper.StartProcessNET("wmic.exe", startProcess, logger);
             if (results.Contains("Access is denied"))
@@ -418,6 +418,23 @@ namespace PurpleSharp.Simulations
             }
 
         }
+
+        public static void WmiRemoteCodeExecutionPowerShell(Computer computer, PlaybookTask playbook_task, Logger logger)
+        {
+            string target = "";
+            if (!computer.Fqdn.Equals("")) target = computer.Fqdn;
+            else if (!computer.ComputerName.Equals("")) target = computer.ComputerName;
+            else target = computer.IPv4;
+
+            string cleanPws = String.Format("Invoke-WMIMethod -Class Win32_Process -Name Create –ArgumentList {0} –ComputerName {1}", playbook_task.payload, target);
+            logger.TimestampInfo(String.Format("Using plaintext PowerShell command: {0}", cleanPws));
+            var plainTextBytes = System.Text.Encoding.Unicode.GetBytes(cleanPws);
+            string results = ExecutionHelper.StartProcessNET("powershell.exe", String.Format("-enc {0}", Convert.ToBase64String(plainTextBytes)), logger);
+            if (results.Contains("AccessDenied")) throw new Exception();
+
+
+        }
+
         private static string DateTimetoUTC(DateTime dateParam)
         {
             string buffer = dateParam.ToString("********HHmmss.ffffff");
@@ -443,7 +460,7 @@ namespace PurpleSharp.Simulations
 
 
                 //var processToRun = new[] { playbook_task.command };
-                object[] cmdParams = { playbook_task.command, DateTimetoUTC(DateTime.Now.AddMinutes(1)), false, null, null, true, 0 };
+                object[] cmdParams = { playbook_task.payload, DateTimetoUTC(DateTime.Now.AddMinutes(1)), false, null, null, true, 0 };
                 var wmiScope = new ManagementScope(String.Format("\\\\{0}\\root\\cimv2", target), connectoptions);
 
                 wmiScope.Connect();
@@ -465,7 +482,7 @@ namespace PurpleSharp.Simulations
 
 
                 //wmiScheduledJob.InvokeMethod("Create", cmdParams);
-                logger.TimestampInfo(String.Format("Successfully created a scheduled task remotely {0} using WMI's Win32_ScheduledJob on {1}", playbook_task.command, target));
+                logger.TimestampInfo(String.Format("Successfully created a scheduled task remotely {0} using WMI's Win32_ScheduledJob on {1}", playbook_task.payload, target));
             }
             catch (Exception ex)
             {

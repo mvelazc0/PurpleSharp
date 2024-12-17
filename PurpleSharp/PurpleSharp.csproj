@@ -86,6 +86,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Lib\Techniques.cs" />
     <Compile Include="Lib\Impersonator.cs" />
     <Compile Include="Lib\Json.cs" />
     <Compile Include="Lib\Logger.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="Lib\Utils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Simulations\CommandAndControl.cs" />
     <Compile Include="Simulations\CredAccess.cs" />
     <Compile Include="Simulations\CredAccessHelper.cs" />
     <Compile Include="Simulations\DefenseEvasion.cs" />
