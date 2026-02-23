@@ -1,0 +1,12 @@
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+<!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LEGFEVGH4F"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LEGFEVGH4F');
+</script>
+{% endblock %}
